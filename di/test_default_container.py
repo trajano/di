@@ -9,8 +9,7 @@ import typing
 
 import pytest
 
-from di import component, autowired
-from di.default_container import default_container
+from di import component, autowired, default_container
 
 
 @typing.runtime_checkable

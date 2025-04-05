@@ -28,8 +28,7 @@ This project provides a minimalistic yet powerful way to define and resolve depe
 ### Registering Components
 
 ```python
-from di import component
-from di.default_container import default_container
+from di import component, default_container
 
 @component
 class ServiceA:
