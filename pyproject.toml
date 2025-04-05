@@ -1,0 +1,33 @@
+[project]
+name="dependency-injection-project"
+version="0.1.0"
+requires-python = ">=3.11"
+
+[dependency-groups]
+dev = [
+    "poethepoet>=0.33.1",
+    "pyright>=1.1.398",
+    "pytest>=8.3.5",
+    "pytest-cov>=6.1.0",
+    "ruff>=0.11.4",
+]
+[tool.coverage.run]
+branch=true
+omit = [
+    "*/test_*.py"
+]
+
+[tool.poe.tasks]
+lint = { sequence = ["pyright", "ruff"], help = "Run static analysis" }
+
+[tool.poe.tasks.fmt]
+cmd = "ruff format ."
+
+[tool.poe.tasks.pyright]
+cmd = "pyright"
+
+[tool.poe.tasks.ruff]
+cmd = "ruff check --fix ."
+[tool.poe.tasks.test]
+cmd = "pytest --cov=di --cov-report=term-missing ./"
+help = "Run tests with coverage"
