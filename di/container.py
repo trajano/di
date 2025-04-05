@@ -3,12 +3,6 @@ import typing
 T = typing.TypeVar("T")
 
 
-class ContainerError(RuntimeError):
-    """Exception for errors in the container."""
-
-    ...
-
-
 @typing.runtime_checkable
 class Container(typing.Protocol):
     def add_component_type(

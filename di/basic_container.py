@@ -1,7 +1,10 @@
 import dataclasses
 import inspect
 import typing
-from .container import Container, ContainerError
+
+from . import CycleDetectedError
+from .container import Container
+from .exceptions import ContainerError, ComponentNotFoundError
 
 T = typing.TypeVar("T")
 
@@ -64,10 +67,7 @@ class BasicContainer(Container):
         """
         maybe_component = self.get_optional_component(component_type)
         if maybe_component is None:
-            msg = (
-                f"Unable to find component of type={component_type} in container={self}"
-            )
-            raise ContainerError(msg)
+            raise ComponentNotFoundError(component_type=component_type)
         else:
             return maybe_component
 
@@ -83,19 +83,41 @@ class BasicContainer(Container):
 
     def _resolve_all(self):
         self._locked = True
-        for definition in self._definitions:
-            init_hints = typing.get_type_hints(definition.type.__init__)
+        resolving: set[type] = set()
+
+        type_to_definition = {d.type: d for d in self._definitions}
+
+        def resolve(component_type: type) -> typing.Any:
+            if component_type in self._type_map:
+                return self._type_map[component_type]
+
+            if component_type in resolving:
+                raise CycleDetectedError(component_type=component_type)
+
+            if component_type not in type_to_definition:
+                raise ComponentNotFoundError(component_type=component_type)
+
+            resolving.add(component_type)
+
+            resolved_definition = type_to_definition[component_type]
+            init_hints = typing.get_type_hints(resolved_definition.type.__init__)
             kwargs = {
-                param: self.get_component(dep_type)
+                param: resolve(dep_type)
                 for param, dep_type in init_hints.items()
-                if param != "return" and param != "self"
+                if param not in ("return", "self")
             }
 
-            instance = definition.type(**kwargs)
-            definition.implementation = instance
+            instance = resolved_definition.type(**kwargs)
+            resolved_definition.implementation = instance
             self._instances.add(instance)
-            for satisfied_type in definition.satisfied_types:
+            for satisfied_type in resolved_definition.satisfied_types:
                 self._type_map[satisfied_type] = instance
+
+            resolving.remove(component_type)
+            return instance
+
+        for definition in self._definitions:
+            resolve(definition.type)
 
     def __len__(self) -> int:
         return len(self._definitions)

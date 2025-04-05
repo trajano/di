@@ -53,6 +53,12 @@ def test_get_optional_component():
     assert len(my_classes) == 0
 
 
+def test_missing_component():
+    my_container = BasicContainer()
+    with pytest.raises(ContainerError):
+        my_container.get_component(Logger)
+
+
 def test_contains():
     my_container = BasicContainer()
     my_container.add_component_type(MyDep)

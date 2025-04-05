@@ -1,10 +1,13 @@
-from .container import ContainerError, Container
+from .container import Container
+from .exceptions import ContainerError, CycleDetectedError, ComponentNotFoundError
 from .basic_container import BasicContainer
 from .decorators import component, autowired
 from .default_container import default_container
 
 __all__ = [
     "Container",
+    "CycleDetectedError",
+    "ComponentNotFoundError",
     "BasicContainer",
     "ContainerError",
     "component",
