@@ -1,8 +1,3 @@
-Thanks! Here's the updated `README.md` with the **Eclipse Public License 2.0** reflected under the License section.
-
----
-
-```markdown
 # di
 
 A lightweight and extensible **Dependency Injection (DI)** framework for Python.
