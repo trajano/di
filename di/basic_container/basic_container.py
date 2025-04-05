@@ -1,11 +1,13 @@
 import inspect
-from typing import TypeVar, Any, Type, Self, List
+from typing import TypeVar, Any, Type, Self, List, ParamSpec
+import typing
 
 from di.container import Container
 from di.exceptions import ContainerError, ComponentNotFoundError
 from .implementation_definition import ImplementationDefinition
 from .resolver import Resolver
 
+P = ParamSpec("P")
 T = TypeVar("T")
 
 
@@ -43,6 +45,45 @@ class BasicContainer(Container):
                 satisfied_types=satisfied_types,
                 dependencies=deps,
                 implementation=None,
+                factory=None,
+            )
+        )
+        return self
+
+    def add_component_factory(
+        self, factory: typing.Callable[..., T]
+    ) -> typing.Self:
+        if self._locked:
+            raise ContainerError("Container is locked after first resolution.")
+
+        # Attempt to get the return type of the factory
+        return_type = typing.get_type_hints(factory).get("return")
+        if return_type is None:
+            raise ContainerError("Factory must have a return type annotation.")
+
+        if any(d.type is return_type for d in self._definitions):
+            raise ContainerError(
+                f"Component type {return_type} is already registered."
+            )
+
+        deps = set(
+            param.annotation
+            for name, param in inspect.signature(factory).parameters.items()
+            if param.annotation != inspect.Parameter.empty
+        )
+        satisfied_types = {
+            base
+            for base in inspect.getmro(return_type)
+            if base not in (object, return_type)
+        } | {return_type}
+
+        self._definitions.append(
+            ImplementationDefinition(
+                type=return_type,
+                satisfied_types=satisfied_types,
+                dependencies=deps,
+                implementation=None,
+                factory=factory,
             )
         )
         return self
@@ -76,7 +117,7 @@ class BasicContainer(Container):
         resolver = Resolver(
             definitions=self._definitions,
             type_map=self._type_map,
-            instances=self._instances
+            instances=self._instances,
         )
         resolver.resolve_all()
 

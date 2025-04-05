@@ -1,9 +1,3 @@
-"""
-resolver.py
-
-Module responsible for resolving and instantiating component dependencies in a container.
-"""
-
 from typing import Type, Dict, Set, TypeVar, Any, get_type_hints
 
 from di.exceptions import ComponentNotFoundError, CycleDetectedError
@@ -18,10 +12,10 @@ class Resolver:
     """
 
     def __init__(
-            self,
-            definitions: list[ImplementationDefinition[Any]],
-            type_map: dict[Type, Any],
-            instances: set[Any],
+        self,
+        definitions: list[ImplementationDefinition[Any]],
+        type_map: dict[Type, Any],
+        instances: set[Any],
     ):
         self._definitions = definitions
         self._type_map = type_map
@@ -51,14 +45,24 @@ class Resolver:
 
         self._resolving.add(component_type)
 
-        init_hints = get_type_hints(definition.type.__init__)
-        kwargs = {
-            param: self._resolve(dep_type)
-            for param, dep_type in init_hints.items()
-            if param not in ("self", "return")
-        }
+        if definition.factory is not None:
+            factory = definition.factory
+            factory_hints = get_type_hints(factory)
+            kwargs = {
+                param: self._resolve(dep_type)
+                for param, dep_type in factory_hints.items()
+                if param != "return"
+            }
+            instance = factory(**kwargs)
+        else:
+            init_hints = get_type_hints(definition.type.__init__)
+            kwargs = {
+                param: self._resolve(dep_type)
+                for param, dep_type in init_hints.items()
+                if param not in ("self", "return")
+            }
+            instance = definition.type(**kwargs)
 
-        instance = definition.type(**kwargs)
         definition.implementation = instance
         self._instances.add(instance)
         for satisfied_type in definition.satisfied_types:

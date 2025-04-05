@@ -1,6 +1,5 @@
 import dataclasses
-from typing import Generic, Type, Set, Any, TypeVar
-
+from typing import Generic, Type, Set, Any, TypeVar, Callable
 
 T = TypeVar("T")
 
@@ -18,3 +17,6 @@ class ImplementationDefinition(Generic[T]):
 
     implementation: T | None
     """The resolved instance of the implementation, if already constructed."""
+
+    factory: Callable[..., T] | None
+    """Factory to build the implementation if applicable. Must use keyword-only arguments."""
