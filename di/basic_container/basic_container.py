@@ -1,9 +1,10 @@
 import inspect
-from typing import TypeVar, Any, Type, Self, List, Dict, get_type_hints
+from typing import TypeVar, Any, Type, Self, List
 
 from di.container import Container
-from di.exceptions import ContainerError, ComponentNotFoundError, CycleDetectedError
+from di.exceptions import ContainerError, ComponentNotFoundError
 from .implementation_definition import ImplementationDefinition
+from .resolver import Resolver
 
 T = TypeVar("T")
 
@@ -72,43 +73,12 @@ class BasicContainer(Container):
 
     def _resolve_all(self):
         self._locked = True
-        resolving: set[Type] = set()
-
-        type_to_definition: Dict[Type, ImplementationDefinition] = {
-            d.type: d for d in self._definitions
-        }
-
-        def resolve(component_type: Type[T]) -> T:
-            if component_type in self._type_map:
-                return self._type_map[component_type]
-
-            if component_type in resolving:
-                raise CycleDetectedError(component_type=component_type)
-
-            if component_type not in type_to_definition:
-                raise ComponentNotFoundError(component_type=component_type)
-
-            resolving.add(component_type)
-
-            resolved_definition = type_to_definition[component_type]
-            init_hints = get_type_hints(resolved_definition.type.__init__)
-            kwargs = {
-                param: resolve(dep_type)
-                for param, dep_type in init_hints.items()
-                if param not in ("return", "self")
-            }
-
-            instance = resolved_definition.type(**kwargs)
-            resolved_definition.implementation = instance
-            self._instances.add(instance)
-            for satisfied_type in resolved_definition.satisfied_types:
-                self._type_map[satisfied_type] = instance
-
-            resolving.remove(component_type)
-            return instance
-
-        for definition in self._definitions:
-            resolve(definition.type)
+        resolver = Resolver(
+            definitions=self._definitions,
+            type_map=self._type_map,
+            instances=self._instances
+        )
+        resolver.resolve_all()
 
     def __len__(self) -> int:
         return len(self._definitions)
