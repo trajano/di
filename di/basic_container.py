@@ -87,11 +87,11 @@ class BasicContainer(Container):
 
     def _resolve_all(self):
         self._locked = True
-        resolving: set[type] = set()
+        resolving: set[typing.Type] = set()
 
-        type_to_definition = {d.type: d for d in self._definitions}
+        type_to_definition : typing.Dict[typing.Type, ImplementationDefinition]= {d.type: d for d in self._definitions}
 
-        def resolve(component_type: type) -> typing.Any:
+        def resolve(component_type: typing.Type[T]) -> T:
             if component_type in self._type_map:
                 return self._type_map[component_type]
 
