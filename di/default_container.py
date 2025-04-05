@@ -1,5 +1,5 @@
 """Provide the default container"""
 
-from di import BasicContainer
+from .basic_container import BasicContainer
 
 default_container = BasicContainer()

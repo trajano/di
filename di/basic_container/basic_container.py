@@ -1,27 +1,11 @@
-import dataclasses
 import inspect
-from typing import TypeVar, Type, Set, Generic, Dict, List, Self, get_type_hints, Any
+from typing import TypeVar, Any, Type, Self, List, Dict, get_type_hints
 
-from . import CycleDetectedError
-from .container import Container
-from .exceptions import ContainerError, ComponentNotFoundError
+from di.container import Container
+from di.exceptions import ContainerError, ComponentNotFoundError, CycleDetectedError
+from .implementation_definition import ImplementationDefinition
 
 T = TypeVar("T")
-
-
-@dataclasses.dataclass
-class ImplementationDefinition(Generic[T]):
-    type: Type[T]
-    """The primary type (class) of the implementation."""
-
-    satisfied_types: Set[Type[Any]]
-    """A set of types satisfied by the implementation (excluding 'object')."""
-
-    dependencies: Set[Type[Any]]
-    """A set of types that are constructor dependencies of the implementation."""
-
-    implementation: T | None
-    """The resolved instance of the implementation, if already constructed."""
 
 
 class BasicContainer(Container):
@@ -36,7 +20,9 @@ class BasicContainer(Container):
             raise ContainerError("Container is locked after first resolution.")
 
         if any(d.type is component_type for d in self._definitions):
-            raise ContainerError(f"Component type {component_type} is already registered.")
+            raise ContainerError(
+                f"Component type {component_type} is already registered."
+            )
 
         ctor = inspect.signature(component_type.__init__)
         deps = {
@@ -45,10 +31,10 @@ class BasicContainer(Container):
             if n != "self" and p.annotation != inspect.Parameter.empty
         }
         satisfied_types = {
-                              base
-                              for base in inspect.getmro(component_type)
-                              if base not in (object, component_type)
-                          } | {component_type}
+            base
+            for base in inspect.getmro(component_type)
+            if base not in (object, component_type)
+        } | {component_type}
 
         self._definitions.append(
             ImplementationDefinition(
@@ -59,7 +45,6 @@ class BasicContainer(Container):
             )
         )
         return self
-
 
     def get_component(self, component_type: Type[T]) -> T:
         """
@@ -89,7 +74,9 @@ class BasicContainer(Container):
         self._locked = True
         resolving: set[Type] = set()
 
-        type_to_definition : Dict[Type, ImplementationDefinition]= {d.type: d for d in self._definitions}
+        type_to_definition: Dict[Type, ImplementationDefinition] = {
+            d.type: d for d in self._definitions
+        }
 
         def resolve(component_type: Type[T]) -> T:
             if component_type in self._type_map:

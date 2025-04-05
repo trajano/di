@@ -6,9 +6,9 @@ from .default_container import default_container
 
 __all__ = [
     "Container",
+    "BasicContainer",
     "CycleDetectedError",
     "ComponentNotFoundError",
-    "BasicContainer",
     "ContainerError",
     "component",
     "autowired",
