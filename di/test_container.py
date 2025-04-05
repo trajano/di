@@ -73,3 +73,10 @@ def test_adding_after_get():
     assert isinstance(my_container.get_component(MyDep), MyDep)
     with pytest.raises(ContainerError):
         my_container.add_component_type(MyClass)
+
+
+def test_double_registration():
+    my_container = BasicContainer()
+    my_container.add_component_type(MyDep)
+    with pytest.raises(ContainerError):
+        my_container.add_component_type(MyDep)

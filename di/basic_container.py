@@ -35,17 +35,20 @@ class BasicContainer(Container):
         if self._locked:
             raise ContainerError("Container is locked after first resolution.")
 
+        if any(d.type is component_type for d in self._definitions):
+            raise ContainerError(f"Component type {component_type} is already registered.")
+
         ctor = inspect.signature(component_type.__init__)
-        deps = set(
+        deps = {
             p.annotation
             for n, p in ctor.parameters.items()
             if n != "self" and p.annotation != inspect.Parameter.empty
-        )
+        }
         satisfied_types = {
-            base
-            for base in inspect.getmro(component_type)
-            if base not in (object, component_type)
-        } | {component_type}
+                              base
+                              for base in inspect.getmro(component_type)
+                              if base not in (object, component_type)
+                          } | {component_type}
 
         self._definitions.append(
             ImplementationDefinition(
@@ -56,6 +59,7 @@ class BasicContainer(Container):
             )
         )
         return self
+
 
     def get_component(self, component_type: typing.Type[T]) -> T:
         """
