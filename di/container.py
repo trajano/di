@@ -1,12 +1,23 @@
-import typing
+from typing import (
+    ParamSpec,
+    runtime_checkable,
+    TypeVar,
+    Type,
+    List,
+    Self,
+    Protocol,
+    Callable,
+    Union,
+)
 
-T = typing.TypeVar("T")
-P = typing.ParamSpec("P")
+
+T = TypeVar("T")
+P = ParamSpec("P")
 
 
-@typing.runtime_checkable
-class Container(typing.Protocol):
-    def add_component_type(self, component_type: typing.Type[T]) -> typing.Self:
+@runtime_checkable
+class Container(Protocol):
+    def add_component_type(self, component_type: Type[T]) -> Self:
         """
         Adds a component type into the container. This will throw a ContainerError if an attempt
         to add was done after the first get operation.
@@ -16,7 +27,7 @@ class Container(typing.Protocol):
         """
         raise NotImplementedError()  # pragma: no cover
 
-    def add_component_factory(self, factory: typing.Callable[P, T]) -> typing.Self:
+    def add_component_factory(self, factory: Callable[P, T]) -> Self:
         """
         Adds a component factory into the container. This will throw a ContainerError if an attempt
         to add was done after the first get operation.  The component registered will be the
@@ -27,10 +38,10 @@ class Container(typing.Protocol):
         """
         raise NotImplementedError()  # pragma: no cover
 
-    def __iadd__(self, component_type: typing.Type[typing.Any]) -> typing.Self:
-        return self.add_component_type(component_type)  # pragma: no cover
+    def __iadd__(self, other: Union[Type[T], Callable[..., T]]) -> Self:
+        raise NotImplementedError()  # pragma: no cover
 
-    def get_component(self, component_type: typing.Type[T]) -> T:
+    def get_component(self, component_type: Type[T]) -> T:
         """
         Gets a single component from the container that satisfies the given type.
         This resolves all constructor dependencies for the component.
@@ -40,7 +51,7 @@ class Container(typing.Protocol):
         """
         raise NotImplementedError()  # pragma: no cover
 
-    def get_optional_component(self, component_type: typing.Type[T]) -> T | None:
+    def get_optional_component(self, component_type: Type[T]) -> T | None:
         """
         Gets a single component from the container that satisfies the given type.
 
@@ -52,7 +63,7 @@ class Container(typing.Protocol):
         """
         raise NotImplementedError()  # pragma: no cover
 
-    def get_components(self, component_type: typing.Type[T]) -> typing.List[T]:
+    def get_components(self, component_type: Type[T]) -> List[T]:
         """
         Gets all components from the container that satisfy the given type.
 
@@ -67,13 +78,13 @@ class Container(typing.Protocol):
         """
         raise NotImplementedError()  # pragma: no cover
 
-    def __getitem__(self, component_type: typing.Type[T]) -> T:
+    def __getitem__(self, component_type: Type[T]) -> T:
         """
         Alias for get_component(component_type).
         """
         raise NotImplementedError()  # pragma: no cover
 
-    def __contains__(self, component_type: typing.Type[T]) -> bool:
+    def __contains__(self, component_type: Type[T]) -> bool:
         """
         Check if the type is registered in the container.
         """

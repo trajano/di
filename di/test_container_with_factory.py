@@ -15,22 +15,27 @@ class MyDep(Proto):
     def meth(self):
         return "foo"
 
+
 class MyDepWithDeps:
-    def __init__(self, *, proto:Proto):
+    def __init__(self, *, proto: Proto):
         self._proto = proto
 
     def blah(self):
         return f"blah-{self._proto.meth()}"
 
-def my_dep_builder()->MyDep:
+
+def my_dep_builder() -> MyDep:
     return MyDep()
 
-def my_dep_with_deps_builder(my_dep:Proto)->MyDepWithDeps:
+
+def my_dep_with_deps_builder(my_dep: Proto) -> MyDepWithDeps:
     return MyDepWithDeps(proto=my_dep)
+
 
 def bad_builder():
     """Does nothing."""
     pass
+
 
 class MyClass:
     def __init__(self, *, my_dep: MyDep):
@@ -78,9 +83,14 @@ def test_missing_component():
 
 def test_contains():
     my_container = BasicContainer()
-    my_container.add_component_type(MyDep)
-    my_container.add_component_type(MyClass)
+    my_container += my_dep_builder
+    my_container += MyClass
     assert MyClass in my_container
+
+def test_invalid_type():
+    my_container = BasicContainer()
+    with pytest.raises(TypeError):
+      my_container += 649 # pyright: ignore[reportOperatorIssue]
 
 
 def test_adding_after_get():

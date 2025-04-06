@@ -1,5 +1,6 @@
 import inspect
-from typing import TypeVar, Any, Type, Self, List, ParamSpec
+from collections.abc import Callable
+from typing import TypeVar, Any, Type, Self, List, ParamSpec, Union
 import typing
 
 from di.container import Container
@@ -50,9 +51,7 @@ class BasicContainer(Container):
         )
         return self
 
-    def add_component_factory(
-        self, factory: typing.Callable[..., T]
-    ) -> typing.Self:
+    def add_component_factory(self, factory: typing.Callable[..., T]) -> typing.Self:
         if self._locked:
             raise ContainerError("Container is locked after first resolution.")
 
@@ -62,9 +61,7 @@ class BasicContainer(Container):
             raise ContainerError("Factory must have a return type annotation.")
 
         if any(d.type is return_type for d in self._definitions):
-            raise ContainerError(
-                f"Component type {return_type} is already registered."
-            )
+            raise ContainerError(f"Component type {return_type} is already registered.")
 
         deps = set(
             param.annotation
@@ -120,6 +117,13 @@ class BasicContainer(Container):
             instances=self._instances,
         )
         resolver.resolve_all()
+
+    def __iadd__(self, other: Union[Type[T], Callable[..., T]]) -> Self:
+        if inspect.isclass(other):
+            return self.add_component_type(other)
+        elif callable(other):
+            return self.add_component_factory(other)
+        raise TypeError(f"Unsupported component type: {type(other)}")
 
     def __len__(self) -> int:
         return len(self._definitions)
