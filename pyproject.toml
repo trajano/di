@@ -31,3 +31,7 @@ cmd = "ruff check --fix ."
 [tool.poe.tasks.test]
 cmd = "pytest --cov=di --cov-report=term-missing ./"
 help = "Run tests with coverage"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
