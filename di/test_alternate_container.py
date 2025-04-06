@@ -6,7 +6,11 @@ are properly resolved with dependencies injected.
 """
 
 import typing
+from typing import Callable, TypeVar
+
 from di import BasicContainer, component, autowired
+
+T = TypeVar("T")
 
 
 @typing.runtime_checkable
@@ -47,8 +51,25 @@ def autowired_sample(in_: str, *, my_service: MainService) -> str:
     return f"{in_} - {my_service.foo()}"
 
 
+def aliased_autowired(func: Callable[..., T]) -> Callable[..., T]:
+    """An example of a decorator alias"""
+    return autowired(container=alternate_container)(func)
+
+
+@aliased_autowired
+def aliased_autowired_sample(in_: str, *, my_service: MainService) -> str:
+    return f"aliased {in_} - {my_service.foo()}"
+
+
 def test_autowired():
     assert autowired_sample("abc") == "abc - foo"
+
+
+def test_aliased_autowired():
+    """
+    Show how to do aliasing of the autowired decorator to preset the container.
+    """
+    assert aliased_autowired_sample("abc") == "aliased abc - foo"
 
 
 def test_decorator_with_alternate_container():

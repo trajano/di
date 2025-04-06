@@ -87,10 +87,12 @@ def test_contains():
     my_container += MyClass
     assert MyClass in my_container
 
+
 def test_invalid_type():
     my_container = BasicContainer()
+    my_container.add_component_factory(my_dep_builder)
     with pytest.raises(TypeError):
-      my_container += 649 # pyright: ignore[reportOperatorIssue]
+        my_container += 649  # pyright: ignore[reportOperatorIssue]
 
 
 def test_adding_after_get():
