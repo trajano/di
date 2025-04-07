@@ -3,7 +3,6 @@ from collections.abc import Callable
 from typing import TypeVar, Any, Type, Self, List, ParamSpec, Union
 import typing
 
-from di.container import Container
 from di.exceptions import ContainerError, ComponentNotFoundError
 from .implementation_definition import ImplementationDefinition
 from .resolver import Resolver
@@ -12,7 +11,7 @@ P = ParamSpec("P")
 T = TypeVar("T")
 
 
-class BasicContainer(Container):
+class BasicContainer:
     """Basic Container that only supports synchronized calls."""
 
     def __init__(self):

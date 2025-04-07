@@ -1,8 +1,9 @@
 import functools
 import inspect
 from typing import Callable, Optional, Union, TypeVar, overload, ParamSpec
-from di.default_container import default_container
-from di.container import Container
+from .default_container import default_container
+
+from . import BasicContainer
 
 P = ParamSpec("P")
 R = TypeVar("R")
@@ -14,12 +15,14 @@ def autowired(func: Callable[P, R]) -> Callable[..., R]: ...  # pragma: no cover
 
 @overload
 def autowired(
-    *, container: Container
+    *, container: BasicContainer
 ) -> Callable[[Callable[P, R]], Callable[..., R]]: ...  # pragma: no cover
 
 
 def autowired(
-    func: Optional[Callable[P, R]] = None, *, container: Container = default_container
+    func: Optional[Callable[P, R]] = None,
+    *,
+    container: BasicContainer = default_container,
 ) -> Union[Callable[P, R], Callable[[Callable[P, R]], Callable[..., R]]]:
     """
     Function decorator for dependency injection.

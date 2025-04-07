@@ -2,7 +2,7 @@
 Component decorator for automatic container registration.
 
 This module defines a `component` decorator which adds the decorated class to
-a DI container. By default, the component is registered in the `default_container`.
+a DI container. By default, the component is registered in the `default_aio_container`.
 
 Usage:
 
@@ -14,8 +14,9 @@ Usage:
 """
 
 from typing import Type, TypeVar, Callable, Optional, Union, overload
-from di.container import Container
-from di.default_container import default_container
+
+from .aio_container import AioContainer
+from .default_aio_container import default_aio_container
 
 T = TypeVar("T")
 
@@ -24,12 +25,12 @@ T = TypeVar("T")
 def component(cls: Type[T]) -> Type[T]: ...  # pragma: no cover
 @overload
 def component(
-    *, container: Container = default_container
+    *, container: AioContainer = default_aio_container
 ) -> Callable[[Type[T]], Type[T]]: ...  # pragma: no cover
 
 
 def component(
-    cls: Optional[Type[T]] = None, *, container: Container = default_container
+    cls: Optional[Type[T]] = None, *, container: AioContainer = default_aio_container
 ) -> Union[Type[T], Callable[[Type[T]], Type[T]]]:
     """
     Class decorator to register a component type with a dependency injection container.

@@ -59,6 +59,7 @@ def autowired_sample_with_extra_kwargs(
 
 
 def test_autowired():
+    """Simple autowiring test."""
     assert autowired_sample("abc") == "abc - foo"
 
 

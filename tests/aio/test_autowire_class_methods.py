@@ -1,4 +1,4 @@
-from di import component, autowired
+from di.aio import component, autowired
 
 
 @component
@@ -9,7 +9,7 @@ class Config:
 
 class Logger:
     @autowired
-    def log(self, *, config: Config):
+    async def log(self, *, config: Config):
         print("Logging with config value:", config.value)
 
 
