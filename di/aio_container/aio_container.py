@@ -10,12 +10,12 @@ from typing import (
     Awaitable,
     overload,
 )
-import typing
 import inspect
 from di import ContainerError, ComponentNotFoundError
 from di.util import (
     extract_dependencies_from_signature,
-    extract_satisfied_types_from_type, extract_satisfied_types_from_return_of_callable,
+    extract_satisfied_types_from_type,
+    extract_satisfied_types_from_return_of_callable,
 )
 from .aio_resolver import resolve
 from .implementation_definition import ImplementationDefinition
@@ -31,7 +31,7 @@ class AioContainer:
         self._type_map: dict[type, list] | None = None
         self._registered: set[type | Callable[..., Any]] = set()
 
-    def add_component_type(self, component_type: type) -> Self:
+    def add_component_type(self, component_type: type) -> None:
         if self._type_map is not None:
             raise ContainerError("Container is locked after first resolution.")
         if component_type in self._registered:
@@ -49,11 +49,10 @@ class AioContainer:
                 factory_is_async=False,
             )
         )
-        return self
 
     def add_component_factory(
         self, factory: Callable[P, T] | Callable[P, Awaitable[T]]
-    ) -> Self:
+    ) -> None:
         if self._type_map is not None:
             raise ContainerError("Container is locked after first resolution.")
         if factory in self._registered:
@@ -61,7 +60,9 @@ class AioContainer:
         self._registered.add(factory)
 
         deps = extract_dependencies_from_signature(factory)
-        return_type, satisfied_types = extract_satisfied_types_from_return_of_callable(factory)
+        return_type, satisfied_types = extract_satisfied_types_from_return_of_callable(
+            factory
+        )
 
         self._definitions.append(
             ImplementationDefinition(
@@ -73,18 +74,19 @@ class AioContainer:
                 factory_is_async=inspect.iscoroutinefunction(factory),
             )
         )
-        return self
 
     @overload
-    def __iadd__(self, other: type) -> Self: ...
+    def __iadd__(self, other: type) -> Self: ... # pragma: no cover
     @overload
-    def __iadd__(self, other: Callable[..., T]) -> Self: ...
+    def __iadd__(self, other: Callable[..., T]) -> Self: ... # pragma: no cover
 
     def __iadd__(self, other: Union[type, Callable[..., T]]) -> Self:
         if inspect.isclass(other):
-            return self.add_component_type(other)
+            self.add_component_type(other)
+            return self
         elif callable(other):
-            return self.add_component_factory(other)
+            self.add_component_factory(other)
+            return self
         raise TypeError(f"Unsupported component type: {type(other)}")
 
     async def get_component(self, component_type: Type[T]) -> T:

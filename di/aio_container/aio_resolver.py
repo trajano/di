@@ -7,11 +7,11 @@ T = TypeVar("T")
 
 
 async def resolve(
-        definitions: list[ImplementationDefinition[Any]],
+    definitions: list[ImplementationDefinition[Any]],
 ) -> dict[type, list]:
     collected: dict[type, list] = {}
     constructed: dict[type, Any] = {}
-    constructed_from_factory: dict[Callable[...,Any], Any] = {}
+    constructed_from_factory: dict[Callable[..., Any], Any] = {}
 
     async def resolve_one(defn: ImplementationDefinition[Any]) -> Any:
         # only short-circuit if there's no factory (i.e., class-only resolution)
@@ -33,12 +33,15 @@ async def resolve(
             if origin in {list, set} and args:
                 inner_type = args[0]
                 values = collected.get(inner_type, [])
-                resolved_args[dep_type] = list(values) if origin is list else set(values)
+                resolved_args[dep_type] = (
+                    list(values) if origin is list else set(values)
+                )
                 continue
 
             dep_def = next(
                 (
-                    d for d in definitions
+                    d
+                    for d in definitions
                     if dep_type in d.satisfied_types or d.type == dep_type
                 ),
                 None,
@@ -66,9 +69,8 @@ async def resolve(
                 constructed[defn.type] = instance
             defn.implementation = instance
 
-
         for typ in defn.satisfied_types:
-            collected.setdefault(typ,[]).append(instance)
+            collected.setdefault(typ, []).append(instance)
 
         return instance
 

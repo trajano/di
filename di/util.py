@@ -12,7 +12,10 @@ def extract_dependencies_from_signature(fn: Callable[..., Any]) -> set[type]:
         and param.annotation is not inspect.Parameter.empty
     }
 
-def extract_satisfied_types_from_return_of_callable(fn: Callable[...,Any]) -> tuple[type,set[type]]:
+
+def extract_satisfied_types_from_return_of_callable(
+    fn: Callable[..., Any],
+) -> tuple[type, set[type]]:
     """Extracts the return type of callable and gets the satisfied types and the primary type."""
     sig = inspect.signature(fn)
     return_annotation = sig.return_annotation
@@ -27,6 +30,8 @@ def extract_satisfied_types_from_return_of_callable(fn: Callable[...,Any]) -> tu
         return_annotation = origin
 
     return return_annotation, extract_satisfied_types_from_type(return_annotation)
+
+
 def extract_satisfied_types_from_type(component_type: type) -> set[type]:
     """Recursively extract satisfied types from a type.
 

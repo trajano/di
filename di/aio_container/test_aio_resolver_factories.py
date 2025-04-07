@@ -33,13 +33,14 @@ async def my_dep_builder() -> MyDep:
     await asyncio.sleep(0.001)
     return MyDep()
 
+
 def my_sync_dep_builder() -> MyDep:
     return MyDep()
+
 
 async def my_other_async_dep_builder() -> MyDep:
     await asyncio.sleep(0.001)
     return MyDep()
-
 
 
 async def test_resolver_get_one():
@@ -54,7 +55,9 @@ async def test_resolver_get_one():
         )
     ]
     resolved = await resolve(definitions=definitions)
-    assert len(resolved[Proto])==1
+    assert len(resolved[Proto]) == 1
+
+
 async def test_resolver_get_sync():
     definitions = [
         ImplementationDefinition(
@@ -67,7 +70,8 @@ async def test_resolver_get_sync():
         )
     ]
     resolved = await resolve(definitions=definitions)
-    assert len(resolved[Proto])==1
+    assert len(resolved[Proto]) == 1
+
 
 async def test_resolver_get_list():
     definitions = [
@@ -97,7 +101,7 @@ async def test_resolver_get_list():
         ),
     ]
     resolved = await resolve(definitions=definitions)
-    assert len(resolved[Proto])==3
+    assert len(resolved[Proto]) == 3
 
 
 async def test_resolver_get_list_with_classes():
@@ -136,4 +140,4 @@ async def test_resolver_get_list_with_classes():
         ),
     ]
     resolved = await resolve(definitions=definitions)
-    assert len(resolved[Proto])==3
+    assert len(resolved[Proto]) == 3

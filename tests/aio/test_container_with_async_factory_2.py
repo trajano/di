@@ -3,8 +3,11 @@ import asyncio
 import typing
 from logging import Logger
 
-from di.aio import ContainerError, AioContainer
-from di.util import extract_satisfied_types_from_type, extract_satisfied_types_from_return_of_callable
+from di.aio import ContainerError, AioContainer, DuplicateRegistrationError
+from di.util import (
+    extract_satisfied_types_from_type,
+    extract_satisfied_types_from_return_of_callable,
+)
 
 
 @typing.runtime_checkable
@@ -47,9 +50,11 @@ async def my_dep_builder() -> MyDep:
 def my_other_dep_builder() -> MyDep:
     return MyDep()
 
+
 async def my_other_async_dep_builder() -> MyDep:
     await asyncio.sleep(0.001)
     return MyDep()
+
 
 async def my_dep_with_deps_builder(*, my_deps: set[Proto]) -> MyDepWithDeps:
     await asyncio.sleep(0.001)
@@ -68,15 +73,18 @@ class MyClass:
     def foo(self):
         return self._my_dep.meth()
 
+
 def test_bad_builder_from_util():
     with pytest.raises(TypeError):
         extract_satisfied_types_from_return_of_callable(bad_builder)
+
 
 async def test_understanding_of_set():
     a = await my_dep_builder()
     b = my_other_dep_builder()
     assert a != b
-    assert len({a,b})==2
+    assert len({a, b}) == 2
+
 
 async def test_single_factory():
     my_container = AioContainer()
@@ -103,21 +111,32 @@ async def test_one_proto_one_factory_and_class():
     my_dep = await my_container.get_component(MyDepWithDeps)
     assert await my_dep.dep_count() == 2
 
+
+async def test_get_multiple_but_only_want_one():
+    my_container = AioContainer()
+    my_container += my_dep_builder
+    my_container += MyDep2
+    my_container += MyDepWithDeps
+    with pytest.raises(ContainerError):
+        await my_container.get_component(Proto)
+
+
 def test_satisfies():
-    p, l = extract_satisfied_types_from_return_of_callable(my_dep_builder)
-    assert Proto in l
+    p, satisfied_types = extract_satisfied_types_from_return_of_callable(my_dep_builder)
+    assert Proto in satisfied_types
     assert p == MyDep
 
-    p, l = extract_satisfied_types_from_return_of_callable(my_other_async_dep_builder)
-    assert Proto in l
+    p, satisfied_types = extract_satisfied_types_from_return_of_callable(my_other_async_dep_builder)
+    assert Proto in satisfied_types
     assert p == MyDep
 
-    p, l = extract_satisfied_types_from_return_of_callable(my_dep_builder)
-    assert Proto in l
+    p, satisfied_types = extract_satisfied_types_from_return_of_callable(my_dep_builder)
+    assert Proto in satisfied_types
     assert p == MyDep
 
     assert Proto in extract_satisfied_types_from_type(MyDep)
     assert Proto in extract_satisfied_types_from_type(MyDep2)
+
 
 async def test_get_components2():
     my_container = AioContainer()
@@ -197,6 +216,8 @@ async def test_adding_after_get():
     assert isinstance(await my_container.get_component(MyDep), MyDep)
     with pytest.raises(ContainerError):
         my_container.add_component_factory(my_dep_builder)
+    with pytest.raises(ContainerError):
+        my_container.add_component_type(MyDep2)
 
 
 async def test_bad_builder():
@@ -206,6 +227,14 @@ async def test_bad_builder():
 
 
 async def test_double_registration():
+    my_container = AioContainer()
+    my_container += MyDep2
+
+    with pytest.raises(DuplicateRegistrationError):
+        my_container += MyDep2
+
+
+async def test_double_registration_factory():
     my_container = AioContainer()
     my_container.add_component_factory(my_dep_builder)
 
