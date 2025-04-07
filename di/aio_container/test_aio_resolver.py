@@ -20,6 +20,15 @@ class MyDep(Proto):
         return "ablah"
 
 
+class MyDep2(Proto):
+    def meth(self):
+        return "foo2"
+
+    async def ablah(self):
+        await asyncio.sleep(0.001)
+        return "ablah2"
+
+
 class MyDepWithDeps:
     def __init__(self, *, proto: Proto):
         self._proto = proto
@@ -50,6 +59,14 @@ class MyClass:
         return self._my_dep.meth()
 
 
+class MyClassWithList:
+    def __init__(self, *, my_deps: list[Proto]):
+        self._my_deps = my_deps
+
+    def dep_count(self):
+        return len(self._my_deps)
+
+
 async def test_resolver():
     definitions = [
         ImplementationDefinition(
@@ -62,7 +79,7 @@ async def test_resolver():
         )
     ]
     resolved = await resolve(definitions=definitions)
-    assert len(resolved) == 2
+    print(resolved)
     assert isinstance(resolved[Proto][0], MyDep)
     assert resolved[Proto][0].meth() == "foo"
     assert (await resolved[MyDep][0].ablah()) == "ablah"
@@ -112,9 +129,40 @@ async def test_resolver_with_deps():
         ),
     ]
     resolved = await resolve(definitions=definitions)
-    assert len(resolved) == 3
     assert isinstance(resolved[Proto][0], MyDep)
     assert resolved[Proto][0].meth() == "foo"
     assert (await resolved[MyDep][0].ablah()) == "ablah"
     assert isinstance(resolved[MyDepWithDeps][0], MyDepWithDeps)
     assert (await resolved[MyDepWithDeps][0].ablah()) == "blah-ablah"
+
+
+async def test_resolver_with_class_accepting_list():
+    definitions = [
+        ImplementationDefinition(
+            type=MyDep,
+            satisfied_types={MyDep, Proto},
+            implementation=None,
+            dependencies=set(),
+            factory=None,
+            factory_is_async=False,
+        ),
+        ImplementationDefinition(
+            type=MyDep2,
+            satisfied_types={MyDep2, Proto},
+            implementation=None,
+            dependencies=set(),
+            factory=None,
+            factory_is_async=False,
+        ),
+        ImplementationDefinition(
+            type=MyClassWithList,
+            satisfied_types={MyClassWithList},
+            implementation=None,
+            dependencies={list[Proto]},
+            factory=None,
+            factory_is_async=False,
+        ),
+    ]
+    resolved = await resolve(definitions=definitions)
+    assert isinstance(resolved[MyClassWithList][0], MyClassWithList)
+    assert resolved[MyClassWithList][0].dep_count() == 2

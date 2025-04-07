@@ -15,10 +15,11 @@ import inspect
 from di import ContainerError, ComponentNotFoundError
 from di.util import (
     extract_dependencies_from_signature,
-    extract_satisfied_types_from_type,
+    extract_satisfied_types_from_type, extract_satisfied_types_from_return_of_callable,
 )
 from .aio_resolver import resolve
 from .implementation_definition import ImplementationDefinition
+from ..exceptions import DuplicateRegistrationError
 
 P = ParamSpec("P")
 T = TypeVar("T")
@@ -28,10 +29,14 @@ class AioContainer:
     def __init__(self):
         self._definitions: list[ImplementationDefinition[Any]] = []
         self._type_map: dict[type, list] | None = None
+        self._registered: set[type | Callable[..., Any]] = set()
 
     def add_component_type(self, component_type: type) -> Self:
         if self._type_map is not None:
             raise ContainerError("Container is locked after first resolution.")
+        if component_type in self._registered:
+            raise DuplicateRegistrationError(type_or_factory=component_type)
+        self._registered.add(component_type)
         deps = extract_dependencies_from_signature(component_type.__init__)
         satisfied_types = extract_satisfied_types_from_type(component_type)
         self._definitions.append(
@@ -51,14 +56,12 @@ class AioContainer:
     ) -> Self:
         if self._type_map is not None:
             raise ContainerError("Container is locked after first resolution.")
-
-        # Attempt to get the return type of the factory
-        return_type = typing.get_type_hints(factory).get("return")
-        if return_type is None:
-            raise ContainerError("Factory must have a return type annotation.")
+        if factory in self._registered:
+            raise DuplicateRegistrationError(type_or_factory=factory)
+        self._registered.add(factory)
 
         deps = extract_dependencies_from_signature(factory)
-        satisfied_types = extract_satisfied_types_from_type(return_type)
+        return_type, satisfied_types = extract_satisfied_types_from_return_of_callable(factory)
 
         self._definitions.append(
             ImplementationDefinition(

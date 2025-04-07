@@ -4,6 +4,7 @@ import typing
 from logging import Logger
 
 from di.aio import ContainerError, AioContainer
+from di.util import extract_satisfied_types_from_type, extract_satisfied_types_from_return_of_callable
 
 
 @typing.runtime_checkable
@@ -20,16 +21,22 @@ class MyDep(Proto):
         return "ablah"
 
 
-class MyDepWithDeps:
-    def __init__(self, *, proto: Proto):
-        self._proto = proto
-
-    def blah(self):
-        return f"blah-{self._proto.meth()}"
+class MyDep2(Proto):
+    def meth(self):
+        return "foo2"
 
     async def ablah(self):
         await asyncio.sleep(0.001)
-        return f"blah-{self._proto.meth()}"
+        return "ablah2"
+
+
+class MyDepWithDeps:
+    def __init__(self, *, protos: set[Proto]):
+        self._protos = protos
+
+    async def dep_count(self):
+        await asyncio.sleep(0.001)
+        return len(self._protos)
 
 
 async def my_dep_builder() -> MyDep:
@@ -37,13 +44,20 @@ async def my_dep_builder() -> MyDep:
     return MyDep()
 
 
-async def my_dep_with_deps_builder(*, my_dep: Proto) -> MyDepWithDeps:
+def my_other_dep_builder() -> MyDep:
+    return MyDep()
+
+async def my_other_async_dep_builder() -> MyDep:
     await asyncio.sleep(0.001)
-    return MyDepWithDeps(proto=my_dep)
+    return MyDep()
+
+async def my_dep_with_deps_builder(*, my_deps: set[Proto]) -> MyDepWithDeps:
+    await asyncio.sleep(0.001)
+    return MyDepWithDeps(protos=my_deps)
 
 
 def bad_builder():
-    """Does nothing."""
+    """Does nothing.  The return type will not be known so using this will raise an error"""
     pass
 
 
@@ -54,6 +68,15 @@ class MyClass:
     def foo(self):
         return self._my_dep.meth()
 
+def test_bad_builder_from_util():
+    with pytest.raises(TypeError):
+        extract_satisfied_types_from_return_of_callable(bad_builder)
+
+async def test_understanding_of_set():
+    a = await my_dep_builder()
+    b = my_other_dep_builder()
+    assert a != b
+    assert len({a,b})==2
 
 async def test_single_factory():
     my_container = AioContainer()
@@ -63,28 +86,70 @@ async def test_single_factory():
     assert (await my_dep.ablah()) == "ablah"
 
 
-async def test_two_factories():
+async def test_two_protos_and_class():
     my_container = AioContainer()
-    my_container.add_component_factory(my_dep_builder)
-    my_container.add_component_factory(my_dep_with_deps_builder)
-    my_dep = await my_container.get_component(MyDep)
-    assert my_dep.meth() == "foo"
-    my_dep_with_deps = await my_container.get_component(MyDepWithDeps)
-    assert my_dep_with_deps.blah() == "blah-foo"
-    assert (await my_dep_with_deps.ablah()) == "blah-foo"
+    my_container += MyDep
+    my_container += MyDep2
+    my_container += MyDepWithDeps
+    my_dep = await my_container.get_component(MyDepWithDeps)
+    assert await my_dep.dep_count() == 2
 
-async def test_two_factories_and_class():
+
+async def test_one_proto_one_factory_and_class():
     my_container = AioContainer()
     my_container += my_dep_builder
+    my_container += MyDep2
+    my_container += MyDepWithDeps
+    my_dep = await my_container.get_component(MyDepWithDeps)
+    assert await my_dep.dep_count() == 2
+
+def test_satisfies():
+    p, l = extract_satisfied_types_from_return_of_callable(my_dep_builder)
+    assert Proto in l
+    assert p == MyDep
+
+    p, l = extract_satisfied_types_from_return_of_callable(my_other_async_dep_builder)
+    assert Proto in l
+    assert p == MyDep
+
+    p, l = extract_satisfied_types_from_return_of_callable(my_dep_builder)
+    assert Proto in l
+    assert p == MyDep
+
+    assert Proto in extract_satisfied_types_from_type(MyDep)
+    assert Proto in extract_satisfied_types_from_type(MyDep2)
+
+async def test_get_components2():
+    my_container = AioContainer()
+    my_container += my_dep_builder
+    my_container += my_other_dep_builder
+    my_container += my_other_async_dep_builder
+    my_container += MyDep
+    my_container += MyDep2
+    protos = await my_container.get_components(Proto)
+    print(protos)
+    assert len(protos) == 5
+
+
+async def test_one_proto_one_sync_factory_one_async_factory_and_class():
+    my_container = AioContainer()
+    my_container += my_dep_builder
+    my_container += my_other_dep_builder
+    my_container += MyDep2
+    my_container += MyDepWithDeps
+    print(await my_container.get_components(Proto))
+    assert len(await my_container.get_components(Proto)) == 3
+    my_dep = await my_container.get_component(MyDepWithDeps)
+    assert await my_dep.dep_count() == 3
+
+
+async def test_one_proto_one_factory_and_class_factory():
+    my_container = AioContainer()
+    my_container += my_dep_builder
+    my_container += MyDep2
     my_container += my_dep_with_deps_builder
-    my_container += MyClass
-    my_dep = await my_container.get_component(MyDep)
-    assert my_dep.meth() == "foo"
-    my_dep_with_deps = await my_container.get_component(MyDepWithDeps)
-    assert my_dep_with_deps.blah() == "blah-foo"
-    assert (await my_dep_with_deps.ablah()) == "blah-foo"
-    my_class_impl = await my_container.get_component(MyClass)
-    assert my_class_impl.foo() == "foo"
+    my_dep = await my_container.get_component(MyDepWithDeps)
+    assert await my_dep.dep_count() == 2
 
 
 async def test_simple_usage():
@@ -118,40 +183,31 @@ async def test_missing_component():
         await my_container.get_component(Logger)
 
 
-#
-#
-# def test_contains():
-#     my_container = BasicContainer()
-#     my_container += my_dep_builder
-#     my_container += MyClass
-#     assert MyClass in my_container
-#
-#
-# def test_invalid_type():
-#     my_container = BasicContainer()
-#     my_container.add_component_factory(my_dep_builder)
-#     with pytest.raises(TypeError):
-#         my_container += 649  # pyright: ignore[reportOperatorIssue]
-#
-#
-# def test_adding_after_get():
-#     my_container = BasicContainer()
-#     my_container.add_component_type(MyDep)
-#     assert isinstance(my_container.get_component(MyDep), Proto)
-#     assert isinstance(my_container.get_component(MyDep), MyDep)
-#     with pytest.raises(ContainerError):
-#         my_container.add_component_factory(my_dep_builder)
-#
-#
-# def test_bad_builder():
-#     my_container = BasicContainer()
-#     with pytest.raises(ContainerError):
-#         my_container.add_component_factory(bad_builder)
-#
-#
-# def test_double_registration():
-#     my_container = BasicContainer()
-#     my_container.add_component_factory(my_dep_builder)
-#
-#     with pytest.raises(ContainerError):
-#         my_container.add_component_factory(my_dep_builder)
+async def test_invalid_type():
+    my_container = AioContainer()
+    my_container.add_component_factory(my_dep_builder)
+    with pytest.raises(TypeError):
+        my_container += 649  # pyright: ignore[reportOperatorIssue]
+
+
+async def test_adding_after_get():
+    my_container = AioContainer()
+    my_container.add_component_type(MyDep)
+    assert isinstance(await my_container.get_component(MyDep), Proto)
+    assert isinstance(await my_container.get_component(MyDep), MyDep)
+    with pytest.raises(ContainerError):
+        my_container.add_component_factory(my_dep_builder)
+
+
+async def test_bad_builder():
+    my_container = AioContainer()
+    with pytest.raises(TypeError):
+        my_container.add_component_factory(bad_builder)
+
+
+async def test_double_registration():
+    my_container = AioContainer()
+    my_container.add_component_factory(my_dep_builder)
+
+    with pytest.raises(ContainerError):
+        my_container.add_component_factory(my_dep_builder)

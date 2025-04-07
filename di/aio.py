@@ -1,4 +1,5 @@
 """Async IO only API"""
+
 from .aio_container import AioContainer
 from .decorators import component, autowired
 from .exceptions import ContainerError, CycleDetectedError, ComponentNotFoundError

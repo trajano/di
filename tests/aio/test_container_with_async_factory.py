@@ -73,6 +73,7 @@ async def test_two_factories():
     assert my_dep_with_deps.blah() == "blah-foo"
     assert (await my_dep_with_deps.ablah()) == "blah-foo"
 
+
 async def test_two_factories_and_class():
     my_container = AioContainer()
     my_container += my_dep_builder
