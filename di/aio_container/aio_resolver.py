@@ -2,21 +2,22 @@ import inspect
 from collections.abc import Callable
 from typing import Any, TypeVar, get_args, get_origin
 
-from .. import ComponentNotFoundError
-from .implementation_definition import ImplementationDefinition
+from di.exceptions import ComponentNotFoundError
+
+from .component_definition import ComponentDefinition
 
 T = TypeVar("T")
 
 
 async def resolve(
-    definitions: list[ImplementationDefinition[Any]],
+    definitions: list[ComponentDefinition[Any]],
 ) -> dict[type, list]:
     collected: dict[type, list] = {}
     constructed: dict[type, Any] = {}
     constructed_from_factory: dict[Callable[..., Any], Any] = {}
     implementation_provided: set = set()
 
-    async def resolve_one(defn: ImplementationDefinition[Any]) -> Any:
+    async def resolve_one(defn: ComponentDefinition[Any]) -> Any:
         # short-circuit if there's no factory (i.e., class-only resolution)
         if defn.type in constructed and defn.factory is None:
             return constructed[defn.type]

@@ -2,7 +2,8 @@ import logging
 
 from di import component, default_container
 
-log=logging.getLogger(__name__)
+log = logging.getLogger(__name__)
+
 
 @component
 class ServiceA:

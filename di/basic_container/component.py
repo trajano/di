@@ -13,7 +13,7 @@ Usage:
 """
 
 from collections.abc import Callable
-from typing import Type, TypeVar, overload
+from typing import TypeVar, overload
 
 from .container import Container
 from .default_container import default_container
@@ -22,17 +22,17 @@ T = TypeVar("T")
 
 
 @overload
-def component(cls: Type[T]) -> Type[T]: ...  # pragma: no cover
+def component(cls: type[T]) -> type[T]: ...  # pragma: no cover
 @overload
 def component(
     *, container: Container = default_container
-) -> Callable[[Type[T]], Type[T]]: ...  # pragma: no cover
+) -> Callable[[type[T]], type[T]]: ...  # pragma: no cover
 
 
 def component(
-    cls: Type[T] | None = None, *, container: Container = default_container
-) -> Type[T] | Callable[[Type[T]], Type[T]]:
-    """Class decorator to register a component type with a dependency injection container.
+    cls: type[T] | None = None, *, container: Container = default_container
+) -> type[T] | Callable[[type[T]], type[T]]:
+    """Class decorator to register a component into a container.
 
     Supports usage with or without parentheses.
 
@@ -41,7 +41,7 @@ def component(
     :return: Either the original class (if used directly), or a decorator function.
     """
 
-    def wrap(target_cls: Type[T]) -> Type[T]:
+    def wrap(target_cls: type[T]) -> type[T]:
         container.add_component_type(target_cls)
         return target_cls
 

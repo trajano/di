@@ -2,7 +2,7 @@ import logging
 
 from di import autowired, component
 
-log=logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 @component

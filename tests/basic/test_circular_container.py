@@ -1,5 +1,4 @@
-"""Test for registering a circular dependency.
-"""
+"""Test for registering a circular dependency."""
 
 import pytest
 
@@ -17,8 +16,7 @@ class B:
 
 
 def test_cycle_detection():
-    """Check to ensure the container errors out when a circular dependency is present.
-    """
+    """Check to ensure the container errors out when a circular dependency is present."""
     container = BasicContainer()
     container += A
     container += B

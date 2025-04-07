@@ -1,4 +1,4 @@
-"""Provide the default container"""
+"""Provide the default container."""
 
 from .basic_container import BasicContainer
 

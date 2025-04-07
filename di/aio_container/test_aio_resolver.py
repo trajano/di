@@ -3,9 +3,10 @@ import typing
 
 import pytest
 
-from .. import ComponentNotFoundError
+from di.aio import ComponentNotFoundError
+
 from .aio_resolver import resolve
-from .implementation_definition import ImplementationDefinition
+from .component_definition import ComponentDefinition
 
 
 @typing.runtime_checkable
@@ -72,7 +73,7 @@ class MyClassWithList:
 
 async def test_resolver():
     definitions = [
-        ImplementationDefinition(
+        ComponentDefinition(
             type=MyDep,
             satisfied_types={MyDep, Proto},
             implementation=None,
@@ -90,7 +91,7 @@ async def test_resolver():
 
 async def test_resolver_with_class():
     definitions = [
-        ImplementationDefinition(
+        ComponentDefinition(
             type=MyDep,
             satisfied_types={MyDep, Proto},
             implementation=None,
@@ -98,7 +99,7 @@ async def test_resolver_with_class():
             factory=my_dep_builder,
             factory_is_async=True,
         ),
-        ImplementationDefinition(
+        ComponentDefinition(
             type=MyClass,
             satisfied_types={MyClass},
             implementation=None,
@@ -114,7 +115,7 @@ async def test_resolver_with_class():
 
 async def test_resolver_with_deps():
     definitions = [
-        ImplementationDefinition(
+        ComponentDefinition(
             type=MyDep,
             satisfied_types={MyDep, Proto},
             implementation=None,
@@ -122,7 +123,7 @@ async def test_resolver_with_deps():
             factory=my_dep_builder,
             factory_is_async=True,
         ),
-        ImplementationDefinition(
+        ComponentDefinition(
             type=MyDepWithDeps,
             satisfied_types={MyDepWithDeps},
             implementation=None,
@@ -141,7 +142,7 @@ async def test_resolver_with_deps():
 
 async def test_resolver_with_implementation():
     definitions = [
-        ImplementationDefinition(
+        ComponentDefinition(
             type=MyDep,
             satisfied_types={MyDep, Proto},
             implementation=MyDep(),
@@ -149,7 +150,7 @@ async def test_resolver_with_implementation():
             factory=None,
             factory_is_async=False,
         ),
-        ImplementationDefinition(
+        ComponentDefinition(
             type=MyDepWithDeps,
             satisfied_types={MyDepWithDeps},
             implementation=None,
@@ -168,7 +169,7 @@ async def test_resolver_with_implementation():
 
 async def test_resolver_with_mandatory_dep():
     definitions = [
-        ImplementationDefinition(
+        ComponentDefinition(
             type=MyDepWithDeps,
             satisfied_types={MyDepWithDeps},
             implementation=None,
@@ -183,7 +184,7 @@ async def test_resolver_with_mandatory_dep():
 
 async def test_resolver_with_class_accepting_list():
     definitions = [
-        ImplementationDefinition(
+        ComponentDefinition(
             type=MyDep,
             satisfied_types={MyDep, Proto},
             implementation=None,
@@ -191,7 +192,7 @@ async def test_resolver_with_class_accepting_list():
             factory=None,
             factory_is_async=False,
         ),
-        ImplementationDefinition(
+        ComponentDefinition(
             type=MyDep2,
             satisfied_types={MyDep2, Proto},
             implementation=None,
@@ -199,7 +200,7 @@ async def test_resolver_with_class_accepting_list():
             factory=None,
             factory_is_async=False,
         ),
-        ImplementationDefinition(
+        ComponentDefinition(
             type=MyClassWithList,
             satisfied_types={MyClassWithList},
             implementation=None,
@@ -215,7 +216,7 @@ async def test_resolver_with_class_accepting_list():
 
 async def test_resolver_with_class_accepting_list_which_can_be_empty():
     definitions = [
-        ImplementationDefinition(
+        ComponentDefinition(
             type=MyClassWithList,
             satisfied_types={MyClassWithList},
             implementation=None,

@@ -34,7 +34,6 @@ class MainService:
 
 
 def test_broken_container():
-    """Check to ensure the container errors out
-    """
+    """Check to ensure the container errors out"""
     with pytest.raises(ContainerError):
         alternate_container.get_component(MainService)

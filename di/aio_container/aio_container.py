@@ -18,8 +18,8 @@ from di.util import (
 
 from ..exceptions import ContainerLockedError, DuplicateRegistrationError
 from .aio_resolver import resolve
+from .component_definition import ComponentDefinition
 from .container import Container
-from .implementation_definition import ImplementationDefinition
 
 P = ParamSpec("P")
 T = TypeVar("T")
@@ -27,7 +27,7 @@ T = TypeVar("T")
 
 class AioContainer(Container):
     def __init__(self):
-        self._definitions: list[ImplementationDefinition[Any]] = []
+        self._definitions: list[ComponentDefinition[Any]] = []
         self._type_map: dict[type, list] | None = None
         self._registered: set = set()
 
@@ -40,7 +40,7 @@ class AioContainer(Container):
         deps = extract_dependencies_from_signature(component_type.__init__)
         satisfied_types = extract_satisfied_types_from_type(component_type)
         self._definitions.append(
-            ImplementationDefinition(
+            ComponentDefinition(
                 type=component_type,
                 satisfied_types=satisfied_types,
                 dependencies=deps,
@@ -59,7 +59,7 @@ class AioContainer(Container):
         component_type = type(implementation)
         satisfied_types = extract_satisfied_types_from_type(component_type)
         self._definitions.append(
-            ImplementationDefinition(
+            ComponentDefinition(
                 type=component_type,
                 satisfied_types=satisfied_types,
                 dependencies=set(),
@@ -84,7 +84,7 @@ class AioContainer(Container):
         )
 
         self._definitions.append(
-            ImplementationDefinition(
+            ComponentDefinition(
                 type=return_type,
                 satisfied_types=satisfied_types,
                 dependencies=deps,
@@ -94,7 +94,7 @@ class AioContainer(Container):
             )
         )
 
-    def __iadd__(self, other: Any) -> Self:
+    def __iadd__(self, other: T) -> Self:
         if inspect.isclass(other):
             self.add_component_type(other)
             return self
@@ -116,9 +116,7 @@ class AioContainer(Container):
             return None
         if len(component_list) == 1:
             return component_list[0]
-        raise ContainerError(
-            f"Multiple components of type {component_type} registered"
-        )
+        raise ContainerError(f"Multiple components of type {component_type} registered")
 
     async def get_components(self, component_type: Type[T]) -> List[T]:
         self._type_map = self._type_map or (await resolve(self._definitions))

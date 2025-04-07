@@ -38,13 +38,16 @@ def autowired(
     | Callable[P, Coroutine[Any, Any, R]]
     | Callable[[Callable[P, Awaitable[R]]], Callable[..., Awaitable[R]]]
 ):
-    """Async-only autowired decorator. Injects keyword-only parameters from the container if not provided.
+    """Async-only autowired decorator.
+
+    Injects keyword-only parameters from the container if not provided.
     Raises TypeError if used on a non-async function.
     """
 
     def wrapper(f: Callable[P, Awaitable[R]]) -> Callable[P, Awaitable[R]]:
         if not inspect.iscoroutinefunction(f):
-            raise TypeError("The @autowired decorator only supports async functions.")
+            msg = "The @autowired decorator only supports async functions."
+            raise TypeError(msg)
 
         sig = inspect.signature(f)
 

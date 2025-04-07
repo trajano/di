@@ -2,7 +2,7 @@ import asyncio
 import typing
 
 from .aio_resolver import resolve
-from .implementation_definition import ImplementationDefinition
+from .component_definition import ComponentDefinition
 
 
 @typing.runtime_checkable
@@ -45,7 +45,7 @@ async def my_other_async_dep_builder() -> MyDep:
 
 async def test_resolver_get_one():
     definitions = [
-        ImplementationDefinition(
+        ComponentDefinition(
             type=MyDep,
             satisfied_types={MyDep, Proto},
             implementation=None,
@@ -60,7 +60,7 @@ async def test_resolver_get_one():
 
 async def test_resolver_get_sync():
     definitions = [
-        ImplementationDefinition(
+        ComponentDefinition(
             type=MyDep,
             satisfied_types={MyDep, Proto},
             implementation=None,
@@ -75,7 +75,7 @@ async def test_resolver_get_sync():
 
 async def test_resolver_get_list():
     definitions = [
-        ImplementationDefinition(
+        ComponentDefinition(
             type=MyDep,
             satisfied_types={MyDep, Proto},
             implementation=None,
@@ -83,7 +83,7 @@ async def test_resolver_get_list():
             factory=my_dep_builder,
             factory_is_async=True,
         ),
-        ImplementationDefinition(
+        ComponentDefinition(
             type=MyDep,
             satisfied_types={MyDep, Proto},
             implementation=None,
@@ -91,7 +91,7 @@ async def test_resolver_get_list():
             factory=my_other_async_dep_builder,
             factory_is_async=True,
         ),
-        ImplementationDefinition(
+        ComponentDefinition(
             type=MyDep,
             satisfied_types={MyDep, Proto},
             implementation=None,
@@ -106,7 +106,7 @@ async def test_resolver_get_list():
 
 async def test_resolver_get_list_with_classes():
     definitions = [
-        ImplementationDefinition(
+        ComponentDefinition(
             type=MyDep,
             satisfied_types={MyDep, Proto},
             implementation=None,
@@ -114,7 +114,7 @@ async def test_resolver_get_list_with_classes():
             factory=my_dep_builder,
             factory_is_async=True,
         ),
-        ImplementationDefinition(
+        ComponentDefinition(
             type=MyDep,
             satisfied_types={MyDep, Proto},
             implementation=None,
@@ -122,7 +122,7 @@ async def test_resolver_get_list_with_classes():
             factory=my_other_async_dep_builder,
             factory_is_async=True,
         ),
-        ImplementationDefinition(
+        ComponentDefinition(
             type=MyDep,
             satisfied_types={MyDep, Proto},
             implementation=None,
@@ -130,7 +130,7 @@ async def test_resolver_get_list_with_classes():
             factory=my_sync_dep_builder,
             factory_is_async=False,
         ),
-        ImplementationDefinition(
+        ComponentDefinition(
             type=MyDep,
             satisfied_types={MyDep, Proto},
             implementation=None,

@@ -66,6 +66,5 @@ async def test_autowired():
 
 
 async def test_aliased_autowired():
-    """Show how to do aliasing of the autowired decorator to preset the container.
-    """
+    """Show how to do aliasing of the autowired decorator to preset the container."""
     assert (await aliased_autowired_sample("abc")) == "aliased abc - foo"

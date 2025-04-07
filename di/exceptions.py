@@ -1,10 +1,11 @@
+"""Container exception hierarchy."""
+
 import typing
 from collections.abc import Callable
 
 
 class ContainerError(RuntimeError):
     """Exception for errors in the container."""
-
 
 
 class CycleDetectedError(ContainerError):
@@ -44,7 +45,10 @@ class ComponentNotFoundError(ContainerError):
 
 
 class DuplicateRegistrationError(ContainerError):
-    """Exception raised when two EXACT component types or two EXACT factories are registered.
+    """Exception raised when two EXACT components are registered.
+
+    The components are either component types, component factories or component
+    implementations.
 
     :param type_or_factory: The type or factory that caused the error
     :param message: Optional custom message to override the default one.

@@ -1,37 +1,35 @@
-from typing import Any, Dict, Set, Type, TypeVar, get_type_hints
+from typing import Any, TypeVar, get_type_hints
 
 from di.exceptions import ComponentNotFoundError, CycleDetectedError
 
-from .implementation_definition import ImplementationDefinition
+from .component_definition import ComponentDefinition
 
 T = TypeVar("T")
 
 
 class Resolver:
-    """Resolves components and their dependencies using constructor injection.
-    """
+    """Resolve components and their dependencies."""
 
     def __init__(
         self,
-        definitions: list[ImplementationDefinition[Any]],
-        type_map: dict[Type, Any],
+        definitions: list[ComponentDefinition[Any]],
+        type_map: dict[type, Any],
         instances: set[Any],
     ):
         self._definitions = definitions
         self._type_map = type_map
         self._instances = instances
-        self._resolving: Set[Type] = set()
-        self._type_to_definition: Dict[Type, ImplementationDefinition] = {
+        self._resolving: set[type] = set()
+        self._type_to_definition: dict[type, ComponentDefinition] = {
             d.type: d for d in definitions
         }
 
-    def resolve_all(self):
-        """Resolves all component types in the container and their dependencies.
-        """
+    def resolve_all(self) -> None:
+        """Resolve all component types in the container."""
         for definition in self._definitions:
             self._resolve(definition.type)
 
-    def _resolve(self, component_type: Type[T]) -> T:
+    def _resolve(self, component_type: type[T]) -> T:
         if component_type in self._type_map:
             return self._type_map[component_type]
 
