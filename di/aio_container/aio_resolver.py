@@ -8,7 +8,7 @@ T = TypeVar("T")
 
 async def resolve(
     definitions: list[ImplementationDefinition[Any]],
-) -> tuple[dict[type[T], list[T]], set[Any]]:
+) -> dict[type[T], list[T]]:
     collected: dict[type[T], list[T]] = {}
     constructed: dict[type[T], T] = {}
 
@@ -64,10 +64,7 @@ async def resolve(
             await resolve_one(defn)
 
     await resolve_all()
-    all_instances: set[Any] = {
-        instance for instances in collected.values() for instance in instances
-    }
-    return collected, all_instances
+    return collected
 
 
 def _match_args_by_type(fn: Any, resolved_deps: dict[type, Any]) -> dict[str, Any]:

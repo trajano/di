@@ -1,4 +1,15 @@
-from typing import Type, Self, Callable, Union, List, ParamSpec, TypeVar, Any, Awaitable
+from typing import (
+    Type,
+    Self,
+    Callable,
+    Union,
+    List,
+    ParamSpec,
+    TypeVar,
+    Any,
+    Awaitable,
+    overload,
+)
 import typing
 import inspect
 from di import ContainerError, ComponentNotFoundError
@@ -17,9 +28,8 @@ class AioContainer:
     def __init__(self):
         self._definitions: list[ImplementationDefinition[Any]] = []
         self._type_map: dict[type, list] | None = None
-        self._instances: set | None = None
 
-    def add_component_type(self, component_type: Type[T]) -> Self:
+    def add_component_type(self, component_type: type) -> Self:
         if self._type_map is not None:
             raise ContainerError("Container is locked after first resolution.")
         deps = extract_dependencies_from_signature(component_type.__init__)
@@ -62,8 +72,17 @@ class AioContainer:
         )
         return self
 
-    def __iadd__(self, other: Union[Type[T], Callable[..., T]]) -> Self:
-        return self
+    @overload
+    def __iadd__(self, other: type) -> Self: ...
+    @overload
+    def __iadd__(self, other: Callable[..., T]) -> Self: ...
+
+    def __iadd__(self, other: Union[type, Callable[..., T]]) -> Self:
+        if inspect.isclass(other):
+            return self.add_component_type(other)
+        elif callable(other):
+            return self.add_component_factory(other)
+        raise TypeError(f"Unsupported component type: {type(other)}")
 
     async def get_component(self, component_type: Type[T]) -> T:
         maybe_component = await self.get_optional_component(component_type)
@@ -84,6 +103,5 @@ class AioContainer:
             )
 
     async def get_components(self, component_type: Type[T]) -> List[T]:
-        if self._type_map is None:
-            (self._type_map, self._instances) = await resolve(self._definitions)
-        return self._type_map[component_type]
+        self._type_map = self._type_map or (await resolve(self._definitions))
+        return self._type_map.get(component_type, [])

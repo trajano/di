@@ -1,8 +1,9 @@
+import pytest
 import asyncio
 import typing
+from logging import Logger
 
-
-from di.aio_container import AioContainer
+from di.aio import ContainerError, AioContainer
 
 
 @typing.runtime_checkable
@@ -72,6 +73,19 @@ async def test_two_factories():
     assert my_dep_with_deps.blah() == "blah-foo"
     assert (await my_dep_with_deps.ablah()) == "blah-foo"
 
+async def test_two_factories_and_class():
+    my_container = AioContainer()
+    my_container += my_dep_builder
+    my_container += my_dep_with_deps_builder
+    my_container += MyClass
+    my_dep = await my_container.get_component(MyDep)
+    assert my_dep.meth() == "foo"
+    my_dep_with_deps = await my_container.get_component(MyDepWithDeps)
+    assert my_dep_with_deps.blah() == "blah-foo"
+    assert (await my_dep_with_deps.ablah()) == "blah-foo"
+    my_class_impl = await my_container.get_component(MyClass)
+    assert my_class_impl.foo() == "foo"
+
 
 async def test_simple_usage():
     my_container = AioContainer()
@@ -81,28 +95,29 @@ async def test_simple_usage():
     assert my_class_impl.foo() == "foo"
 
 
-#
-# def test_get_components():
-#     my_container = BasicContainer()
-#     my_container.add_component_type(MyDep)
-#     my_container.add_component_type(MyClass)
-#     my_classes = my_container.get_components(MyClass)
-#     assert len(my_classes) == 1
-#
-#
-# def test_get_optional_component():
-#     my_container = BasicContainer()
-#     my_container.add_component_type(MyDep)
-#     my_container.add_component_type(MyClass)
-#     assert my_container.get_optional_component(Logger) is None
-#     my_classes = my_container.get_components(Logger)
-#     assert len(my_classes) == 0
-#
-#
-# def test_missing_component():
-#     my_container = BasicContainer()
-#     with pytest.raises(ContainerError):
-#         my_container.get_component(Logger)
+async def test_get_components():
+    my_container = AioContainer()
+    my_container.add_component_type(MyDep)
+    my_container.add_component_type(MyClass)
+    my_classes = await my_container.get_components(MyClass)
+    assert len(my_classes) == 1
+
+
+async def test_get_optional_component():
+    my_container = AioContainer()
+    my_container.add_component_type(MyDep)
+    my_container.add_component_type(MyClass)
+    assert await my_container.get_optional_component(Logger) is None
+    my_classes = await my_container.get_components(Logger)
+    assert len(my_classes) == 0
+
+
+async def test_missing_component():
+    my_container = AioContainer()
+    with pytest.raises(ContainerError):
+        await my_container.get_component(Logger)
+
+
 #
 #
 # def test_contains():

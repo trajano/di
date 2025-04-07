@@ -6,7 +6,7 @@ T = TypeVar("T")
 
 @dataclasses.dataclass
 class ImplementationDefinition(Generic[T]):
-    type: Type[T]
+    type: type[T]
     """The primary type (class) of the implementation."""
 
     satisfied_types: Set[Type[Any]]

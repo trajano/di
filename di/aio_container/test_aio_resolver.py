@@ -42,11 +42,6 @@ async def my_dep_with_deps_builder(my_dep: Proto) -> MyDepWithDeps:
     return MyDepWithDeps(proto=my_dep)
 
 
-def bad_builder():
-    """Does nothing."""
-    pass
-
-
 class MyClass:
     def __init__(self, *, my_dep: MyDep):
         self._my_dep = my_dep
@@ -66,7 +61,7 @@ async def test_resolver():
             factory_is_async=True,
         )
     ]
-    (resolved, instances) = await resolve(definitions=definitions)
+    resolved = await resolve(definitions=definitions)
     assert len(resolved) == 2
     assert isinstance(resolved[Proto][0], MyDep)
     assert resolved[Proto][0].meth() == "foo"
@@ -92,7 +87,7 @@ async def test_resolver_with_class():
             factory_is_async=False,
         ),
     ]
-    (resolved, instances) = await resolve(definitions=definitions)
+    resolved = await resolve(definitions=definitions)
     assert isinstance(resolved[MyClass][0], MyClass)
     assert resolved[MyClass][0].foo() == "foo"
 
@@ -116,7 +111,7 @@ async def test_resolver_with_deps():
             factory_is_async=True,
         ),
     ]
-    (resolved, instances) = await resolve(definitions=definitions)
+    resolved = await resolve(definitions=definitions)
     assert len(resolved) == 3
     assert isinstance(resolved[Proto][0], MyDep)
     assert resolved[Proto][0].meth() == "foo"
