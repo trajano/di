@@ -1,3 +1,4 @@
+"""Utility functions used by both asyncio and basic containers."""
 import inspect
 import typing
 from collections.abc import Awaitable, Callable, Coroutine
@@ -18,12 +19,17 @@ def extract_dependencies_from_signature(fn: Callable[..., Any]) -> set[type]:
 def extract_satisfied_types_from_return_of_callable(
     fn: Callable[..., Any],
 ) -> tuple[type, set[type]]:
-    """Extracts the return type of callable and gets the satisfied types and the primary type."""
+    """Extract the return type of callable and gets the satisfied types.
+
+    :param fn: the callable
+    :returns: a tuple of the return type and the satisfied types
+    """
     sig = inspect.signature(fn)
     return_annotation = sig.return_annotation
 
     if return_annotation is inspect.Signature.empty:
-        raise TypeError("Return type must be known")
+        msg = "Return type must be known"
+        raise TypeError(msg)
 
     return return_annotation, extract_satisfied_types_from_type(return_annotation)
 
