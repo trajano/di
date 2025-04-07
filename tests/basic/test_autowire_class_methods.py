@@ -1,4 +1,4 @@
-from di import component, autowired
+from di import autowired, component
 
 
 @component

@@ -1,14 +1,14 @@
-"""
-Test for using the `@component` decorator with a non-default container.
+"""Test for using the `@component` decorator with a non-default container.
 
 This validates that component types registered with an alternate container
 are properly resolved with dependencies injected.
 """
 
 import typing
-from typing import Callable, TypeVar
+from collections.abc import Callable
+from typing import TypeVar
 
-from di import BasicContainer, component, autowired
+from di import BasicContainer, autowired, component
 
 T = TypeVar("T")
 
@@ -17,7 +17,7 @@ T = TypeVar("T")
 class Proto(typing.Protocol):
     def meth(self) -> str:
         """Protocol that must be implemented by dependency classes."""
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 # Define a custom container for this test
@@ -66,15 +66,13 @@ def test_autowired():
 
 
 def test_aliased_autowired():
-    """
-    Show how to do aliasing of the autowired decorator to preset the container.
+    """Show how to do aliasing of the autowired decorator to preset the container.
     """
     assert aliased_autowired_sample("abc") == "aliased abc - foo"
 
 
 def test_decorator_with_alternate_container():
-    """
-    Ensures that classes registered via @component(container=...) are added
+    """Ensures that classes registered via @component(container=...) are added
     to the correct container and resolved with proper dependency injection.
     """
     impl: MainService = alternate_container[MainService]

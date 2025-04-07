@@ -1,10 +1,11 @@
-import pytest
 import asyncio
 import typing
 from logging import Logger
 
+import pytest
+
 from di import ComponentNotFoundError
-from di.aio import ContainerError, AioContainer
+from di.aio import AioContainer, ContainerError
 
 
 @typing.runtime_checkable
@@ -45,7 +46,6 @@ async def my_dep_with_deps_builder(*, my_dep: Proto) -> MyDepWithDeps:
 
 def bad_builder():
     """Does nothing."""
-    pass
 
 
 class MyClass:

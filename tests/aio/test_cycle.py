@@ -15,8 +15,7 @@ class B:
 
 
 async def test_cycle_detection():
-    """
-    Check to ensure the container errors out when a circular dependency is present.
+    """Check to ensure the container errors out when a circular dependency is present.
 
     The cycle itself cannot be detected because in order to create a cycle you need
     to use forward reference or __future__.annotations.  As such the only viable

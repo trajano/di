@@ -1,24 +1,25 @@
+import inspect
+from collections.abc import Awaitable, Callable
 from typing import (
-    Type,
-    Self,
-    Callable,
+    Any,
     List,
     ParamSpec,
+    Self,
+    Type,
     TypeVar,
-    Any,
-    Awaitable,
 )
-import inspect
-from .container import Container
-from di import ContainerError, ComponentNotFoundError
+
+from di import ComponentNotFoundError, ContainerError
 from di.util import (
     extract_dependencies_from_signature,
-    extract_satisfied_types_from_type,
     extract_satisfied_types_from_return_of_callable,
+    extract_satisfied_types_from_type,
 )
-from .aio_resolver import resolve
-from .implementation_definition import ImplementationDefinition
+
 from ..exceptions import ContainerLockedError, DuplicateRegistrationError
+from .aio_resolver import resolve
+from .container import Container
+from .implementation_definition import ImplementationDefinition
 
 P = ParamSpec("P")
 T = TypeVar("T")
@@ -97,30 +98,27 @@ class AioContainer(Container):
         if inspect.isclass(other):
             self.add_component_type(other)
             return self
-        elif callable(other):
+        if callable(other):
             self.add_component_factory(other)
             return self
-        else:
-            self.add_component_implementation(other)
-            return self
+        self.add_component_implementation(other)
+        return self
 
     async def get_component(self, component_type: Type[T]) -> T:
         maybe_component = await self.get_optional_component(component_type)
         if maybe_component is None:
             raise ComponentNotFoundError(component_type=component_type)
-        else:
-            return maybe_component
+        return maybe_component
 
     async def get_optional_component(self, component_type: Type[T]) -> T | None:
         component_list = await self.get_components(component_type)
         if len(component_list) == 0:
             return None
-        elif len(component_list) == 1:
+        if len(component_list) == 1:
             return component_list[0]
-        else:
-            raise ContainerError(
-                f"Multiple components of type {component_type} registered"
-            )
+        raise ContainerError(
+            f"Multiple components of type {component_type} registered"
+        )
 
     async def get_components(self, component_type: Type[T]) -> List[T]:
         self._type_map = self._type_map or (await resolve(self._definitions))

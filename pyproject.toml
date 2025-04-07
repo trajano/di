@@ -39,3 +39,7 @@ build = ["lint", "fmt", "test", "_uv-build"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
+
+#[tool.ruff.lint]
+#extend-select = ["ALL"]
+#ignore = ["D107", "D203", "D213", "COM812", "ANN204", "PLR0911", "UP006"]

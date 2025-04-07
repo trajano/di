@@ -1,5 +1,4 @@
-"""
-Test for using the `@component` decorator with a non-default container.
+"""Test for using the `@component` decorator with a non-default container.
 
 This validates that component types registered with an alternate container
 are properly resolved with dependencies injected.
@@ -10,14 +9,14 @@ from logging import Logger
 
 import pytest
 
-from di import BasicContainer, component, ContainerError
+from di import BasicContainer, ContainerError, component
 
 
 @typing.runtime_checkable
 class Proto(typing.Protocol):
     def meth(self) -> str:
         """Protocol that must be implemented by dependency classes."""
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 # Define a custom container for this test
@@ -35,8 +34,7 @@ class MainService:
 
 
 def test_broken_container():
-    """
-    Check to ensure the container errors out
+    """Check to ensure the container errors out
     """
     with pytest.raises(ContainerError):
         alternate_container.get_component(MainService)

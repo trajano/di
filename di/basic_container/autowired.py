@@ -1,9 +1,10 @@
 import functools
 import inspect
-from typing import Callable, Optional, Union, TypeVar, overload, ParamSpec
-from .default_container import default_container
+from collections.abc import Callable
+from typing import ParamSpec, TypeVar, overload
 
-from . import Container
+from .container import Container
+from .default_container import default_container
 
 P = ParamSpec("P")
 R = TypeVar("R")
@@ -20,12 +21,11 @@ def autowired(
 
 
 def autowired(
-    func: Optional[Callable[P, R]] = None,
+    func: Callable[P, R] | None = None,
     *,
     container: Container = default_container,
-) -> Union[Callable[P, R], Callable[[Callable[P, R]], Callable[..., R]]]:
-    """
-    Function decorator for dependency injection.
+) -> Callable[P, R] | Callable[[Callable[P, R]], Callable[..., R]]:
+    """Function decorator for dependency injection.
 
     Automatically injects keyword-only parameters from the container
     if they are not supplied at call-time.
@@ -68,5 +68,4 @@ def autowired(
 
     if func is None:
         return wrapper
-    else:
-        return wrapper(func)
+    return wrapper(func)

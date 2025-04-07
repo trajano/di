@@ -35,7 +35,6 @@ def my_dep_with_deps_builder(my_dep: Proto) -> MyDepWithDeps:
 
 def bad_builder():
     """Does nothing."""
-    pass
 
 
 class MyClass:

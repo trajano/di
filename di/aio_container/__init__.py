@@ -1,13 +1,13 @@
 from .aio_container import AioContainer
-from .default_aio_container import default_aio_container
-from .component import component
 from .autowired import autowired
+from .component import component
 from .container import Container
+from .default_aio_container import default_aio_container
 
 __all__ = [
     "AioContainer",
     "Container",
-    "default_aio_container",
-    "component",
     "autowired",
+    "component",
+    "default_aio_container",
 ]

@@ -1,5 +1,4 @@
-"""
-Test for the `@component` decorator and default container registration.
+"""Test for the `@component` decorator and default container registration.
 
 This test ensures that components decorated with `@component` are correctly
 registered in the `default_aio_container` and their dependencies are resolved.
@@ -10,14 +9,14 @@ import typing
 
 import pytest
 
-from di.aio import component, autowired, default_aio_container
+from di.aio import autowired, component, default_aio_container
 
 
 @typing.runtime_checkable
 class Proto(typing.Protocol):
     def meth(self) -> str:
         """Protocol method to be implemented by dependencies."""
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 @component
@@ -74,7 +73,8 @@ async def test_autowired_with_forgotten():
     """Checks for the scenario where the dependency was forgotten.
 
     The definition needs to be done inside as
-    if it were done outside the decorator would have raised the TypeError already."""
+    if it were done outside the decorator would have raised the TypeError already.
+    """
     with pytest.raises(TypeError):
 
         @autowired
@@ -93,7 +93,8 @@ async def test_autowired_with_forgotten():
 async def test_autowired_with_sync_method():
     """Checks for using autowired on sync method.
 
-    Pyright will capture the error."""
+    Pyright will capture the error.
+    """
     with pytest.raises(TypeError):
 
         @autowired  # pyright: ignore[reportArgumentType]
@@ -108,8 +109,7 @@ async def test_autowired_with_sync_method():
 
 
 async def test_component_decorator_registers_to_default_aio_container():
-    """
-    Test that `@component` correctly registers classes in the default container
+    """Test that `@component` correctly registers classes in the default container
     and that dependencies are properly injected.
     """
     service = await default_aio_container.get_component(MainService)

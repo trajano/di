@@ -1,7 +1,8 @@
-from inspect import isclass
-from typing import Callable, Any, Awaitable, Coroutine
 import inspect
 import typing
+from collections.abc import Awaitable, Callable, Coroutine
+from inspect import isclass
+from typing import Any
 
 
 def extract_dependencies_from_signature(fn: Callable[..., Any]) -> set[type]:

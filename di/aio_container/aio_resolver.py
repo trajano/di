@@ -1,8 +1,9 @@
 import inspect
-from typing import TypeVar, Any, get_origin, get_args, Callable
+from collections.abc import Callable
+from typing import Any, TypeVar, get_args, get_origin
 
-from .implementation_definition import ImplementationDefinition
 from .. import ComponentNotFoundError
+from .implementation_definition import ImplementationDefinition
 
 T = TypeVar("T")
 
@@ -58,19 +59,18 @@ async def resolve(
         if defn.implementation is not None:
             implementation_provided.add(defn.implementation)
             instance = defn.implementation
-        else:
-            if defn.factory is not None:
-                factory = defn.factory
-                kwargs = _match_args_by_type(factory, resolved_args)
-                if defn.factory_is_async:
-                    instance = await factory(**kwargs)
-                else:
-                    instance = factory(**kwargs)
-                constructed_from_factory[defn.factory] = instance
+        elif defn.factory is not None:
+            factory = defn.factory
+            kwargs = _match_args_by_type(factory, resolved_args)
+            if defn.factory_is_async:
+                instance = await factory(**kwargs)
             else:
-                kwargs = _match_args_by_type(defn.type, resolved_args)
-                instance = defn.type(**kwargs)
-                constructed[defn.type] = instance
+                instance = factory(**kwargs)
+            constructed_from_factory[defn.factory] = instance
+        else:
+            kwargs = _match_args_by_type(defn.type, resolved_args)
+            instance = defn.type(**kwargs)
+            constructed[defn.type] = instance
 
         for typ in defn.satisfied_types:
             collected.setdefault(typ, []).append(instance)

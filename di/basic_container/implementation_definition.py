@@ -1,5 +1,6 @@
 import dataclasses
-from typing import Generic, Type, Set, Any, TypeVar, Callable
+from collections.abc import Callable
+from typing import Any, Generic, Set, Type, TypeVar
 
 T = TypeVar("T")
 

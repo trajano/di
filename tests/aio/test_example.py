@@ -1,5 +1,6 @@
 import asyncio
-from di.aio import component, autowired
+
+from di.aio import autowired, component
 
 
 @component

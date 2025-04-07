@@ -1,8 +1,8 @@
 import asyncio
 import typing
 
-from .implementation_definition import ImplementationDefinition
 from .aio_resolver import resolve
+from .implementation_definition import ImplementationDefinition
 
 
 @typing.runtime_checkable

@@ -1,27 +1,27 @@
 """Async IO only API"""
 
 from .aio_container import (
-    Container,
     AioContainer,
-    component,
+    Container,
     autowired,
+    component,
     default_aio_container,
 )
 from .exceptions import (
-    ContainerError,
     ComponentNotFoundError,
+    ContainerError,
     ContainerLockedError,
     DuplicateRegistrationError,
 )
 
 __all__ = [
     "AioContainer",
-    "Container",
-    "autowired",
-    "component",
     "ComponentNotFoundError",
+    "Container",
     "ContainerError",
     "ContainerLockedError",
     "DuplicateRegistrationError",
+    "autowired",
+    "component",
     "default_aio_container",
 ]

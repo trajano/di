@@ -1,5 +1,4 @@
-"""
-Component decorator for automatic container registration.
+"""Component decorator for automatic container registration.
 
 This module defines a `component` decorator which adds the decorated class to
 a DI container. By default, the component is registered in the `default_container`.
@@ -13,9 +12,11 @@ Usage:
     class AnotherClass: ...
 """
 
-from typing import Type, TypeVar, Callable, Optional, Union, overload
-from .default_container import default_container
+from collections.abc import Callable
+from typing import Type, TypeVar, overload
+
 from .container import Container
+from .default_container import default_container
 
 T = TypeVar("T")
 
@@ -29,10 +30,9 @@ def component(
 
 
 def component(
-    cls: Optional[Type[T]] = None, *, container: Container = default_container
-) -> Union[Type[T], Callable[[Type[T]], Type[T]]]:
-    """
-    Class decorator to register a component type with a dependency injection container.
+    cls: Type[T] | None = None, *, container: Container = default_container
+) -> Type[T] | Callable[[Type[T]], Type[T]]:
+    """Class decorator to register a component type with a dependency injection container.
 
     Supports usage with or without parentheses.
 
@@ -47,5 +47,4 @@ def component(
 
     if cls is None:
         return wrap
-    else:
-        return wrap(cls)
+    return wrap(cls)

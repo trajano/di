@@ -1,17 +1,18 @@
-import pytest
 import asyncio
 import typing
 from logging import Logger
 
+import pytest
+
 from di.aio import (
-    ContainerError,
     AioContainer,
+    ContainerError,
     ContainerLockedError,
     DuplicateRegistrationError,
 )
 from di.util import (
-    extract_satisfied_types_from_type,
     extract_satisfied_types_from_return_of_callable,
+    extract_satisfied_types_from_type,
 )
 
 
@@ -68,7 +69,6 @@ async def my_dep_with_deps_builder(*, my_deps: set[Proto]) -> MyDepWithDeps:
 
 def bad_builder():
     """Does nothing.  The return type will not be known so using this will raise an error"""
-    pass
 
 
 class MyClass:

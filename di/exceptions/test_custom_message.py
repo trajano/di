@@ -1,8 +1,8 @@
 from . import (
     ComponentNotFoundError,
+    ContainerLockedError,
     CycleDetectedError,
     DuplicateRegistrationError,
-    ContainerLockedError,
 )
 
 

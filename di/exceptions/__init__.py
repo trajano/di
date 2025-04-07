@@ -1,16 +1,14 @@
 import typing
-from typing import Callable
+from collections.abc import Callable
 
 
 class ContainerError(RuntimeError):
     """Exception for errors in the container."""
 
-    ...
 
 
 class CycleDetectedError(ContainerError):
-    """
-    Exception raised when a circular dependency is detected.
+    """Exception raised when a circular dependency is detected.
 
     :param component_type: The type that caused the cycle detection.
     :param message: Optional custom message to override the default one.
@@ -28,8 +26,7 @@ class CycleDetectedError(ContainerError):
 
 
 class ComponentNotFoundError(ContainerError):
-    """
-    Exception raised when no component is found for the given type.
+    """Exception raised when no component is found for the given type.
 
     :param component_type: The requested type that could not be resolved.
     :param message: Optional custom message to override the default one.
@@ -47,8 +44,7 @@ class ComponentNotFoundError(ContainerError):
 
 
 class DuplicateRegistrationError(ContainerError):
-    """
-    Exception raised when two EXACT component types or two EXACT factories are registered.
+    """Exception raised when two EXACT component types or two EXACT factories are registered.
 
     :param type_or_factory: The type or factory that caused the error
     :param message: Optional custom message to override the default one.
@@ -66,8 +62,7 @@ class DuplicateRegistrationError(ContainerError):
 
 
 class ContainerLockedError(ContainerError):
-    """
-    Raised when the container is already locked and an attempt to modify it is done.
+    """Raised when the container is already locked and an attempt to modify it is done.
 
     :param message: Optional custom message to override the default one.
     """

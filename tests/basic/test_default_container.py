@@ -1,5 +1,4 @@
-"""
-Test for the `@component` decorator and default container registration.
+"""Test for the `@component` decorator and default container registration.
 
 This test ensures that components decorated with `@component` are correctly
 registered in the `default_container` and their dependencies are resolved.
@@ -9,14 +8,14 @@ import typing
 
 import pytest
 
-from di import component, autowired, default_container
+from di import autowired, component, default_container
 
 
 @typing.runtime_checkable
 class Proto(typing.Protocol):
     def meth(self) -> str:
         """Protocol method to be implemented by dependencies."""
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 @component
@@ -71,7 +70,8 @@ def test_autowired_with_forgotten():
     """Checks for the scenario where the dependency was forgotten.
 
     The definition needs to be done inside as
-    if it were done outside the decorator would have raised the TypeError already."""
+    if it were done outside the decorator would have raised the TypeError already.
+    """
     with pytest.raises(TypeError):
 
         @autowired
@@ -88,8 +88,7 @@ def test_autowired_with_forgotten():
 
 
 def test_component_decorator_registers_to_default_container():
-    """
-    Test that `@component` correctly registers classes in the default container
+    """Test that `@component` correctly registers classes in the default container
     and that dependencies are properly injected.
     """
     service = default_container[MainService]

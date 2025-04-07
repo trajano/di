@@ -1,18 +1,21 @@
 import inspect
-from collections.abc import Callable
-from typing import TypeVar, Any, Type, Self, List, ParamSpec, Union
 import typing
+from collections.abc import Callable
+from typing import Any, List, ParamSpec, Self, Type, TypeVar
 
-from di.util import extract_satisfied_types_from_return_of_callable
-from di.util import extract_satisfied_types_from_type
 from di.exceptions import (
-    ContainerError,
     ComponentNotFoundError,
+    ContainerError,
     DuplicateRegistrationError,
 )
+from di.util import (
+    extract_satisfied_types_from_return_of_callable,
+    extract_satisfied_types_from_type,
+)
+
+from .container import Container
 from .implementation_definition import ImplementationDefinition
 from .resolver import Resolver
-from .container import Container
 
 P = ParamSpec("P")
 T = TypeVar("T")
@@ -82,18 +85,17 @@ class BasicContainer(Container):
         return self
 
     def get_component(self, component_type: Type[T]) -> T:
-        """
-        Gets a single component from the container that satisfies the given type.
+        """Gets a single component from the container that satisfies the given type.
         This resolves all constructor dependencies for the component.
 
         Raises:
             ContainerError: If no components or more than one satisfy the type.
+
         """
         maybe_component = self.get_optional_component(component_type)
         if maybe_component is None:
             raise ComponentNotFoundError(component_type=component_type)
-        else:
-            return maybe_component
+        return maybe_component
 
     def get_components(self, component_type: Type[T]) -> List[T]:
         if not self._locked:
@@ -114,10 +116,10 @@ class BasicContainer(Container):
         )
         resolver.resolve_all()
 
-    def __iadd__(self, other: Union[Type[T], Callable[..., T]]) -> Self:
+    def __iadd__(self, other: Type[T] | Callable[..., T]) -> Self:
         if inspect.isclass(other):
             return self.add_component_type(other)
-        elif callable(other):
+        if callable(other):
             return self.add_component_factory(other)
         raise TypeError(f"Unsupported component type: {type(other)}")
 

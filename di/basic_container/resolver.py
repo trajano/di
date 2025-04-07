@@ -1,14 +1,14 @@
-from typing import Type, Dict, Set, TypeVar, Any, get_type_hints
+from typing import Any, Dict, Set, Type, TypeVar, get_type_hints
 
 from di.exceptions import ComponentNotFoundError, CycleDetectedError
+
 from .implementation_definition import ImplementationDefinition
 
 T = TypeVar("T")
 
 
 class Resolver:
-    """
-    Resolves components and their dependencies using constructor injection.
+    """Resolves components and their dependencies using constructor injection.
     """
 
     def __init__(
@@ -26,8 +26,7 @@ class Resolver:
         }
 
     def resolve_all(self):
-        """
-        Resolves all component types in the container and their dependencies.
+        """Resolves all component types in the container and their dependencies.
         """
         for definition in self._definitions:
             self._resolve(definition.type)

@@ -1,17 +1,15 @@
 import functools
 import inspect
+from collections.abc import Awaitable, Callable, Coroutine
 from typing import (
-    Callable,
-    Optional,
+    Any,
+    ParamSpec,
     TypeVar,
     overload,
-    ParamSpec,
-    Awaitable,
-    Coroutine,
-    Any,
 )
-from .default_aio_container import default_aio_container
+
 from .container import Container
+from .default_aio_container import default_aio_container
 
 P = ParamSpec("P")
 R = TypeVar("R")
@@ -32,7 +30,7 @@ def autowired(
 
 
 def autowired(
-    func: Optional[Callable[P, Awaitable[R]]] = None,
+    func: Callable[P, Awaitable[R]] | None = None,
     *,
     container: Container = default_aio_container,
 ) -> (
@@ -40,8 +38,7 @@ def autowired(
     | Callable[P, Coroutine[Any, Any, R]]
     | Callable[[Callable[P, Awaitable[R]]], Callable[..., Awaitable[R]]]
 ):
-    """
-    Async-only autowired decorator. Injects keyword-only parameters from the container if not provided.
+    """Async-only autowired decorator. Injects keyword-only parameters from the container if not provided.
     Raises TypeError if used on a non-async function.
     """
 
@@ -72,5 +69,4 @@ def autowired(
 
     if func is None:
         return wrapper
-    else:
-        return wrapper(func)
+    return wrapper(func)
