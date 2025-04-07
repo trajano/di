@@ -98,6 +98,16 @@ async def test_simple_usage():
     my_class_impl_optional = await my_container.get_optional_component(MyClass)
     assert my_class_impl == my_class_impl_optional
 
+async def test_with_implementation():
+    my_container = AioContainer()
+    my_container.add_component_implementation(MyDep())
+    my_container.add_component_type(MyClass)
+    my_class_impl = await my_container.get_component(MyClass)
+    assert my_class_impl.foo() == "foo"
+
+    my_class_impl_optional = await my_container.get_optional_component(MyClass)
+    assert my_class_impl == my_class_impl_optional
+
 
 async def test_get_components():
     my_container = AioContainer()

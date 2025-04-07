@@ -202,11 +202,11 @@ async def test_missing_component():
         await my_container.get_component(Logger)
 
 
-async def test_invalid_type():
+async def test_add_implementation():
     my_container = AioContainer()
     my_container.add_component_factory(my_dep_builder)
-    with pytest.raises(TypeError):
-        my_container += 649  # pyright: ignore[reportOperatorIssue]
+    my_container += 649
+    assert (await my_container.get_component(int)) == 649
 
 
 async def test_adding_after_get():

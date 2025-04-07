@@ -2,13 +2,11 @@ from typing import (
     Type,
     Self,
     Callable,
-    Union,
     List,
     ParamSpec,
     TypeVar,
     Any,
     Awaitable,
-    overload,
 )
 import inspect
 from di import ContainerError, ComponentNotFoundError
@@ -29,7 +27,7 @@ class AioContainer:
     def __init__(self):
         self._definitions: list[ImplementationDefinition[Any]] = []
         self._type_map: dict[type, list] | None = None
-        self._registered: set[type | Callable[..., Any]] = set()
+        self._registered: set = set()
 
     def add_component_type(self, component_type: type) -> None:
         if self._type_map is not None:
@@ -49,6 +47,26 @@ class AioContainer:
                 factory_is_async=False,
             )
         )
+
+    def add_component_implementation(self, implementation: Any) -> None:
+        if self._type_map is not None:
+            raise ContainerError("Container is locked after first resolution.")
+        if implementation in self._registered:
+            raise DuplicateRegistrationError(type_or_factory=implementation)
+        self._registered.add(implementation)
+        component_type = type(implementation)
+        satisfied_types = extract_satisfied_types_from_type(component_type)
+        self._definitions.append(
+            ImplementationDefinition(
+                type=component_type,
+                satisfied_types=satisfied_types,
+                dependencies=set(),
+                implementation=implementation,
+                factory=None,
+                factory_is_async=False,
+            )
+        )
+
 
     def add_component_factory(
         self, factory: Callable[P, T] | Callable[P, Awaitable[T]]
@@ -75,19 +93,16 @@ class AioContainer:
             )
         )
 
-    @overload
-    def __iadd__(self, other: type) -> Self: ... # pragma: no cover
-    @overload
-    def __iadd__(self, other: Callable[..., T]) -> Self: ... # pragma: no cover
-
-    def __iadd__(self, other: Union[type, Callable[..., T]]) -> Self:
+    def __iadd__(self, other: Any) -> Self:
         if inspect.isclass(other):
             self.add_component_type(other)
             return self
         elif callable(other):
             self.add_component_factory(other)
             return self
-        raise TypeError(f"Unsupported component type: {type(other)}")
+        else:
+            self.add_component_implementation(other)
+            return self
 
     async def get_component(self, component_type: Type[T]) -> T:
         maybe_component = await self.get_optional_component(component_type)
