@@ -13,6 +13,8 @@ T = TypeVar("T")
 
 
 class BasicContainer(Container):
+    """Basic Container that only supports synchronized calls."""
+
     def __init__(self):
         self._definitions: list[ImplementationDefinition[Any]] = []
         self._type_map: dict[Type, Any] = {}

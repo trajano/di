@@ -1,0 +1,142 @@
+import asyncio
+import typing
+
+
+from di.aio_container import AioContainer
+
+
+@typing.runtime_checkable
+class Proto(typing.Protocol):
+    def meth(self) -> str: ...
+
+
+class MyDep(Proto):
+    def meth(self):
+        return "foo"
+
+    async def ablah(self):
+        await asyncio.sleep(0.001)
+        return "ablah"
+
+
+class MyDepWithDeps:
+    def __init__(self, *, proto: Proto):
+        self._proto = proto
+
+    def blah(self):
+        return f"blah-{self._proto.meth()}"
+
+    async def ablah(self):
+        await asyncio.sleep(0.001)
+        return f"blah-{self._proto.meth()}"
+
+
+async def my_dep_builder() -> MyDep:
+    await asyncio.sleep(0.001)
+    return MyDep()
+
+
+async def my_dep_with_deps_builder(*, my_dep: Proto) -> MyDepWithDeps:
+    await asyncio.sleep(0.001)
+    return MyDepWithDeps(proto=my_dep)
+
+
+def bad_builder():
+    """Does nothing."""
+    pass
+
+
+class MyClass:
+    def __init__(self, *, my_dep: MyDep):
+        self._my_dep = my_dep
+
+    def foo(self):
+        return self._my_dep.meth()
+
+
+async def test_single_factory():
+    my_container = AioContainer()
+    my_container.add_component_factory(my_dep_builder)
+    my_dep = await my_container.get_component(MyDep)
+    assert my_dep.meth() == "foo"
+    assert (await my_dep.ablah()) == "ablah"
+
+
+async def test_two_factories():
+    my_container = AioContainer()
+    my_container.add_component_factory(my_dep_builder)
+    my_container.add_component_factory(my_dep_with_deps_builder)
+    my_dep = await my_container.get_component(MyDep)
+    assert my_dep.meth() == "foo"
+    my_dep_with_deps = await my_container.get_component(MyDepWithDeps)
+    assert my_dep_with_deps.blah() == "blah-foo"
+    assert (await my_dep_with_deps.ablah()) == "blah-foo"
+
+
+async def test_simple_usage():
+    my_container = AioContainer()
+    my_container.add_component_factory(my_dep_builder)
+    my_container.add_component_type(MyClass)
+    my_class_impl = await my_container.get_component(MyClass)
+    assert my_class_impl.foo() == "foo"
+
+
+#
+# def test_get_components():
+#     my_container = BasicContainer()
+#     my_container.add_component_type(MyDep)
+#     my_container.add_component_type(MyClass)
+#     my_classes = my_container.get_components(MyClass)
+#     assert len(my_classes) == 1
+#
+#
+# def test_get_optional_component():
+#     my_container = BasicContainer()
+#     my_container.add_component_type(MyDep)
+#     my_container.add_component_type(MyClass)
+#     assert my_container.get_optional_component(Logger) is None
+#     my_classes = my_container.get_components(Logger)
+#     assert len(my_classes) == 0
+#
+#
+# def test_missing_component():
+#     my_container = BasicContainer()
+#     with pytest.raises(ContainerError):
+#         my_container.get_component(Logger)
+#
+#
+# def test_contains():
+#     my_container = BasicContainer()
+#     my_container += my_dep_builder
+#     my_container += MyClass
+#     assert MyClass in my_container
+#
+#
+# def test_invalid_type():
+#     my_container = BasicContainer()
+#     my_container.add_component_factory(my_dep_builder)
+#     with pytest.raises(TypeError):
+#         my_container += 649  # pyright: ignore[reportOperatorIssue]
+#
+#
+# def test_adding_after_get():
+#     my_container = BasicContainer()
+#     my_container.add_component_type(MyDep)
+#     assert isinstance(my_container.get_component(MyDep), Proto)
+#     assert isinstance(my_container.get_component(MyDep), MyDep)
+#     with pytest.raises(ContainerError):
+#         my_container.add_component_factory(my_dep_builder)
+#
+#
+# def test_bad_builder():
+#     my_container = BasicContainer()
+#     with pytest.raises(ContainerError):
+#         my_container.add_component_factory(bad_builder)
+#
+#
+# def test_double_registration():
+#     my_container = BasicContainer()
+#     my_container.add_component_factory(my_dep_builder)
+#
+#     with pytest.raises(ContainerError):
+#         my_container.add_component_factory(my_dep_builder)
