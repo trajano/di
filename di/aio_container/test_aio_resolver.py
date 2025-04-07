@@ -1,8 +1,11 @@
 import asyncio
 import typing
 
+import pytest
+
 from .implementation_definition import ImplementationDefinition
 from .aio_resolver import resolve
+from .. import ContainerError
 
 
 @typing.runtime_checkable
@@ -135,6 +138,45 @@ async def test_resolver_with_deps():
     assert isinstance(resolved[MyDepWithDeps][0], MyDepWithDeps)
     assert (await resolved[MyDepWithDeps][0].ablah()) == "blah-ablah"
 
+async def test_resolver_with_implementation():
+    definitions = [
+        ImplementationDefinition(
+            type=MyDep,
+            satisfied_types={MyDep, Proto},
+            implementation=MyDep(),
+            dependencies=set(),
+            factory=None,
+            factory_is_async=False,
+        ),
+        ImplementationDefinition(
+            type=MyDepWithDeps,
+            satisfied_types={MyDepWithDeps},
+            implementation=None,
+            dependencies={Proto},
+            factory=my_dep_with_deps_builder,
+            factory_is_async=True,
+        ),
+    ]
+    resolved = await resolve(definitions=definitions)
+    assert isinstance(resolved[Proto][0], MyDep)
+    assert resolved[Proto][0].meth() == "foo"
+    assert (await resolved[MyDep][0].ablah()) == "ablah"
+    assert isinstance(resolved[MyDepWithDeps][0], MyDepWithDeps)
+    assert (await resolved[MyDepWithDeps][0].ablah()) == "blah-ablah"
+
+async def test_resolver_with_mandatory_dep():
+    definitions = [
+        ImplementationDefinition(
+            type=MyDepWithDeps,
+            satisfied_types={MyDepWithDeps},
+            implementation=None,
+            dependencies={Proto},
+            factory=my_dep_with_deps_builder,
+            factory_is_async=True,
+        ),
+    ]
+    with pytest.raises(ContainerError):
+        await resolve(definitions=definitions)
 
 async def test_resolver_with_class_accepting_list():
     definitions = [
@@ -166,3 +208,18 @@ async def test_resolver_with_class_accepting_list():
     resolved = await resolve(definitions=definitions)
     assert isinstance(resolved[MyClassWithList][0], MyClassWithList)
     assert resolved[MyClassWithList][0].dep_count() == 2
+
+async def test_resolver_with_class_accepting_list_which_can_be_empty():
+    definitions = [
+        ImplementationDefinition(
+            type=MyClassWithList,
+            satisfied_types={MyClassWithList},
+            implementation=None,
+            dependencies={list[Proto]},
+            factory=None,
+            factory_is_async=False,
+        ),
+    ]
+    resolved = await resolve(definitions=definitions)
+    assert isinstance(resolved[MyClassWithList][0], MyClassWithList)
+    assert resolved[MyClassWithList][0].dep_count() == 0

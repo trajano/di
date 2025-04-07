@@ -2,6 +2,7 @@ import inspect
 from typing import TypeVar, Any, get_origin, get_args, Callable
 
 from .implementation_definition import ImplementationDefinition
+from .. import ContainerError
 
 T = TypeVar("T")
 
@@ -21,9 +22,6 @@ async def resolve(
         # Short circuit if the factory already built
         if defn.factory in constructed_from_factory:
             return constructed_from_factory[defn.factory]
-
-        if not inspect.isclass(defn.type):
-            raise TypeError(f"{defn.type} is not a class")
 
         resolved_args = {}
         for dep_type in defn.dependencies:
@@ -47,7 +45,7 @@ async def resolve(
                 None,
             )
             if not dep_def:
-                raise ValueError(f"No definition found for dependency: {dep_type}")
+                raise ContainerError(f"No definition found for dependency: {dep_type}")
 
             dep_instance = await resolve_one(dep_def)
             resolved_args[dep_type] = dep_instance
