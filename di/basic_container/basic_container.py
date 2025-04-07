@@ -63,7 +63,7 @@ class BasicContainer(Container):
     ) -> None:
         if not singleton:
             msg = "Prototype support not available yet"  # pragma: no cover
-            raise ContainerError(msg) # pragma: no cover
+            raise ContainerError(msg)  # pragma: no cover
         if self._locked:
             raise ContainerLockedError
         if factory in self._registered:
