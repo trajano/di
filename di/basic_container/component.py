@@ -15,6 +15,8 @@ Usage:
 from collections.abc import Callable
 from typing import TypeVar, overload
 
+from di.register_to_container import register_class_to_container
+
 from .container import Container
 from .default_container import default_container
 
@@ -41,10 +43,4 @@ def component(
     :return: Either the original class (if used directly), or a decorator function.
     """
 
-    def wrap(target_cls: type[T]) -> type[T]:
-        container.add_component_type(target_cls)
-        return target_cls
-
-    if cls is None:
-        return wrap
-    return wrap(cls)
+    return register_class_to_container(cls, container)

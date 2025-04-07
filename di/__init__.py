@@ -1,4 +1,10 @@
-from .basic_container import BasicContainer, autowired, component, default_container
+from .basic_container import (
+    BasicContainer,
+    Container,
+    autowired,
+    component,
+    default_container,
+)
 from .exceptions import (
     ComponentNotFoundError,
     ContainerError,
@@ -9,6 +15,7 @@ from .exceptions import (
 __all__ = [
     "BasicContainer",
     "ComponentNotFoundError",
+    "Container",
     "ContainerError",
     "CycleDetectedError",
     "DuplicateRegistrationError",

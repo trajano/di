@@ -7,8 +7,12 @@ from typing import (
     TypeVar,
 )
 
-from di import ComponentNotFoundError, ContainerError
-from di.exceptions import ContainerLockedError, DuplicateRegistrationError
+from di.exceptions import (
+    ComponentNotFoundError,
+    ContainerError,
+    ContainerLockedError,
+    DuplicateRegistrationError,
+)
 from di.util import (
     extract_dependencies_from_signature,
     extract_satisfied_types_from_return_of_callable,

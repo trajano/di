@@ -20,6 +20,8 @@ The decorator supports use with or without parentheses.
 from collections.abc import Callable
 from typing import TypeVar, overload
 
+from di.register_to_container import register_factory_to_container
+
 from .container import Container
 from .default_aio_container import default_aio_container
 
@@ -46,11 +48,4 @@ def factory(
     :param container: Optional; the container instance to register the factory in.
     :return: The original function, or a decorator function.
     """
-
-    def wrap(target_fn: Callable[..., R]) -> Callable[..., R]:
-        container.add_component_factory(target_fn)
-        return target_fn
-
-    if fn is None:
-        return wrap
-    return wrap(fn)
+    return register_factory_to_container(fn, container)

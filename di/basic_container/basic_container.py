@@ -32,7 +32,7 @@ class BasicContainer(Container):
         self._locked: bool = False
         self._registered: set = set()
 
-    def add_component_type(self, component_type: type[T]) -> Self:
+    def add_component_type(self, component_type: type[T]) -> None:
         if self._locked:
             raise ContainerLockedError
         if component_type in self._registered:
@@ -56,9 +56,8 @@ class BasicContainer(Container):
                 factory=None,
             )
         )
-        return self
 
-    def add_component_factory(self, factory: typing.Callable[..., T]) -> typing.Self:
+    def add_component_factory(self, factory: typing.Callable[..., T]) -> None:
         if self._locked:
             raise ContainerLockedError
         if factory in self._registered:
@@ -79,7 +78,6 @@ class BasicContainer(Container):
                 factory=factory,
             )
         )
-        return self
 
     def get_component(self, component_type: type[T]) -> T:
         """Gets a single component from the container that satisfies the given type.
@@ -115,9 +113,11 @@ class BasicContainer(Container):
 
     def __iadd__(self, other: type[T] | Callable[..., T]) -> Self:
         if inspect.isclass(other):
-            return self.add_component_type(other)
+            self.add_component_type(other)
+            return self
         if callable(other):
-            return self.add_component_factory(other)
+            self.add_component_factory(other)
+            return self
         msg = f"Unsupported component type: {type(other)}"
         raise TypeError(msg)
 

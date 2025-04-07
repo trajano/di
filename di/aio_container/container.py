@@ -1,16 +1,17 @@
 from collections.abc import Awaitable, Callable
 from typing import (
     ParamSpec,
-    Protocol,
     Self,
     TypeVar,
 )
+
+from di.protocols import ComponentAddable
 
 T = TypeVar("T")
 P = ParamSpec("P")
 
 
-class Container(Protocol):
+class Container(ComponentAddable):
     """asyncio Dependency injection container."""
 
     def add_component_type(self, component_type: type) -> None:

@@ -1,19 +1,20 @@
 from collections.abc import Callable
 from typing import (
     ParamSpec,
-    Protocol,
     Self,
     TypeVar,
 )
+
+from di.protocols import ComponentAddable
 
 T = TypeVar("T")
 P = ParamSpec("P")
 
 
-class Container(Protocol):
+class Container(ComponentAddable):
     """Dependency injection container."""
 
-    def add_component_type(self, component_type: type[T]) -> Self:
+    def add_component_type(self, component_type: type[T]) -> None:
         """Add a component type into the container.
 
         This will throw a ContainerError if an attempt to add was done after the first
@@ -24,7 +25,7 @@ class Container(Protocol):
         """
         raise NotImplementedError  # pragma: no cover
 
-    def add_component_factory(self, factory: Callable[P, T]) -> Self:
+    def add_component_factory(self, factory: Callable[P, T]) -> None:
         """Add a component factory into the container.
 
         This will throw a ContainerError if an attempt to add was done after the first
