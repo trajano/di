@@ -9,6 +9,7 @@ from typing import (
     Awaitable,
 )
 import inspect
+from .container import Container
 from di import ContainerError, ComponentNotFoundError
 from di.util import (
     extract_dependencies_from_signature,
@@ -23,7 +24,7 @@ P = ParamSpec("P")
 T = TypeVar("T")
 
 
-class AioContainer:
+class AioContainer(Container):
     def __init__(self):
         self._definitions: list[ImplementationDefinition[Any]] = []
         self._type_map: dict[type, list] | None = None

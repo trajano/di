@@ -13,6 +13,6 @@ class Logger:
         print("Logging with config value:", config.value)
 
 
-def test_something():
+async def test_something():
     logger = Logger()
-    logger.log()  # Automatically injects Config from the default container
+    await logger.log()  # Automatically injects Config from the default container

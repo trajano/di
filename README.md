@@ -2,81 +2,80 @@
 
 A lightweight and extensible **Dependency Injection (DI)** framework for Python.
 
-This project provides a minimalistic yet powerful way to define and resolve dependencies in your Python applications using container-based injection and a class decorator for automatic registration.
+This project offers a minimalistic yet powerful approach to defining and resolving dependencies in Python applications using container-based injection and class decorators for automatic registration.
 
 ---
 
 ## Features
 
-- 📦 **Component Registration**: Use `@component` to register classes into a DI container.
-- ⚙️ **Method Injection**: Use `@autowired` to inject dependencies into arbitrary methods or functions.
-- 🔄 **Automatic Dependency Resolution**: Constructor dependencies are resolved and injected automatically.
-- 🧱 **Custom Containers**: Define and manage multiple containers for different contexts.
-- 🔍 **Type-safe Lookup**: Retrieve components by type using indexing, `get_component`, or `get_optional_component`.
-- 🔒 **Immutable After Use**: Containers lock after first resolution to guarantee consistency.
+- 📦 **Component Registration** — Use `@component` to register classes into a DI container.
+- ⚙️ **Method Injection** — Use `@autowired` to inject dependencies into arbitrary methods or functions.
+- 🔄 **Automatic Dependency Resolution** — Constructor dependencies are automatically resolved and injected.
+- 🧱 **Custom Containers** — Manage multiple containers for different contexts or scopes.
+- 🔍 **Type-safe Lookup** — Retrieve components by type using indexing, `get_component`, or `get_optional_component`.
+- 🔒 **Immutable Containers** — Containers become immutable after first use to ensure consistent state.
+- ⏳ **Async Support** — Works seamlessly with `async def` functions and methods, including `@autowired` injection.
 
 ---
 
 ## Installation
 
-> No external dependencies are required. Just include the `di` module in your project.
+> Use the `di.aio` module for asyncio-compatible dependency injection in your project.
+> The synchronous API is available in `di` and is documented in [di/basic\_container/README.md](di/basic_container/README.md).
 
 ---
 
 ## Usage
 
-### Registering Components
+> For legacy usage examples without asyncio support, see: [di/basic\_container/README.md](di/basic_container/README.md).
+
+## Example
+
+This is an example of how to register components using decorators and autowiring.
 
 ```python
-from di import component, default_container
+import asyncio
+from di.aio import component, autowired
 
 @component
-class ServiceA:
-    def greet(self):
-        return "Hello from ServiceA"
+class AsyncService:
+    async def fetch(self):
+        await asyncio.sleep(0.1)
+        return "Fetched async result"
 
-@component
-class ServiceB:
-    def __init__(self, *, service_a: ServiceA):
-        self.service_a = service_a
-
-    def call_a(self):
-        return self.service_a.greet()
-
-# Retrieving a component from the default container
-service_b = default_container[ServiceB]
-print(service_b.call_a())  # Output: Hello from ServiceA
-```
-
----
-
-### Method Injection with `@autowired`
-
-Use the `@autowired` decorator to inject dependencies into any function or method using parameter type hints.
-
-```python
-from di import component, autowired
-
-@component
-class Config:
-    def __init__(self):
-        self.value = "example"
-
-class Logger:
+class AsyncWorker:
     @autowired
-    def log(self, *, config: Config):
-        print("Logging with config value:", config.value)
+    async def work(self, *, async_service: AsyncService):
+        result = await async_service.fetch()
+        print("Result:", result)
 
-logger = Logger()
-logger.log()  # Automatically injects Config from the default container
+worker = AsyncWorker()
+asyncio.run(worker.work())
 ```
 
-The `@autowired` decorator resolves arguments from the default container (or a specified one), allowing clean and decoupled code even for non-component functions.
+The `@autowired` decorator can be used outside of classes as well
 
+```python
+import asyncio
+from di.aio import component, autowired
+
+@component
+class AsyncService:
+    async def fetch(self):
+        await asyncio.sleep(0.1)
+        return "Fetched async result"
+
+@autowired
+async def work(self, *, async_service: AsyncService):
+    result = await async_service.fetch()
+    print("Result:", result)
+
+asyncio.run(work())
+```
 ---
 
 ## License
 
-This project is licensed under the **Eclipse Public License 2.0**.\
-See the [LICENSE](LICENSE) file for more information.
+This project is licensed under the **Eclipse Public License 2.0**.
+See the [LICENSE](LICENSE) file for more details.
 

@@ -106,8 +106,6 @@ async def test_autowired_with_sync_method():
         ) -> str:
             return f"{in_} - {my_service.foo()} - {extra} - {forgotten}"
 
-        sync_autowired("abc", extra="aa")
-
 
 async def test_component_decorator_registers_to_default_aio_container():
     """

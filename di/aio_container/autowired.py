@@ -1,8 +1,17 @@
 import functools
 import inspect
-from typing import Callable, Optional, TypeVar, overload, ParamSpec, Awaitable
+from typing import (
+    Callable,
+    Optional,
+    TypeVar,
+    overload,
+    ParamSpec,
+    Awaitable,
+    Coroutine,
+    Any,
+)
 from .default_aio_container import default_aio_container
-from . import AioContainer
+from .container import Container
 
 P = ParamSpec("P")
 R = TypeVar("R")
@@ -11,12 +20,12 @@ R = TypeVar("R")
 @overload
 def autowired(
     func: Callable[P, Awaitable[R]],
-) -> Callable[..., Awaitable[R]]: ...  # pragma: no cover
+) -> Callable[..., Coroutine[Any, Any, R]]: ...  # pragma: no cover
 
 
 @overload
 def autowired(
-    *, container: AioContainer
+    *, container: Container
 ) -> Callable[
     [Callable[P, Awaitable[R]]], Callable[..., Awaitable[R]]
 ]: ...  # pragma: no cover
@@ -25,9 +34,10 @@ def autowired(
 def autowired(
     func: Optional[Callable[P, Awaitable[R]]] = None,
     *,
-    container: AioContainer = default_aio_container,
+    container: Container = default_aio_container,
 ) -> (
     Callable[P, Awaitable[R]]
+    | Callable[P, Coroutine[Any, Any, R]]
     | Callable[[Callable[P, Awaitable[R]]], Callable[..., Awaitable[R]]]
 ):
     """

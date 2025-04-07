@@ -6,12 +6,13 @@ import typing
 from di.exceptions import ContainerError, ComponentNotFoundError
 from .implementation_definition import ImplementationDefinition
 from .resolver import Resolver
+from .container import Container
 
 P = ParamSpec("P")
 T = TypeVar("T")
 
 
-class BasicContainer:
+class BasicContainer(Container):
     """Basic Container that only supports synchronized calls."""
 
     def __init__(self):

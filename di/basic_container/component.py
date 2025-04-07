@@ -15,7 +15,7 @@ Usage:
 
 from typing import Type, TypeVar, Callable, Optional, Union, overload
 from .default_container import default_container
-from .basic_container import BasicContainer
+from .container import Container
 
 T = TypeVar("T")
 
@@ -24,12 +24,12 @@ T = TypeVar("T")
 def component(cls: Type[T]) -> Type[T]: ...  # pragma: no cover
 @overload
 def component(
-    *, container: BasicContainer = default_container
+    *, container: Container = default_container
 ) -> Callable[[Type[T]], Type[T]]: ...  # pragma: no cover
 
 
 def component(
-    cls: Optional[Type[T]] = None, *, container: BasicContainer = default_container
+    cls: Optional[Type[T]] = None, *, container: Container = default_container
 ) -> Union[Type[T], Callable[[Type[T]], Type[T]]]:
     """
     Class decorator to register a component type with a dependency injection container.
