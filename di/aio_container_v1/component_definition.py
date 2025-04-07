@@ -2,8 +2,6 @@ import dataclasses
 from collections.abc import Callable
 from typing import Generic, TypeVar
 
-from di.enums import ComponentScope
-
 T = TypeVar("T")
 
 
@@ -20,6 +18,9 @@ class ComponentDefinition(Generic[T]):
     dependencies: set
     """A set of types that are constructor dependencies of the implementation."""
 
+    implementation: T | None = None
+    """The resolved instance of the implementation, if already constructed."""
+
     factory: Callable[..., T] | None = None
     """Factory to build the implementation if applicable.
 
@@ -28,7 +29,7 @@ class ComponentDefinition(Generic[T]):
     factory_is_async: bool = False
     """Factory is an async def."""
 
-    component_scope: ComponentScope = ComponentScope.CONTAINER
+    factory_builds_singleton: bool = True
     """Factory builds a singleton.
 
     If true, then the factory only generates once, otherwise it will always be
