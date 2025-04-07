@@ -18,13 +18,19 @@ class ComponentDefinition(Generic[T]):
     dependencies: set
     """A set of types that are constructor dependencies of the implementation."""
 
-    implementation: T | None
+    implementation: T | None = None
     """The resolved instance of the implementation, if already constructed."""
 
-    factory: Callable[..., T] | None
+    factory: Callable[..., T] | None = None
     """Factory to build the implementation if applicable.
 
     Must use keyword-only arguments."""
 
-    factory_is_async: bool
+    factory_is_async: bool = False
     """Factory is an async def."""
+
+    factory_builds_singleton: bool = True
+    """Factory builds a singleton.
+
+    If true, then the factory only generates once, otherwise it will always be
+    called when needed."""

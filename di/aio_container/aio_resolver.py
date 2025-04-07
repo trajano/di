@@ -23,8 +23,8 @@ async def resolve(
         if defn.type in constructed and defn.factory is None:
             return constructed[defn.type]
 
-        # Short circuit if the factory already built
-        if defn.factory in constructed_from_factory:
+        # Short circuit if the factory already built and is a singleton
+        if defn.factory in constructed_from_factory and defn.factory_builds_singleton:
             return constructed_from_factory[defn.factory]
 
         # Short circuit if implementation is already there
@@ -80,7 +80,9 @@ async def resolve(
                 instance = await factory(**kwargs)
             else:
                 instance = factory(**kwargs)
-            constructed_from_factory[defn.factory] = instance
+
+            if defn.factory_builds_singleton:
+                constructed_from_factory[defn.factory] = instance
         else:
             kwargs = _match_args_by_type(defn.type, resolved_args)
             instance = defn.type(**kwargs)

@@ -33,12 +33,15 @@ R = TypeVar("R")
 def factory(fn: Callable[..., R]) -> Callable[..., R]: ...  # pragma: no cover
 @overload
 def factory(
-    *, container: Container = default_aio_container
+    *, container: Container = default_aio_container, singleton: bool = True
 ) -> Callable[[Callable[..., R]], Callable[..., R]]: ...  # pragma: no cover
 
 
 def factory(
-    fn: Callable[..., R] | None = None, *, container: Container = default_aio_container
+    fn: Callable[..., R] | None = None,
+    *,
+    container: Container = default_aio_container,
+    singleton: bool = True,
 ) -> Callable[..., R] | Callable[[Callable[..., R]], Callable[..., R]]:
     """Function decorator to register a factory with a container.
 
@@ -46,6 +49,7 @@ def factory(
 
     :param fn: The factory function (sync or async) to register.
     :param container: Optional; the container instance to register the factory in.
+    :param singleton: Create singleton
     :return: The original function, or a decorator function.
     """
-    return register_factory_to_container(fn, container)
+    return register_factory_to_container(fn, container, singleton=singleton)

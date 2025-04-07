@@ -47,8 +47,6 @@ class AioContainer(Container):
                 satisfied_types=satisfied_types,
                 dependencies=deps,
                 implementation=None,
-                factory=None,
-                factory_is_async=False,
             )
         )
 
@@ -66,13 +64,14 @@ class AioContainer(Container):
                 satisfied_types=satisfied_types,
                 dependencies=set(),
                 implementation=implementation,
-                factory=None,
-                factory_is_async=False,
             )
         )
 
     def add_component_factory(
-        self, factory: Callable[P, T] | Callable[P, Awaitable[T]]
+        self,
+        factory: Callable[P, T] | Callable[P, Awaitable[T]],
+        *,
+        singleton: bool = True,
     ) -> None:
         if self._type_map is not None:
             raise ContainerLockedError
@@ -93,6 +92,7 @@ class AioContainer(Container):
                 implementation=None,
                 factory=factory,
                 factory_is_async=inspect.iscoroutinefunction(factory),
+                factory_builds_singleton=singleton,
             )
         )
 
@@ -124,3 +124,28 @@ class AioContainer(Container):
     async def get_components(self, component_type: type[T]) -> list[T]:
         self._type_map = self._type_map or (await resolve(self._definitions))
         return self._type_map.get(component_type, [])
+
+    async def resolve_function_dependencies(
+        self, fn: Callable[..., Any]
+    ) -> dict[str, Any]:
+        """
+        Resolve dependencies for a function's keyword-only arguments.
+        """
+        sig = inspect.signature(fn)
+
+        param_types: dict[str, type] = {
+            name: param.annotation
+            for name, param in sig.parameters.items()
+            if param.kind == inspect.Parameter.KEYWORD_ONLY
+            and param.annotation != inspect.Parameter.empty
+        }
+
+        resolved = await resolve(self._definitions)
+
+        results: dict[str, Any] = {}
+        for name, param_type in param_types.items():
+            matches = resolved.get(param_type)
+            if matches:
+                results[name] = matches[0]
+
+        return results

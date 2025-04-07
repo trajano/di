@@ -20,10 +20,10 @@ def register_class_to_container(
 
 
 def register_factory_to_container(
-    fn: Callable[..., R] | None, container: ComponentAddable
+    fn: Callable[..., R] | None, container: ComponentAddable, *, singleton: bool = True
 ) -> Callable[..., R] | Callable[[Callable[..., R]], Callable[..., R]]:
     def wrap(target_fn: Callable[..., R]) -> Callable[..., R]:
-        container.add_component_factory(target_fn)
+        container.add_component_factory(target_fn, singleton=singleton)
         return target_fn
 
     if fn is None:

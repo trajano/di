@@ -6,6 +6,7 @@ from typing import Any, ParamSpec, Self, TypeVar
 import di.util
 from di.exceptions import (
     ComponentNotFoundError,
+    ContainerError,
     ContainerLockedError,
     DuplicateRegistrationError,
 )
@@ -57,7 +58,12 @@ class BasicContainer(Container):
             )
         )
 
-    def add_component_factory(self, factory: typing.Callable[..., T]) -> None:
+    def add_component_factory(
+        self, factory: typing.Callable[..., T], *, singleton: bool = True
+    ) -> None:
+        if not singleton:
+            msg = "Prototype support not available yet"  # pragma: no cover
+            raise ContainerError(msg) # pragma: no cover
         if self._locked:
             raise ContainerLockedError
         if factory in self._registered:

@@ -56,15 +56,15 @@ def autowired(
             bound_args = sig.bind_partial(*args, **kwargs)
             bound_args.apply_defaults()
 
+            # Always resolve dependencies fresh for each call
+            resolved = await container.resolve_function_dependencies(f)
             for name, param in sig.parameters.items():
                 if (
                     param.kind == inspect.Parameter.KEYWORD_ONLY
                     and name not in bound_args.arguments
-                    and param.annotation != inspect.Parameter.empty
+                    and name in resolved
                 ):
-                    dep = await container.get_optional_component(param.annotation)
-                    if dep is not None:
-                        bound_args.arguments[name] = dep
+                    bound_args.arguments[name] = resolved[name]
 
             return await f(*bound_args.args, **bound_args.kwargs)
 

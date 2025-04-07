@@ -18,7 +18,9 @@ class ComponentAddable(Protocol):
         """
         raise NotImplementedError  # pragma: no cover
 
-    def add_component_factory(self, factory: Callable[P, T]) -> None:
+    def add_component_factory(
+        self, factory: Callable[P, T], *, singleton: bool = True
+    ) -> None:
         """Add a component factory into the container.
 
         This will throw a ContainerError if an attempt to add was done after the first
@@ -27,6 +29,7 @@ class ComponentAddable(Protocol):
 
         :param factory: The factory that would construct the object.  The function can
         take additional kwargs which represent dependencies in the container
+        :param singleton: factory will generate a singleton
         :return: self (for chaining)
         """
         raise NotImplementedError  # pragma: no cover

@@ -25,7 +25,10 @@ class Container(ComponentAddable):
         raise NotImplementedError  # pragma: no cover
 
     def add_component_factory(
-        self, factory: Callable[P, T] | Callable[P, Awaitable[T]]
+        self,
+        factory: Callable[P, T] | Callable[P, Awaitable[T]],
+        *,
+        singleton: bool = True,
     ) -> None:
         """Adds a component factory into the container.
 
@@ -33,8 +36,10 @@ class Container(ComponentAddable):
         first get operation.  The component registered will be the return type of the
         callable.
 
+        :param *:
         :param factory: The factory that would construct the object.  The function can
          take additional kwargs which represent dependencies in the container
+         :param singleton: Create singleton
         """
         raise NotImplementedError  # pragma: no cover
 
@@ -83,4 +88,9 @@ class Container(ComponentAddable):
             A list of components that match the given type.
 
         """
+        raise NotImplementedError  # pragma: no cover
+
+    async def resolve_function_dependencies(
+        self, fn: Callable[..., object]
+    ) -> dict[str, object]:
         raise NotImplementedError  # pragma: no cover
