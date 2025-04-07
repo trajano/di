@@ -1,4 +1,8 @@
+import logging
+
 from di import autowired, component
+
+log=logging.getLogger(__name__)
 
 
 @component
@@ -10,7 +14,7 @@ class Config:
 class Logger:
     @autowired
     def log(self, *, config: Config):
-        print("Logging with config value:", config.value)
+        log.info("Logging with config value: %s", config.value)
 
 
 def test_something():

@@ -1,5 +1,8 @@
+import logging
+
 from di import component, default_container
 
+log=logging.getLogger(__name__)
 
 @component
 class ServiceA:
@@ -17,6 +20,5 @@ class ServiceB:
 
 
 def test_simple_example():
-    # Retrieving a component from the default container
     service_b = default_container[ServiceB]
-    print(service_b.call_a())  # Output: Hello from ServiceA
+    log.info(service_b.call_a())  # Output: Hello from ServiceA
