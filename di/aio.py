@@ -6,6 +6,7 @@ from .aio_container import (
     autowired,
     component,
     default_aio_container,
+    factory,
 )
 from .exceptions import (
     ComponentNotFoundError,
@@ -24,4 +25,5 @@ __all__ = [
     "autowired",
     "component",
     "default_aio_container",
+    "factory",
 ]
