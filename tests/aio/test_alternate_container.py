@@ -6,7 +6,7 @@ are properly resolved with dependencies injected.
 """
 
 import typing
-from typing import Callable, TypeVar
+from typing import Callable, TypeVar, Awaitable
 
 from di.aio import AioContainer, autowired, component
 
@@ -51,7 +51,7 @@ async def autowired_sample(in_: str, *, my_service: MainService) -> str:
     return f"{in_} - {my_service.foo()}"
 
 
-def aliased_autowired(func: Callable[..., T]) -> Callable[..., T]:
+def aliased_autowired(func: Callable[..., Awaitable[T]]) -> Callable[..., Awaitable[T]]:
     """An example of a decorator alias"""
     return autowired(container=alternate_container)(func)
 
@@ -70,4 +70,3 @@ async def test_aliased_autowired():
     Show how to do aliasing of the autowired decorator to preset the container.
     """
     assert (await aliased_autowired_sample("abc")) == "aliased abc - foo"
-

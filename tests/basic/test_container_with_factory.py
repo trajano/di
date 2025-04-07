@@ -4,6 +4,7 @@ from logging import Logger
 import pytest
 
 from di import BasicContainer, ContainerError
+from di.exceptions import DuplicateRegistrationError
 
 
 @typing.runtime_checkable
@@ -106,13 +107,21 @@ def test_adding_after_get():
 
 def test_bad_builder():
     my_container = BasicContainer()
-    with pytest.raises(ContainerError):
+    with pytest.raises(TypeError):
         my_container.add_component_factory(bad_builder)
 
 
 def test_double_registration():
     my_container = BasicContainer()
+    my_container.add_component_type(MyDep)
+
+    with pytest.raises(DuplicateRegistrationError):
+        my_container.add_component_type(MyDep)
+
+
+def test_double_registration_factory():
+    my_container = BasicContainer()
     my_container.add_component_factory(my_dep_builder)
 
-    with pytest.raises(ContainerError):
+    with pytest.raises(DuplicateRegistrationError):
         my_container.add_component_factory(my_dep_builder)

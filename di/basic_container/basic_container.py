@@ -3,7 +3,13 @@ from collections.abc import Callable
 from typing import TypeVar, Any, Type, Self, List, ParamSpec, Union
 import typing
 
-from di.exceptions import ContainerError, ComponentNotFoundError
+from di.util import extract_satisfied_types_from_return_of_callable
+from di.util import extract_satisfied_types_from_type
+from di.exceptions import (
+    ContainerError,
+    ComponentNotFoundError,
+    DuplicateRegistrationError,
+)
 from .implementation_definition import ImplementationDefinition
 from .resolver import Resolver
 from .container import Container
@@ -20,15 +26,14 @@ class BasicContainer(Container):
         self._type_map: dict[Type, Any] = {}
         self._instances: set[Any] = set()
         self._locked: bool = False
+        self._registered: set = set()
 
     def add_component_type(self, component_type: Type[T]) -> Self:
         if self._locked:
             raise ContainerError("Container is locked after first resolution.")
-
-        if any(d.type is component_type for d in self._definitions):
-            raise ContainerError(
-                f"Component type {component_type} is already registered."
-            )
+        if component_type in self._registered:
+            raise DuplicateRegistrationError(type_or_factory=component_type)
+        self._registered.add(component_type)
 
         ctor = inspect.signature(component_type.__init__)
         deps = {
@@ -36,11 +41,7 @@ class BasicContainer(Container):
             for n, p in ctor.parameters.items()
             if n != "self" and p.annotation != inspect.Parameter.empty
         }
-        satisfied_types = {
-            base
-            for base in inspect.getmro(component_type)
-            if base not in (object, component_type)
-        } | {component_type}
+        satisfied_types = extract_satisfied_types_from_type(component_type)
 
         self._definitions.append(
             ImplementationDefinition(
@@ -56,25 +57,18 @@ class BasicContainer(Container):
     def add_component_factory(self, factory: typing.Callable[..., T]) -> typing.Self:
         if self._locked:
             raise ContainerError("Container is locked after first resolution.")
-
-        # Attempt to get the return type of the factory
-        return_type = typing.get_type_hints(factory).get("return")
-        if return_type is None:
-            raise ContainerError("Factory must have a return type annotation.")
-
-        if any(d.type is return_type for d in self._definitions):
-            raise ContainerError(f"Component type {return_type} is already registered.")
+        if factory in self._registered:
+            raise DuplicateRegistrationError(type_or_factory=factory)
+        self._registered.add(factory)
 
         deps = set(
             param.annotation
             for name, param in inspect.signature(factory).parameters.items()
             if param.annotation != inspect.Parameter.empty
         )
-        satisfied_types = {
-            base
-            for base in inspect.getmro(return_type)
-            if base not in (object, return_type)
-        } | {return_type}
+        return_type, satisfied_types = extract_satisfied_types_from_return_of_callable(
+            factory
+        )
 
         self._definitions.append(
             ImplementationDefinition(
