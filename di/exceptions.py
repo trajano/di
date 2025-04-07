@@ -1,9 +1,6 @@
 """Container exception hierarchy."""
 
 import typing
-from typing import TypeVar
-
-A = TypeVar("A")
 
 
 class ContainerError(RuntimeError):
@@ -58,7 +55,7 @@ class DuplicateRegistrationError(ContainerError):
 
     def __init__(
         self,
-        type_or_factory: A,
+        type_or_factory: object,
         message: str | None = None,
     ):
         self.type_or_factory = type_or_factory

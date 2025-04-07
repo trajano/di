@@ -30,8 +30,8 @@ async def resolve(
         # Short circuit if implementation is already there
         if defn.implementation in implementation_provided:
             if not isinstance(defn.implementation, defn.type):
-                msg = "Implementation didn't match type"
-                raise TypeError(msg)
+                msg = "Implementation didn't match type"  # pragma: no cover
+                raise TypeError(msg)  # pragma: no cover
             return defn.implementation
 
         resolved_args = {}
@@ -75,8 +75,8 @@ async def resolve(
             kwargs = _match_args_by_type(factory, resolved_args)
             if defn.factory_is_async:
                 if not inspect.iscoroutinefunction(factory):
-                    msg = "factory method was expected to be async"
-                    raise TypeError(msg)
+                    msg = "factory method was expected to be async"  # pragma: no cover
+                    raise TypeError(msg)  # pragma: no cover
                 instance = await factory(**kwargs)
             else:
                 instance = factory(**kwargs)
@@ -90,8 +90,8 @@ async def resolve(
             collected.setdefault(typ, []).append(instance)
 
         if not isinstance(instance, defn.type):
-            msg = "Instance had unexpected type"
-            raise TypeError(msg)
+            msg = "Instance had unexpected type"  # pragma: no cover
+            raise TypeError(msg)  # pragma: no cover
         return instance
 
     async def resolve_all() -> None:

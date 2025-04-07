@@ -48,7 +48,7 @@ class AioContainer(Container):
             )
         )
 
-    def add_component_implementation(self, implementation: T) -> None:
+    def add_component_implementation(self, implementation: object) -> None:
         if self._type_map is not None:
             raise ContainerLockedError
         if implementation in self._registered:
@@ -92,7 +92,7 @@ class AioContainer(Container):
             )
         )
 
-    def __iadd__(self, other: T) -> Self:
+    def __iadd__(self, other: object) -> Self:
         if inspect.isclass(other):
             self.add_component_type(other)
             return self

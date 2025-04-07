@@ -5,6 +5,7 @@ Autowire using factory method
 import asyncio
 
 from di.aio import autowired, factory
+from di.aio_container import default_aio_container
 
 
 class AsyncService:
@@ -28,7 +29,7 @@ async def answer_to_life_the_universe_and_everything() -> int:
     return 42
 
 
-@factory
+@factory(container=default_aio_container)
 async def favorite_number() -> int:
     await asyncio.sleep(0.1)
     return 69

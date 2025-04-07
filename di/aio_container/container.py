@@ -37,7 +37,7 @@ class Container(Protocol):
         """
         raise NotImplementedError  # pragma: no cover
 
-    def add_component_implementation(self, implementation: T) -> None:
+    def add_component_implementation(self, implementation: object) -> None:
         """Adds a fully constructed object instance into the container.
 
         This is typically used for singletons or externally managed instances.
@@ -49,7 +49,8 @@ class Container(Protocol):
         """
         raise NotImplementedError  # pragma: no cover
 
-    def __iadd__(self, other: T) -> Self:
+    def __iadd__(self, other: object) -> Self:
+        """Add a component type, factory or implementation to the container."""
         return NotImplemented  # pragma: no cover
 
     async def get_component(self, component_type: type[T]) -> T:
