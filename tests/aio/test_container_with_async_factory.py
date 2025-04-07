@@ -3,6 +3,7 @@ import asyncio
 import typing
 from logging import Logger
 
+from di import ComponentNotFoundError
 from di.aio import ContainerError, AioContainer
 
 
@@ -98,6 +99,14 @@ async def test_simple_usage():
     my_class_impl_optional = await my_container.get_optional_component(MyClass)
     assert my_class_impl == my_class_impl_optional
 
+
+async def test_missing_dependency():
+    my_container = AioContainer()
+    my_container.add_component_type(MyClass)
+    with pytest.raises(ComponentNotFoundError):
+        await my_container.get_component(MyClass)
+
+
 async def test_with_implementation():
     my_container = AioContainer()
     my_container.add_component_implementation(MyDep())
@@ -130,42 +139,3 @@ async def test_missing_component():
     my_container = AioContainer()
     with pytest.raises(ContainerError):
         await my_container.get_component(Logger)
-
-
-#
-#
-# def test_contains():
-#     my_container = BasicContainer()
-#     my_container += my_dep_builder
-#     my_container += MyClass
-#     assert MyClass in my_container
-#
-#
-# def test_invalid_type():
-#     my_container = BasicContainer()
-#     my_container.add_component_factory(my_dep_builder)
-#     with pytest.raises(TypeError):
-#         my_container += 649  # pyright: ignore[reportOperatorIssue]
-#
-#
-# def test_adding_after_get():
-#     my_container = BasicContainer()
-#     my_container.add_component_type(MyDep)
-#     assert isinstance(my_container.get_component(MyDep), Proto)
-#     assert isinstance(my_container.get_component(MyDep), MyDep)
-#     with pytest.raises(ContainerError):
-#         my_container.add_component_factory(my_dep_builder)
-#
-#
-# def test_bad_builder():
-#     my_container = BasicContainer()
-#     with pytest.raises(ContainerError):
-#         my_container.add_component_factory(bad_builder)
-#
-#
-# def test_double_registration():
-#     my_container = BasicContainer()
-#     my_container.add_component_factory(my_dep_builder)
-#
-#     with pytest.raises(ContainerError):
-#         my_container.add_component_factory(my_dep_builder)

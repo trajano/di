@@ -1,4 +1,9 @@
-from . import ComponentNotFoundError, CycleDetectedError, DuplicateRegistrationError
+from . import (
+    ComponentNotFoundError,
+    CycleDetectedError,
+    DuplicateRegistrationError,
+    ContainerLockedError,
+)
 
 
 def test_cycle_detected_error_custom_message():
@@ -12,7 +17,13 @@ def test_component_not_found_error_custom_message():
     assert str(exc) == "Custom not found"
     assert exc.component_type is int
 
+
 def test_duplicate_registration_error():
     exc = DuplicateRegistrationError(type_or_factory=int, message="Custom not found")
     assert str(exc) == "Custom not found"
     assert exc.type_or_factory is int
+
+
+def test_container_locked_error():
+    exc = ContainerLockedError(message="Custom not found")
+    assert str(exc) == "Custom not found"

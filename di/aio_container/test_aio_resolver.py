@@ -5,7 +5,7 @@ import pytest
 
 from .implementation_definition import ImplementationDefinition
 from .aio_resolver import resolve
-from .. import ContainerError
+from .. import ComponentNotFoundError
 
 
 @typing.runtime_checkable
@@ -138,6 +138,7 @@ async def test_resolver_with_deps():
     assert isinstance(resolved[MyDepWithDeps][0], MyDepWithDeps)
     assert (await resolved[MyDepWithDeps][0].ablah()) == "blah-ablah"
 
+
 async def test_resolver_with_implementation():
     definitions = [
         ImplementationDefinition(
@@ -164,6 +165,7 @@ async def test_resolver_with_implementation():
     assert isinstance(resolved[MyDepWithDeps][0], MyDepWithDeps)
     assert (await resolved[MyDepWithDeps][0].ablah()) == "blah-ablah"
 
+
 async def test_resolver_with_mandatory_dep():
     definitions = [
         ImplementationDefinition(
@@ -175,8 +177,9 @@ async def test_resolver_with_mandatory_dep():
             factory_is_async=True,
         ),
     ]
-    with pytest.raises(ContainerError):
+    with pytest.raises(ComponentNotFoundError):
         await resolve(definitions=definitions)
+
 
 async def test_resolver_with_class_accepting_list():
     definitions = [
@@ -208,6 +211,7 @@ async def test_resolver_with_class_accepting_list():
     resolved = await resolve(definitions=definitions)
     assert isinstance(resolved[MyClassWithList][0], MyClassWithList)
     assert resolved[MyClassWithList][0].dep_count() == 2
+
 
 async def test_resolver_with_class_accepting_list_which_can_be_empty():
     definitions = [

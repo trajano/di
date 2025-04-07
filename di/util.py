@@ -1,3 +1,4 @@
+from inspect import isclass
 from typing import Callable, Any, Awaitable, Coroutine
 import inspect
 import typing
@@ -23,12 +24,6 @@ def extract_satisfied_types_from_return_of_callable(
     if return_annotation is inspect.Signature.empty:
         raise TypeError("Return type must be known")
 
-    print(return_annotation)
-
-    origin = typing.get_origin(return_annotation)
-    if origin is not None:
-        return_annotation = origin
-
     return return_annotation, extract_satisfied_types_from_type(return_annotation)
 
 
@@ -43,7 +38,11 @@ def extract_satisfied_types_from_type(component_type: type) -> set[type]:
     origin = typing.get_origin(component_type)
     args = typing.get_args(component_type)
 
-    if origin in {Awaitable, Coroutine} and args:
+    if (
+        isclass(origin)
+        and (issubclass(origin, Awaitable) or issubclass(origin, Coroutine))
+        and args
+    ):
         # Recursively unwrap the awaited type
         return extract_satisfied_types_from_type(args[-1])
 

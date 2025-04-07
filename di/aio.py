@@ -4,16 +4,16 @@ from .aio_container import AioContainer
 from .decorators import component, autowired
 from .exceptions import (
     ContainerError,
-    CycleDetectedError,
     ComponentNotFoundError,
+    ContainerLockedError,
     DuplicateRegistrationError,
 )
 
 __all__ = [
     "AioContainer",
-    "CycleDetectedError",
     "ComponentNotFoundError",
     "ContainerError",
+    "ContainerLockedError",
     "DuplicateRegistrationError",
     "component",
     "autowired",

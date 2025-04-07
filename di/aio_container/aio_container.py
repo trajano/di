@@ -17,7 +17,7 @@ from di.util import (
 )
 from .aio_resolver import resolve
 from .implementation_definition import ImplementationDefinition
-from ..exceptions import DuplicateRegistrationError
+from ..exceptions import ContainerLockedError, DuplicateRegistrationError
 
 P = ParamSpec("P")
 T = TypeVar("T")
@@ -31,7 +31,7 @@ class AioContainer:
 
     def add_component_type(self, component_type: type) -> None:
         if self._type_map is not None:
-            raise ContainerError("Container is locked after first resolution.")
+            raise ContainerLockedError()
         if component_type in self._registered:
             raise DuplicateRegistrationError(type_or_factory=component_type)
         self._registered.add(component_type)
@@ -50,7 +50,7 @@ class AioContainer:
 
     def add_component_implementation(self, implementation: Any) -> None:
         if self._type_map is not None:
-            raise ContainerError("Container is locked after first resolution.")
+            raise ContainerLockedError()
         if implementation in self._registered:
             raise DuplicateRegistrationError(type_or_factory=implementation)
         self._registered.add(implementation)
@@ -67,12 +67,11 @@ class AioContainer:
             )
         )
 
-
     def add_component_factory(
         self, factory: Callable[P, T] | Callable[P, Awaitable[T]]
     ) -> None:
         if self._type_map is not None:
-            raise ContainerError("Container is locked after first resolution.")
+            raise ContainerLockedError()
         if factory in self._registered:
             raise DuplicateRegistrationError(type_or_factory=factory)
         self._registered.add(factory)

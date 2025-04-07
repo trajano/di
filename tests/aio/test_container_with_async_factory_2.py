@@ -3,7 +3,12 @@ import asyncio
 import typing
 from logging import Logger
 
-from di.aio import ContainerError, AioContainer, DuplicateRegistrationError
+from di.aio import (
+    ContainerError,
+    AioContainer,
+    ContainerLockedError,
+    DuplicateRegistrationError,
+)
 from di.util import (
     extract_satisfied_types_from_type,
     extract_satisfied_types_from_return_of_callable,
@@ -126,7 +131,9 @@ def test_satisfies():
     assert Proto in satisfied_types
     assert p == MyDep
 
-    p, satisfied_types = extract_satisfied_types_from_return_of_callable(my_other_async_dep_builder)
+    p, satisfied_types = extract_satisfied_types_from_return_of_callable(
+        my_other_async_dep_builder
+    )
     assert Proto in satisfied_types
     assert p == MyDep
 
@@ -214,10 +221,12 @@ async def test_adding_after_get():
     my_container.add_component_type(MyDep)
     assert isinstance(await my_container.get_component(MyDep), Proto)
     assert isinstance(await my_container.get_component(MyDep), MyDep)
-    with pytest.raises(ContainerError):
+    with pytest.raises(ContainerLockedError):
         my_container.add_component_factory(my_dep_builder)
-    with pytest.raises(ContainerError):
+    with pytest.raises(ContainerLockedError):
         my_container.add_component_type(MyDep2)
+    with pytest.raises(ContainerLockedError):
+        my_container.add_component_implementation(123)
 
 
 async def test_bad_builder():
@@ -231,7 +240,7 @@ async def test_double_registration():
     my_container += MyDep2
 
     with pytest.raises(DuplicateRegistrationError):
-        my_container += MyDep2
+        my_container.add_component_type(MyDep2)
 
 
 async def test_double_registration_factory():
@@ -240,3 +249,12 @@ async def test_double_registration_factory():
 
     with pytest.raises(ContainerError):
         my_container.add_component_factory(my_dep_builder)
+
+
+async def test_double_registration_implementation():
+    my_container = AioContainer()
+    f = MyDep2()
+    my_container += f
+
+    with pytest.raises(DuplicateRegistrationError):
+        my_container.add_component_implementation(f)

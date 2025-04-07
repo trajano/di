@@ -2,7 +2,7 @@ import inspect
 from typing import TypeVar, Any, get_origin, get_args, Callable
 
 from .implementation_definition import ImplementationDefinition
-from .. import ContainerError
+from .. import ComponentNotFoundError
 
 T = TypeVar("T")
 
@@ -13,15 +13,20 @@ async def resolve(
     collected: dict[type, list] = {}
     constructed: dict[type, Any] = {}
     constructed_from_factory: dict[Callable[..., Any], Any] = {}
+    implementation_provided: set = set()
 
     async def resolve_one(defn: ImplementationDefinition[Any]) -> Any:
-        # only short-circuit if there's no factory (i.e., class-only resolution)
+        # short-circuit if there's no factory (i.e., class-only resolution)
         if defn.type in constructed and defn.factory is None:
             return constructed[defn.type]
 
         # Short circuit if the factory already built
         if defn.factory in constructed_from_factory:
             return constructed_from_factory[defn.factory]
+        #
+        # # Short circuit if implementation is already there
+        if defn.implementation in implementation_provided:
+            return defn.implementation
 
         resolved_args = {}
         for dep_type in defn.dependencies:
@@ -45,12 +50,13 @@ async def resolve(
                 None,
             )
             if not dep_def:
-                raise ContainerError(f"No definition found for dependency: {dep_type}")
+                raise ComponentNotFoundError(component_type=dep_type)
 
             dep_instance = await resolve_one(dep_def)
             resolved_args[dep_type] = dep_instance
 
         if defn.implementation is not None:
+            implementation_provided.add(defn.implementation)
             instance = defn.implementation
         else:
             if defn.factory is not None:
@@ -65,7 +71,6 @@ async def resolve(
                 kwargs = _match_args_by_type(defn.type, resolved_args)
                 instance = defn.type(**kwargs)
                 constructed[defn.type] = instance
-            defn.implementation = instance
 
         for typ in defn.satisfied_types:
             collected.setdefault(typ, []).append(instance)
