@@ -1,6 +1,6 @@
 import pytest
 from typing import Any
-
+import contextlib
 from di.enums import ComponentScope
 from ._types import ComponentDefinition, ResolvedComponent
 from .resolver import (

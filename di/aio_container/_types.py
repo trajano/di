@@ -34,12 +34,12 @@ class ComponentDefinition(Generic[I]):
     """
 
     type: type[I]
-    satisfied_types: set[type]
+    satisfied_types: set[Type]
     """A set of types satisfied by the implementation (excluding 'object')."""
 
-    dependencies: set[type]
+    dependencies: set[Type]
     """A set of types that are constructor dependencies of the implementation."""
-    collection_dependencies: set[type]
+    collection_dependencies: set[Type]
 
     factory: ContainerAsyncFactory[I]
     """

@@ -3,6 +3,7 @@ from ._types import ComponentDefinition, ResolvedComponent
 from di.enums import ComponentScope
 from ._toposort import _toposort_components
 import inspect
+import contextlib
 import functools
 
 from di.exceptions import ComponentNotFoundError
@@ -206,14 +207,17 @@ async def resolve_satisfying_components(
 
 
 async def resolve_callable_dependencies(
-    fn: Callable[..., Awaitable[T]],
-    container_scope_components: list[ResolvedComponent[Any]],
-    definitions: list[ComponentDefinition[Any]],
+        fn: Callable[..., Awaitable[T]],
+        container_scope_components: list[ResolvedComponent[Any]],
+        definitions: list[ComponentDefinition[Any]],
 ) -> Callable[..., Awaitable[T]]:
     """
     Resolves the required dependencies of the callable and returns a coroutine function
     with those keyword-only arguments pre-applied. The resulting function will still accept
     any positional and other keyword arguments the caller provides.
+
+    This version ensures that all function-scoped components are entered and cleaned up
+    using an async context manager stack.
 
     :param fn: A function whose dependencies are declared via keyword-only parameters.
     :param container_scope_components: Already resolved container-scoped components.
@@ -221,53 +225,72 @@ async def resolve_callable_dependencies(
     :return: A coroutine function that may still take user-supplied arguments.
     """
     sig = inspect.signature(fn)
-    injected_kwargs = {}
-
-    for name, param in sig.parameters.items():
-        if param.kind != param.KEYWORD_ONLY:
-            continue
-        if param.annotation is inspect.Parameter.empty:
-            continue
-        if param.default is not inspect.Parameter.empty:
-            continue
-
-        dep_type = param.annotation
-        origin = get_origin(dep_type)
-        args = get_args(dep_type)
-
-        # Optional[X] or Union[X, None]
-        if origin is Union and type(None) in args and len(args) == 2:
-            inner_type = next(a for a in args if a is not type(None))
-            matches = await resolve_satisfying_components(
-                inner_type,
-                resolved_components=container_scope_components,
-                definitions=definitions,
-            )
-            injected_kwargs[name] = matches[0] if matches else None
-
-        # list[X] or set[X]
-        elif origin in (list, set) and args:
-            item_type = args[0]
-            matches = await resolve_satisfying_components(
-                item_type,
-                resolved_components=container_scope_components,
-                definitions=definitions,
-            )
-            injected_kwargs[name] = origin(matches)
-
-        # Direct required dependency
-        else:
-            matches = await resolve_satisfying_components(
-                dep_type,
-                resolved_components=container_scope_components,
-                definitions=definitions,
-            )
-            if not matches:
-                raise ComponentNotFoundError(component_type=dep_type)
-            injected_kwargs[name] = matches[0]
+    type_to_instance = {
+        typ: component.instance
+        for component in container_scope_components
+        for typ in component.satisfied_types
+    }
+    type_to_definition = {
+        typ: definition
+        for definition in definitions
+        for typ in definition.satisfied_types
+    }
 
     @functools.wraps(fn)
     async def wrapped(*args: Any, **user_kwargs: Any) -> T:
-        return await fn(*args, **user_kwargs, **injected_kwargs)
+        injected_kwargs: dict[str, Any] = {}
+        async with contextlib.AsyncExitStack() as stack:
+            constructed: dict[type, Any] = dict(type_to_instance)
+
+            for name, param in sig.parameters.items():
+                if param.kind != param.KEYWORD_ONLY:
+                    continue
+                if param.annotation is inspect.Parameter.empty:
+                    continue
+                if param.default is not inspect.Parameter.empty:
+                    continue
+
+                dep_type = param.annotation
+                origin = get_origin(dep_type)
+                args_ = get_args(dep_type)
+
+                # Optional[X] or Union[X, None]
+                if origin is Union and type(None) in args_ and len(args_) == 2:
+                    inner_type = next(a for a in args_ if a is not type(None))
+                    definition = type_to_definition.get(inner_type)
+                    if not definition:
+                        injected_kwargs[name] = None
+                        continue
+                    factory = definition.factory()
+                    instance = await stack.enter_async_context(factory)
+                    constructed[inner_type] = instance
+                    injected_kwargs[name] = instance
+
+                # list[X] or set[X]
+                elif origin in (list, set) and args_:
+                    item_type = args_[0]
+                    items = []
+                    for definition in definitions:
+                        if item_type in definition.satisfied_types:
+                            factory = definition.factory()
+                            instance = await stack.enter_async_context(factory)
+                            constructed[item_type] = instance
+                            items.append(instance)
+                    injected_kwargs[name] = origin(items)
+
+                # Direct required dependency
+                else:
+                    if dep_type in constructed:
+                        injected_kwargs[name] = constructed[dep_type]
+                    elif dep_type in type_to_definition:
+                        definition = type_to_definition[dep_type]
+                        factory = definition.factory()
+                        instance = await stack.enter_async_context(factory)
+                        constructed[dep_type] = instance
+                        injected_kwargs[name] = instance
+                    else:
+                        raise ComponentNotFoundError(component_type=dep_type)
+
+            return await fn(*args, **user_kwargs, **injected_kwargs)
 
     return wrapped

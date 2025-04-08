@@ -7,7 +7,7 @@ from di._util import (
 from ._convert_to_factory import convert_to_factory
 from ._types import ComponentDefinition
 from .aio_container import AioContainer
-from .autowired import autowire_with_container
+from .autowired import autowired_with_container
 
 
 class A:
@@ -44,7 +44,7 @@ async def test_autowire_injects_dependencies():
 
     async with container:
 
-        @autowire_with_container(container=container)
+        @autowired_with_container(container=container)
         async def handler(x: int, *, b: B):
             return x, b
 

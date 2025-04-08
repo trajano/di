@@ -73,12 +73,12 @@ class ConfigurableAioContainer:
         self._ensure_not_registered(factory)
         async_factory = convert_to_factory(factory)
         deps, collection_deps = extract_dependencies_from_callable(factory)
-        _return_type, satisfied_types = extract_satisfied_types_from_return_of_callable(
+        return_type, satisfied_types = extract_satisfied_types_from_return_of_callable(
             factory
         )
         self._definitions.append(
             ComponentDefinition(
-                type=factory,
+                type=return_type,
                 satisfied_types=satisfied_types,
                 dependencies=deps,
                 collection_dependencies=collection_deps,

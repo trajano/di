@@ -9,7 +9,7 @@ P = ParamSpec("P")
 R = TypeVar("R")
 
 
-def autowire_with_container(
+def autowired_with_container(
     container: AioContainer,
 ) -> Callable[[Callable[P, Awaitable[R]]], Callable[P, Awaitable[R]]]:
     def decorator(fn: Callable[P, Awaitable[R]]) -> Callable[P, Awaitable[R]]:
