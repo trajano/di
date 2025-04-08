@@ -1,8 +1,9 @@
 import inspect
 from typing import Callable, Any, get_origin, get_args
 
+
 def extract_dependencies_from_callable(
-        fn: Callable[..., Any]
+    fn: Callable[..., Any],
 ) -> tuple[set[type], set[type]]:
     """
     Extracts mandatory constructor dependencies and collection dependencies from

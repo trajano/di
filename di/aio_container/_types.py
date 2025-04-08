@@ -34,13 +34,12 @@ class ComponentDefinition(Generic[I]):
     """
 
     type: type[I]
-    satisfied_types: set[Type]
+    satisfied_types: set[type]
     """A set of types satisfied by the implementation (excluding 'object')."""
 
-    dependencies: set[Type]
+    dependencies: set[type]
     """A set of types that are constructor dependencies of the implementation."""
-    collection_dependencies: set[Type]
-
+    collection_dependencies: set[type]
 
     factory: ContainerAsyncFactory[I]
     """
@@ -59,9 +58,9 @@ class ComponentDefinition(Generic[I]):
 
 
 @dataclass
-class ContainerScopeComponent(Generic[I]):
+class ResolvedComponent(Generic[I]):
     """
-    A component that is in the container scope.
+    A component that is resolved.
     """
 
     satisfied_types: set[Type]

@@ -1,12 +1,14 @@
 import pytest
 from typing import Protocol, runtime_checkable
 
-from di._util import extract_dependencies_from_signature, \
-    extract_satisfied_types_from_type
+from di._util import (
+    extract_dependencies_from_signature,
+    extract_satisfied_types_from_type,
+)
 from ._extractors import extract_dependencies_from_callable
 from di.enums import ComponentScope
 from ._convert_to_factory import convert_to_factory
-from ._types import ComponentDefinition, ContainerScopeComponent
+from ._types import ComponentDefinition, ResolvedComponent
 from .resolver import resolve_container_scoped_only
 
 
@@ -14,21 +16,26 @@ class Config:
     def __init__(self):
         self.token = "abc123"
 
+
 class Service:
-    def __init__(self, *, config: Config):
-        self.config = config
+    def __init__(self, *, xyz: Config):
+        self.config = xyz
+
 
 @runtime_checkable
 class Source(Protocol):
     def provide(self) -> str: ...
 
+
 class NameSource:
     def provide(self) -> str:
         return "Archie"
 
+
 class NumberSource:
     def provide(self) -> str:
         return "42"
+
 
 class ServiceWithConfigAndSources:
     def __init__(self, *, config: Config, sources: list[Source]):
@@ -51,7 +58,7 @@ async def test_resolve_container_scoped_only_simple_graph():
         dependencies=extract_dependencies_from_signature(Config.__init__),
         collection_dependencies=set(),
         factory=config_factory,
-        scope=ComponentScope.CONTAINER
+        scope=ComponentScope.CONTAINER,
     )
 
     service_def = ComponentDefinition(
@@ -60,7 +67,7 @@ async def test_resolve_container_scoped_only_simple_graph():
         dependencies=extract_dependencies_from_signature(Service.__init__),
         collection_dependencies=set(),
         factory=service_factory,
-        scope=ComponentScope.CONTAINER
+        scope=ComponentScope.CONTAINER,
     )
 
     components = await resolve_container_scoped_only([service_def, config_def])
@@ -70,7 +77,7 @@ async def test_resolve_container_scoped_only_simple_graph():
     assert components[0].instance.__class__ is Config
     assert components[1].instance.__class__ is Service
     assert components[1].instance.config is components[0].instance
-    assert all(isinstance(comp, ContainerScopeComponent) for comp in components)
+    assert all(isinstance(comp, ResolvedComponent) for comp in components)
 
 
 @pytest.mark.asyncio
@@ -102,7 +109,9 @@ async def test_resolve_container_with_multiple_sources():
         scope=ComponentScope.CONTAINER,
     )
 
-    deps, collection_deps = extract_dependencies_from_callable(ServiceWithConfigAndSources.__init__)
+    deps, collection_deps = extract_dependencies_from_callable(
+        ServiceWithConfigAndSources.__init__
+    )
 
     service_with_sources_def = ComponentDefinition(
         type=ServiceWithConfigAndSources,
@@ -113,12 +122,18 @@ async def test_resolve_container_with_multiple_sources():
         scope=ComponentScope.CONTAINER,
     )
 
-    components = await resolve_container_scoped_only([
-        config_def,
-        name_source_def,
-        service_with_sources_def,
-        number_source_def,
-    ])
+    components = await resolve_container_scoped_only(
+        [
+            config_def,
+            name_source_def,
+            service_with_sources_def,
+            number_source_def,
+        ]
+    )
 
-    svc = next(c.instance for c in components if isinstance(c.instance, ServiceWithConfigAndSources))
+    svc = next(
+        c.instance
+        for c in components
+        if isinstance(c.instance, ServiceWithConfigAndSources)
+    )
     assert svc.get() == "abc123 Archie,42"

@@ -10,7 +10,7 @@ from ._extractors import extract_dependencies_from_callable
 from di.enums import ComponentScope, ContainerState
 from di.exceptions import DuplicateRegistrationError
 from ._convert_to_factory import convert_to_factory
-from ._types import ComponentDefinition
+from ._types import ComponentDefinition, ResolvedComponent
 from .resolver import resolve_container_scoped_only
 from .validator import validate_container_definitions
 
@@ -36,7 +36,9 @@ class ConfigurableAioContainer:
     def add_component_type(self, component_type: type) -> None:
         self._ensure_not_registered(component_type)
         factory = convert_to_factory(component_type)
-        deps, collection_deps = extract_dependencies_from_callable(component_type.__init__)
+        deps, collection_deps = extract_dependencies_from_callable(
+            component_type.__init__
+        )
         self._definitions.append(
             ComponentDefinition(
                 type=component_type,
@@ -63,10 +65,10 @@ class ConfigurableAioContainer:
         )
 
     def add_component_factory(
-            self,
-            factory: Callable[P, T] | Callable[P, Awaitable[T]],
-            *,
-            scope: ComponentScope = ComponentScope.CONTAINER,
+        self,
+        factory: Callable[P, T] | Callable[P, Awaitable[T]],
+        *,
+        scope: ComponentScope = ComponentScope.CONTAINER,
     ) -> None:
         self._ensure_not_registered(factory)
         async_factory = convert_to_factory(factory)
@@ -86,10 +88,10 @@ class ConfigurableAioContainer:
         )
 
     def add_context_managed_component(
-            self,
-            component_type: type,
-            *,
-            scope: ComponentScope = ComponentScope.CONTAINER,
+        self,
+        component_type: type,
+        *,
+        scope: ComponentScope = ComponentScope.CONTAINER,
     ) -> None:
         """
         Register a component type that implements sync or async context management.
@@ -104,7 +106,9 @@ class ConfigurableAioContainer:
         """
         self._ensure_not_registered(component_type)
         factory = convert_to_factory(component_type)
-        deps, collection_deps = extract_dependencies_from_callable(component_type.__init__)
+        deps, collection_deps = extract_dependencies_from_callable(
+            component_type.__init__
+        )
         self._definitions.append(
             ComponentDefinition(
                 type=component_type,
@@ -131,7 +135,7 @@ class AioContainer(contextlib.AbstractAsyncContextManager):
     def __init__(self, definitions: list[ComponentDefinition[Any]]) -> None:
         self._definitions = list(definitions)
         self._state = ContainerState.INITIALIZING
-        self._container_scope_components: list = []
+        self._container_scope_components: list[ResolvedComponent[Any]] = []
 
     async def __aenter__(self) -> Self:
         self._state = ContainerState.VALIDATING
@@ -166,4 +170,3 @@ class AioContainer(contextlib.AbstractAsyncContextManager):
         for definition in self._definitions:
             result.update(definition.satisfied_types)
         return result
-

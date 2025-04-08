@@ -1,12 +1,12 @@
 from typing import Any, get_origin, get_args
-from ._types import ComponentDefinition, ContainerScopeComponent
+from ._types import ComponentDefinition, ResolvedComponent
 from di.enums import ComponentScope
 import inspect
 from collections import defaultdict, deque
 
 
 def _toposort_components(
-        definitions: list[ComponentDefinition[Any]],
+    definitions: list[ComponentDefinition[Any]],
 ) -> list[type]:
     """
     Sort components in dependency order using topological sort.
@@ -34,7 +34,12 @@ def _toposort_components(
 
     # Use deterministic ordering for queue based on registration order
     type_order = {definition.type: idx for idx, definition in enumerate(definitions)}
-    queue = deque(sorted((node for node in all_nodes if in_degree[node] == 0), key=lambda t: type_order[t]))
+    queue = deque(
+        sorted(
+            (node for node in all_nodes if in_degree[node] == 0),
+            key=lambda t: type_order[t],
+        )
+    )
     sorted_nodes = []
 
     while queue:
@@ -52,8 +57,8 @@ def _toposort_components(
 
 
 async def resolve_container_scoped_only(
-        definitions: list[ComponentDefinition[Any]],
-) -> list[ContainerScopeComponent]:
+    definitions: list[ComponentDefinition[Any]],
+) -> list[ResolvedComponent]:
     """
     Resolves all container-scoped components in topological order and enters
     their async context managers. Returns the ordered list of live container
@@ -75,7 +80,7 @@ async def resolve_container_scoped_only(
     }
 
     # Create instances in resolved order
-    instances: list[ContainerScopeComponent] = []
+    instances: list[ResolvedComponent] = []
     constructed: dict[type, Any] = {}
 
     for t in sorted_types:
@@ -95,10 +100,15 @@ async def resolve_container_scoped_only(
             origin = get_origin(dep_type)
             args = get_args(dep_type)
 
-            if origin in (list, set) and args and args[0] in definition.collection_dependencies:
+            if (
+                origin in (list, set)
+                and args
+                and args[0] in definition.collection_dependencies
+            ):
                 expected_type = args[0]
                 kwargs[name] = [
-                    instance for typ, instance in constructed.items()
+                    instance
+                    for typ, instance in constructed.items()
                     if isinstance(instance, expected_type)
                 ]
                 continue
@@ -109,7 +119,7 @@ async def resolve_container_scoped_only(
         instance = await context_manager.__aenter__()
 
         instances.append(
-            ContainerScopeComponent(
+            ResolvedComponent(
                 satisfied_types=definition.satisfied_types,
                 context_manager=context_manager,
                 instance=instance,
