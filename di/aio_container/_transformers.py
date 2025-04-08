@@ -21,24 +21,11 @@ See the high-level design documentation in `__init__.py` for full details.
 
 import asyncio
 from contextlib import AbstractAsyncContextManager, AbstractContextManager
-from typing import Callable, Awaitable, TypeVar, Protocol
+from typing import Callable, Awaitable, TypeVar
 
-# Base instance type variable (covariant for Protocol use)
-I_co = TypeVar("I_co", covariant=True)
+from ._types import ContainerAsyncFactory
+
 I = TypeVar("I")
-II = TypeVar("II")
-
-
-class ContainerAsyncFactory(Protocol[I_co]):
-    """
-    Represents a factory that returns an asynchronous context-managed instance
-    of type `I`.
-
-    This factory, when called, returns an `AbstractAsyncContextManager[I]`
-    to support `async with` usage.
-    """
-
-    def __call__(self, *args, **kwargs) -> AbstractAsyncContextManager[I_co]: ...
 
 
 class NoOpAsyncContextManager(AbstractAsyncContextManager[I]):

@@ -9,8 +9,8 @@ from ._transformers import (
     convert_component_type_to_factory,
     convert_sync_context_manager_to_factory,
     convert_implementation_to_factory,
-    ContainerAsyncFactory,
 )
+from ._types import ContainerAsyncFactory
 
 T = TypeVar("T")
 
