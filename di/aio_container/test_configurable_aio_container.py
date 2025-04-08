@@ -1,14 +1,14 @@
-import pytest
 import asyncio
 from contextlib import (
     AbstractAsyncContextManager,
-    AbstractContextManager,
     contextmanager,
 )
-from typing import AsyncIterator, Iterator
+from typing import Iterator
 
-from di.enums import ComponentScope
+import pytest
+
 from di.aio_container import ConfigurableAioContainer
+from di.enums import ComponentScope
 from di.exceptions import DuplicateRegistrationError
 
 

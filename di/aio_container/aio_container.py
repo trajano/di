@@ -5,6 +5,7 @@ from di._util import (
     extract_satisfied_types_from_type,
     extract_satisfied_types_from_return_of_callable,
 )
+from ._extractors import extract_dependencies_from_callable
 from di.enums import ComponentScope, ContainerState
 from di.exceptions import DuplicateRegistrationError
 from ._convert_to_factory import convert_to_factory
@@ -34,13 +35,13 @@ class ConfigurableAioContainer:
     def add_component_type(self, component_type: type) -> None:
         self._ensure_not_registered(component_type)
         factory = convert_to_factory(component_type)
+        deps, collection_deps = extract_dependencies_from_callable(component_type.__init__)
         self._definitions.append(
             ComponentDefinition(
                 type=component_type,
                 satisfied_types=extract_satisfied_types_from_type(component_type),
-                dependencies=extract_dependencies_from_signature(
-                    component_type.__init__
-                ),
+                dependencies=deps,
+                collection_dependencies=collection_deps,
                 factory=factory,
                 scope=ComponentScope.CONTAINER,
             )
@@ -54,6 +55,7 @@ class ConfigurableAioContainer:
                 type=type(implementation),
                 satisfied_types=extract_satisfied_types_from_type(type(implementation)),
                 dependencies=set(),
+                collection_dependencies=set(),
                 factory=factory,
                 scope=ComponentScope.CONTAINER,
             )
@@ -67,6 +69,7 @@ class ConfigurableAioContainer:
     ) -> None:
         self._ensure_not_registered(factory)
         async_factory = convert_to_factory(factory)
+        deps, collection_deps = extract_dependencies_from_callable(factory)
         _return_type, satisfied_types = extract_satisfied_types_from_return_of_callable(
             factory
         )
@@ -74,7 +77,8 @@ class ConfigurableAioContainer:
             ComponentDefinition(
                 type=factory,
                 satisfied_types=satisfied_types,
-                dependencies=extract_dependencies_from_signature(factory),
+                dependencies=deps,
+                collection_dependencies=collection_deps,
                 factory=async_factory,
                 scope=scope,
             )
@@ -99,13 +103,13 @@ class ConfigurableAioContainer:
         """
         self._ensure_not_registered(component_type)
         factory = convert_to_factory(component_type)
+        deps, collection_deps = extract_dependencies_from_callable(component_type.__init__)
         self._definitions.append(
             ComponentDefinition(
                 type=component_type,
                 satisfied_types=extract_satisfied_types_from_type(component_type),
-                dependencies=extract_dependencies_from_signature(
-                    component_type.__init__
-                ),
+                dependencies=deps,
+                collection_dependencies=collection_deps,
                 factory=factory,
                 scope=scope,
             )
