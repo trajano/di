@@ -18,14 +18,18 @@ scenarios, as defined in the container design.
 
 See the high-level design documentation in `__init__.py` for full details.
 """
+
 import asyncio
 from contextlib import AbstractAsyncContextManager, AbstractContextManager
 from typing import Callable, Awaitable, TypeVar, Protocol
 
-# Instance type variable
+# Base instance type variable (covariant for Protocol use)
+I_co = TypeVar("I_co", covariant=True)
 I = TypeVar("I")
+II = TypeVar("II")
 
-class ContainerAsyncFactory(Protocol[I]):
+
+class ContainerAsyncFactory(Protocol[I_co]):
     """
     Represents a factory that returns an asynchronous context-managed instance
     of type `I`.
@@ -33,7 +37,9 @@ class ContainerAsyncFactory(Protocol[I]):
     This factory, when called, returns an `AbstractAsyncContextManager[I]`
     to support `async with` usage.
     """
-    def __call__(self, *args, **kwargs) -> AbstractAsyncContextManager[I]: ...
+
+    def __call__(self, *args, **kwargs) -> AbstractAsyncContextManager[I_co]: ...
+
 
 class NoOpAsyncContextManager(AbstractAsyncContextManager[I]):
     """
@@ -45,6 +51,7 @@ class NoOpAsyncContextManager(AbstractAsyncContextManager[I]):
 
     :param value: The component instance to return on entry.
     """
+
     def __init__(self, value: I):
         self._value = value
 
@@ -55,7 +62,10 @@ class NoOpAsyncContextManager(AbstractAsyncContextManager[I]):
         # no-op
         pass
 
-def convert_async_def_to_factory(fn: Callable[..., Awaitable[I]]) -> ContainerAsyncFactory[I]:
+
+def convert_async_def_to_factory(
+    fn: Callable[..., Awaitable[I]],
+) -> ContainerAsyncFactory[I]:
     """
     Converts an `async def` function returning `I` into a container-compliant
     async factory returning a context-managed instance.
@@ -66,19 +76,23 @@ def convert_async_def_to_factory(fn: Callable[..., Awaitable[I]]) -> ContainerAs
     :param fn: An async function producing the component.
     :return: A factory returning the result in an async context manager.
     """
-    def factory(*args, **kwargs) -> AbstractAsyncContextManager[I]:
-        class _Wrapper(AbstractAsyncContextManager[I]):
-            async def __aenter__(self):
+
+    def factory(*args, **kwargs) -> AbstractAsyncContextManager:
+        class AsyncContext(AbstractAsyncContextManager):
+            async def __aenter__(self) -> I:
                 return await fn(*args, **kwargs)
 
             async def __aexit__(self, exc_type, exc_val, exc_tb):
                 pass
 
-        return _Wrapper()
+        return AsyncContext()
 
     return factory
 
-def convert_sync_def_to_factory(fn: Callable[..., I], *, on_thread: bool = False) -> ContainerAsyncFactory[I]:
+
+def convert_sync_def_to_factory(
+    fn: Callable[..., I], *, on_thread: bool = False
+) -> ContainerAsyncFactory[I]:
     """
     Converts a synchronous factory function into an async factory wrapped
     in a context manager.
@@ -93,6 +107,7 @@ def convert_sync_def_to_factory(fn: Callable[..., I], *, on_thread: bool = False
     :param on_thread: Whether to run the function in a thread executor.
     :return: An async factory producing `I` via `async with`.
     """
+
     async def wrapper(*args, **kwargs) -> I:
         if on_thread:
             return await asyncio.to_thread(fn, *args, **kwargs)
@@ -100,7 +115,10 @@ def convert_sync_def_to_factory(fn: Callable[..., I], *, on_thread: bool = False
 
     return convert_async_def_to_factory(wrapper)
 
-def convert_component_type_to_factory(component_type: type[I], *, on_thread: bool = False) -> ContainerAsyncFactory[I]:
+
+def convert_component_type_to_factory(
+    component_type: type[I], *, on_thread: bool = False
+) -> ContainerAsyncFactory[I]:
     """
     Converts a component type (typically a class) into an async factory that
     constructs the type using dependency-injected keyword arguments.
@@ -115,12 +133,16 @@ def convert_component_type_to_factory(component_type: type[I], *, on_thread: boo
     :param on_thread: Whether to instantiate the component on a thread.
     :return: An async factory producing instances of the component type.
     """
+
     def sync_factory(**kwargs) -> I:
         return component_type(**kwargs)
 
     return convert_sync_def_to_factory(sync_factory, on_thread=on_thread)
 
-def convert_sync_context_manager_to_factory(sync_cm_fn: Callable[..., AbstractContextManager[I]]) -> ContainerAsyncFactory[I]:
+
+def convert_sync_context_manager_to_factory(
+    sync_cm_fn: Callable[..., AbstractContextManager[I]],
+) -> ContainerAsyncFactory[I]:
     """
     Converts a function that returns a synchronous context manager into an async
     factory that supports `async with` via a thread-based wrapper.
@@ -131,11 +153,13 @@ def convert_sync_context_manager_to_factory(sync_cm_fn: Callable[..., AbstractCo
     :param sync_cm_fn: A callable that returns a sync context manager.
     :return: An async factory yielding the context-managed instance.
     """
-    class AsyncContextWrapper(AbstractAsyncContextManager[I]):
-        def __init__(self, sync_cm: AbstractContextManager[I]):
+    U = TypeVar("U")
+
+    class AsyncContextWrapper(AbstractAsyncContextManager[U]):
+        def __init__(self, sync_cm: AbstractContextManager[U]):
             self._sync_cm = sync_cm
 
-        async def __aenter__(self) -> I:
+        async def __aenter__(self) -> U:
             self._entered = await asyncio.to_thread(self._sync_cm.__enter__)
             return self._entered
 
@@ -161,6 +185,7 @@ def convert_implementation_to_factory(implementation: I) -> ContainerAsyncFactor
     :param implementation: A literal instance to wrap.
     :return: An async factory that yields the given instance.
     """
+
     def factory() -> I:
         return implementation
 

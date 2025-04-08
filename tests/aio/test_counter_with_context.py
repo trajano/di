@@ -8,7 +8,8 @@ import contextlib
 from di.aio import autowired, component, factory
 
 counts = [0, 0, 0]
-another_count = [0,0,0]
+another_count = [0, 0, 0]
+
 
 class AnotherService(contextlib.AbstractAsyncContextManager):
     async def __aenter__(self):
@@ -27,6 +28,7 @@ class AnotherService(contextlib.AbstractAsyncContextManager):
     async def fetch(self):
         await asyncio.sleep(0.1)
         return self._instance_id, self._enter_id, self._exit_id
+
 
 class AsyncService(contextlib.AbstractAsyncContextManager):
     async def __aenter__(self):
@@ -51,6 +53,7 @@ class AsyncService(contextlib.AbstractAsyncContextManager):
 def make_async_service() -> AsyncService:
     return AsyncService()
 
+
 @factory(singleton=True)
 def make_async_service_2() -> AnotherService:
     return AnotherService()
@@ -69,4 +72,4 @@ async def test_example():
     assert (await work()) == (2, 2, 2)
     assert (await work()) == (3, 3, 3)
     assert (await work()) == (4, 4, 4)
-    assert another_count == [1,1,1]
+    assert another_count == [1, 1, 1]

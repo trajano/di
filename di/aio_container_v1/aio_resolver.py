@@ -11,7 +11,7 @@ A = TypeVar("A")
 
 
 async def resolve(
-        definitions: list[ComponentDefinition[A]],
+    definitions: list[ComponentDefinition[A]],
 ) -> dict[type, list]:
     collected_instances: dict[type, list] = {}
     constructed_instances: dict[type, Any] = {}
@@ -20,7 +20,10 @@ async def resolve(
     active_async_contexts: list[tuple[AbstractAsyncContextManager, Callable]] = []
 
     async def resolve_one(defn: ComponentDefinition[T]) -> T:
-        if defn.factory in singleton_instances_by_factory and defn.factory_builds_singleton:
+        if (
+            defn.factory in singleton_instances_by_factory
+            and defn.factory_builds_singleton
+        ):
             return singleton_instances_by_factory[defn.factory]
 
         if defn.implementation in provided_implementations:
@@ -42,7 +45,10 @@ async def resolve(
             if origin in {list, set} and args:
                 inner_type = args[0]
                 for candidate_defn in definitions:
-                    if inner_type in candidate_defn.satisfied_types or candidate_defn.type == inner_type:
+                    if (
+                        inner_type in candidate_defn.satisfied_types
+                        or candidate_defn.type == inner_type
+                    ):
                         await resolve_one(candidate_defn)
 
                 values = collected_instances.get(inner_type, [])
@@ -74,7 +80,9 @@ async def resolve(
             kwargs = _match_args_by_type(factory_fn, resolved_args)
             if defn.factory_is_async:
                 if not inspect.iscoroutinefunction(factory_fn):
-                    raise TypeError("factory method was expected to be async")  # pragma: no cover
+                    raise TypeError(
+                        "factory method was expected to be async"
+                    )  # pragma: no cover
                 instance_obj = await factory_fn(**kwargs)
             else:
                 instance_obj = factory_fn(**kwargs)
@@ -99,7 +107,9 @@ async def resolve(
                 instance_obj = entered_instance
 
                 # Assume constructor-based are singleton-like if already cached
-                if not any(stype in constructed_instances for stype in defn.satisfied_types):
+                if not any(
+                    stype in constructed_instances for stype in defn.satisfied_types
+                ):
                     active_async_contexts.append((raw_instance, raw_instance.__aexit__))
             else:
                 instance_obj = raw_instance
@@ -124,6 +134,7 @@ async def resolve(
     finally:
         for context_instance, aexit in reversed(active_async_contexts):
             await aexit(None, None, None)
+
 
 def _match_args_by_type(fn: Callable, resolved_deps: dict[type, Any]) -> dict[str, Any]:
     """Match resolved dependency values to parameter names by their annotated type."""
