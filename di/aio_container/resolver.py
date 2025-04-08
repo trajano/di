@@ -1,4 +1,4 @@
-from typing import Any, get_origin, get_args, Union, TypeVar
+from typing import Any, get_origin, get_args, Union, TypeVar, Awaitable, Callable
 from ._types import ComponentDefinition, ResolvedComponent
 from di.enums import ComponentScope
 from ._toposort import _toposort_components
@@ -202,3 +202,70 @@ async def resolve_satisfying_components(
             results.append(instance)
 
     return results
+
+async def resolve_callable(
+        fn: Callable[..., Awaitable[T]],
+        container_scope_components: list[ResolvedComponent[Any]],
+        definitions: list[ComponentDefinition[Any]]
+) ->  Callable[..., Awaitable[T]]:
+    """
+    Resolves the required dependencies of the callable and returns a new coroutine function
+    with those arguments already applied. The result can be awaited directly.
+
+    This is intended to support `@autowired`-style use cases.
+
+    :param fn: A function whose dependencies are declared via keyword-only parameters.
+    :param container_scope_components: Already resolved container-scoped components.
+    :param definitions: All component definitions.
+    :return: A coroutine function that requires no arguments.
+    """
+    sig = inspect.signature(fn)
+    kwargs = {}
+
+    for name, param in sig.parameters.items():
+        if param.kind != param.KEYWORD_ONLY:
+            continue
+        if param.annotation is inspect.Parameter.empty:
+            continue
+        if param.default is not inspect.Parameter.empty:
+            continue
+
+        dep_type = param.annotation
+        origin = get_origin(dep_type)
+        args = get_args(dep_type)
+
+        # Optional[X] or Union[X, None]
+        if origin is Union and type(None) in args and len(args) == 2:
+            inner_type = next(a for a in args if a is not type(None))
+            matches = await resolve_satisfying_components(
+                inner_type,
+                resolved_components=container_scope_components,
+                definitions=definitions,
+            )
+            kwargs[name] = matches[0] if matches else None
+
+        # list[X] or set[X]
+        elif origin in (list, set) and args:
+            item_type = args[0]
+            matches = await resolve_satisfying_components(
+                item_type,
+                resolved_components=container_scope_components,
+                definitions=definitions,
+            )
+            kwargs[name] = origin(matches)
+
+        # Direct required dependency
+        else:
+            matches = await resolve_satisfying_components(
+                dep_type,
+                resolved_components=container_scope_components,
+                definitions=definitions,
+            )
+            if not matches:
+                raise ComponentNotFoundError(component_type=dep_type)
+            kwargs[name] = matches[0]
+
+    async def wrapped() -> T:
+        return await fn(**kwargs)
+
+    return wrapped

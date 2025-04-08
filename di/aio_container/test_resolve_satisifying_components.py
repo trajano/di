@@ -3,7 +3,7 @@ from typing import Any
 
 from di.enums import ComponentScope
 from ._types import ComponentDefinition, ResolvedComponent
-from .resolver import resolve_satisfying_components, resolve_container_scoped_only
+from .resolver import resolve_satisfying_components, resolve_container_scoped_only, resolve_callable
 from ._convert_to_factory import convert_to_factory
 
 
@@ -70,3 +70,21 @@ async def test_resolve_with_container_scoped_component():
 async def test_resolve_empty_inputs():
     result = await resolve_satisfying_components(object, resolved_components=[], definitions=[])
     assert result == []
+
+
+@pytest.mark.asyncio
+async def test_resolve_callable_basic():
+    defs = [
+        make_definition(C, deps=set()),
+        make_definition(B, deps={C}),
+    ]
+
+    async def run(*, stuff: C, b: B) -> str:
+        assert isinstance(stuff, C)
+        assert isinstance(b, B)
+        assert isinstance(b.c, C)
+        return "success"
+
+    wrapped = await resolve_callable(run, container_scope_components=[], definitions=defs)
+    result = await wrapped()
+    assert result == "success"
