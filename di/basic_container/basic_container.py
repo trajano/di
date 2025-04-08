@@ -3,15 +3,15 @@ import typing
 from collections.abc import Callable
 from typing import Any, ParamSpec, Self, TypeVar
 
-import di.util
 from di.exceptions import (
     ComponentNotFoundError,
     ContainerError,
     ContainerLockedError,
     DuplicateRegistrationError,
 )
-from di.util import (
+from di._util import (
     extract_satisfied_types_from_return_of_callable,
+    extract_dependencies_from_signature,
     extract_satisfied_types_from_type,
 )
 
@@ -70,7 +70,7 @@ class BasicContainer(Container):
             raise DuplicateRegistrationError(type_or_factory=factory)
         self._registered.add(factory)
 
-        deps = di.util.extract_dependencies_from_signature(factory)
+        deps = extract_dependencies_from_signature(factory)
         return_type, satisfied_types = extract_satisfied_types_from_return_of_callable(
             factory
         )

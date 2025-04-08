@@ -13,7 +13,7 @@ from di.exceptions import (
     ContainerLockedError,
     DuplicateRegistrationError,
 )
-from di.util import (
+from di._util import (
     extract_dependencies_from_signature,
     extract_satisfied_types_from_return_of_callable,
     extract_satisfied_types_from_type,

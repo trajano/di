@@ -10,7 +10,7 @@ from di.aio import (
     ContainerLockedError,
     DuplicateRegistrationError,
 )
-from di.util import (
+from di._util import (
     extract_satisfied_types_from_return_of_callable,
     extract_satisfied_types_from_type,
 )
