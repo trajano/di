@@ -1,3 +1,4 @@
+import contextlib
 from typing import Callable, Awaitable, TypeVar, Any, ParamSpec, Self, Tuple
 
 from di._util import (
@@ -122,7 +123,7 @@ class ConfigurableAioContainer:
         return tuple(self._definitions)
 
 
-class AioContainer:
+class AioContainer(contextlib.AbstractAsyncContextManager):
     """
     Runtime container that resolves and manages container-scoped components.
     """
@@ -147,3 +148,22 @@ class AioContainer:
         for component in reversed(self._container_scope_components):
             await component.context_manager.__aexit__(exc_type, exc_val, exc_tb)
         self._container_scope_components.clear()
+
+    def get_definition(self, typ: type) -> ComponentDefinition[Any]:
+        for definition in self._definitions:
+            if typ in definition.satisfied_types:
+                return definition
+        raise LookupError(f"No component definition found for {typ!r}")
+
+    def get_instance(self, typ: type) -> Any:
+        for component in self._container_scope_components:
+            if typ in component.satisfied_types:
+                return component.instance
+        raise LookupError(f"No container-scoped instance found for {typ!r}")
+
+    def satisfied_types(self) -> set[type]:
+        result = set()
+        for definition in self._definitions:
+            result.update(definition.satisfied_types)
+        return result
+
