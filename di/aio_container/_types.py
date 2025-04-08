@@ -33,11 +33,14 @@ class ComponentDefinition(Generic[I]):
     :param scope: The lifetime scope of the component (e.g., container or function scoped).
     """
 
+    type: type[I]
     satisfied_types: set[Type]
     """A set of types satisfied by the implementation (excluding 'object')."""
 
     dependencies: set[Type]
     """A set of types that are constructor dependencies of the implementation."""
+    collection_dependencies: set[Type]
+
 
     factory: ContainerAsyncFactory[I]
     """

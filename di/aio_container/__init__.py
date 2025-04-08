@@ -1,4 +1,4 @@
-from .aio_container import AioContainer
+from .aio_container import AioContainer, ConfigurableAioContainer
 from .autowired import autowired
 from .component import component
 from .container import Container
@@ -7,6 +7,7 @@ from .factory import factory
 
 __all__ = [
     "AioContainer",
+    "ConfigurableAioContainer",
     "Container",
     "autowired",
     "component",

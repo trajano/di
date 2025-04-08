@@ -2,4 +2,4 @@
 
 from .aio_container import AioContainer
 
-default_aio_container = AioContainer()
+default_aio_container = AioContainer(definitions=[])

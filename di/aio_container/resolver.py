@@ -2,10 +2,11 @@ from typing import Any, get_origin, get_args
 from ._types import ComponentDefinition, ContainerScopeComponent
 from di.enums import ComponentScope
 from ._toposort import _toposort_components
+import inspect
 
 
 async def resolve_container_scoped_only(
-    definitions: list[ComponentDefinition[Any]],
+        definitions: list[ComponentDefinition[Any]],
 ) -> list[ContainerScopeComponent]:
     """
     Resolves all container-scoped components in topological order and enters
@@ -34,16 +35,30 @@ async def resolve_container_scoped_only(
 
     for t in sorted_types:
         definition = type_to_definition[t]
+        sig = inspect.signature(definition.type.__init__)
         kwargs = {}
-        for dep in definition.dependencies:
-            origin = get_origin(dep)
-            args = get_args(dep)
-            if origin in (list, set) and args:
-                kwargs.setdefault(
-                    dep, [constructed[arg] for arg in constructed if arg in args]
-                )
+        for name, param in sig.parameters.items():
+            # Only consider typed keyword-only parameters without defaults
+            if param.kind != param.KEYWORD_ONLY:
                 continue
-            kwargs[dep] = constructed[dep]
+            if param.annotation is inspect.Parameter.empty:
+                continue
+            if param.default is not inspect.Parameter.empty:
+                continue
+
+            dep_type = param.annotation
+            origin = get_origin(dep_type)
+            args = get_args(dep_type)
+
+            if origin in (list, set) and args and args[0] in definition.collection_dependencies:
+                expected_type = args[0]
+                kwargs[name] = [
+                    instance for typ, instance in constructed.items()
+                    if isinstance(instance, expected_type)
+                ]
+                continue
+
+            kwargs[name] = constructed[dep_type]
 
         context_manager = definition.factory(**kwargs)
         instance = await context_manager.__aenter__()

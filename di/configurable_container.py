@@ -1,3 +1,4 @@
+from contextlib import AbstractContextManager, AbstractAsyncContextManager
 from typing import Callable, Protocol, Awaitable, TypeVar, ParamSpec
 from di.enums import ComponentScope
 
@@ -53,5 +54,24 @@ class ConfigurableContainer(Protocol):
 
         :param factory: A callable that produces the component.
         :param scope: The lifecycle scope of the component.
+        """
+        ...
+
+    def add_context_managed_component(
+        self,
+        component_type: type,
+        *,
+        scope: ComponentScope = ComponentScope.CONTAINER,
+    ) -> None:
+        """
+        Register a component type that implements sync or async context management.
+
+        This ensures that the component's lifecycle is handled via `async with`
+        and cleanup is invoked on container exit.
+
+        :param component_type: A class that implements either `__enter__/__exit__`
+                               or `__aenter__/__aexit__`.
+        :param scope: The lifecycle scope for the component (default: CONTAINER).
+        :raises DuplicateRegistrationError: If the type has already been registered.
         """
         ...
