@@ -7,6 +7,7 @@ from contextlib import AbstractAsyncContextManager, AbstractContextManager
 from inspect import isclass
 from typing import Any
 
+
 def extract_dependencies_from_signature(fn: Callable[..., Any]) -> set[type]:
     """
     Extract the types of each keyword-only argument from a callable's signature.
@@ -18,11 +19,12 @@ def extract_dependencies_from_signature(fn: Callable[..., Any]) -> set[type]:
         param.annotation
         for param in inspect.signature(fn).parameters.values()
         if param.kind == param.KEYWORD_ONLY
-           and param.annotation is not inspect.Parameter.empty
+        and param.annotation is not inspect.Parameter.empty
     }
 
+
 def extract_satisfied_types_from_return_of_callable(
-        fn: Callable[..., Any],
+    fn: Callable[..., Any],
 ) -> tuple[type, set[type]]:
     """
     Extract the return type of a callable and derive its satisfied types.
@@ -38,6 +40,7 @@ def extract_satisfied_types_from_return_of_callable(
         raise TypeError("Return type must be known")
 
     return return_annotation, extract_satisfied_types_from_type(return_annotation)
+
 
 def extract_satisfied_types_from_type(component_type: type) -> set[type]:
     """

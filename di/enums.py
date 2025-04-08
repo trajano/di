@@ -16,3 +16,23 @@ class ComponentScope(Enum):
 
     CONTAINER = 1
     FUNCTION = 2
+
+
+class ContainerState(Enum):
+    """
+    Represents the internal state of the container lifecycle.
+
+    :cvar INITIALIZING: Component registration phase.
+    :cvar VALIDATING: Container-scoped components are being validated or resolved.
+    :cvar SERVICING: Ready for resolving function-scoped components.
+    :cvar RESOLVING: Actively resolving dependencies.
+    :cvar RUNNING: Active use of resolved components.
+    :cvar CLOSING: Shutting down and cleaning up.
+    """
+
+    INITIALIZING = 1
+    VALIDATING = 2
+    SERVICING = 3
+    RESOLVING = 4
+    RUNNING = 5
+    CLOSING = 6

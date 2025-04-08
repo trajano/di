@@ -7,6 +7,10 @@ class ContainerError(RuntimeError):
     """Exception for errors in the container."""
 
 
+class ContainerInitializationError(ContainerError):
+    """Raised when a container-scoped component depends on a non-container-scoped one."""
+
+
 class CycleDetectedError(ContainerError):
     """Exception raised when a circular dependency is detected.
 

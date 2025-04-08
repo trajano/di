@@ -1,69 +1,73 @@
+import contextlib
 import inspect
 from collections.abc import Awaitable, Callable
-from typing import (
-    Any,
-    ParamSpec,
-    Self,
-    TypeVar,
-)
+from contextlib import AbstractAsyncContextManager
+from typing import Any, ParamSpec, Self, TypeVar, overload
 
-from di.exceptions import (
-    ComponentNotFoundError,
-    ContainerError,
-    ContainerLockedError,
-    DuplicateRegistrationError,
-)
 from di._util import (
     extract_dependencies_from_signature,
     extract_satisfied_types_from_return_of_callable,
     extract_satisfied_types_from_type,
 )
-
-from .aio_resolver import resolve
-from .component_definition import ComponentDefinition
-from .container import Container
+from di.enums import ComponentScope, ContainerState
+from di.exceptions import (
+    ContainerLockedError,
+    DuplicateRegistrationError,
+)
+from ._convert_to_factory import convert_to_factory
+from ._types import ComponentDefinition, ContainerScopeComponent
+from .validator import validate_container_definitions
 
 P = ParamSpec("P")
 T = TypeVar("T")
 
 
-class AioContainer(Container):
+class AioContainer(contextlib.AbstractAsyncContextManager):
     def __init__(self):
         self._definitions: list[ComponentDefinition[Any]] = []
-        self._type_map: dict[type, list] | None = None
-        self._registered: set = set()
+        self._container_scope_components: list[ContainerScopeComponent[Any]] = []
+        self._component_sources_registered: set = set()
+        self._state = ContainerState.INITIALIZING
+
+    def _ensure_not_locked(self):
+        if self._state != ContainerState.INITIALIZING:
+            raise ContainerLockedError
+
+    def _ensure_not_registered(self, component_source: Any):
+        if component_source in self._component_sources_registered:
+            raise DuplicateRegistrationError(type_or_factory=component_source)
+        self._component_sources_registered.add(component_source)
 
     def add_component_type(self, component_type: type) -> None:
-        if self._type_map is not None:
-            raise ContainerLockedError
-        if component_type in self._registered:
-            raise DuplicateRegistrationError(type_or_factory=component_type)
-        self._registered.add(component_type)
-        deps = extract_dependencies_from_signature(component_type.__init__)
+        self._ensure_not_locked()
+        self._ensure_not_registered(component_type)
+
+        factory = convert_to_factory(component_type)
+        deps = extract_dependencies_from_signature(factory)
         satisfied_types = extract_satisfied_types_from_type(component_type)
+
         self._definitions.append(
             ComponentDefinition(
-                type=component_type,
                 satisfied_types=satisfied_types,
                 dependencies=deps,
-                implementation=None,
+                factory=factory,
+                scope=ComponentScope.CONTAINER,
             )
         )
 
     def add_component_implementation(self, implementation: object) -> None:
-        if self._type_map is not None:
-            raise ContainerLockedError
-        if implementation in self._registered:
-            raise DuplicateRegistrationError(type_or_factory=implementation)
-        self._registered.add(implementation)
-        component_type = type(implementation)
-        satisfied_types = extract_satisfied_types_from_type(component_type)
+        self._ensure_not_locked()
+        self._ensure_not_registered(implementation)
+
+        factory = convert_to_factory(implementation)
+        satisfied_types = extract_satisfied_types_from_type(type(implementation))
+
         self._definitions.append(
             ComponentDefinition(
-                type=component_type,
                 satisfied_types=satisfied_types,
                 dependencies=set(),
-                implementation=implementation,
+                factory=factory,
+                scope=ComponentScope.CONTAINER,
             )
         )
 
@@ -71,81 +75,62 @@ class AioContainer(Container):
         self,
         factory: Callable[P, T] | Callable[P, Awaitable[T]],
         *,
-        singleton: bool = True,
+        scope: ComponentScope = ComponentScope.CONTAINER,
     ) -> None:
-        if self._type_map is not None:
-            raise ContainerLockedError
-        if factory in self._registered:
-            raise DuplicateRegistrationError(type_or_factory=factory)
-        self._registered.add(factory)
+        self._ensure_not_locked()
+        self._ensure_not_registered(factory)
 
+        normalized_factory = convert_to_factory(factory)
         deps = extract_dependencies_from_signature(factory)
-        return_type, satisfied_types = extract_satisfied_types_from_return_of_callable(
-            factory
+        _primary_type, satisfied_types = (
+            extract_satisfied_types_from_return_of_callable(factory)
         )
 
         self._definitions.append(
             ComponentDefinition(
-                type=return_type,
                 satisfied_types=satisfied_types,
                 dependencies=deps,
-                implementation=None,
-                factory=factory,
-                factory_is_async=inspect.iscoroutinefunction(factory),
-                factory_builds_singleton=singleton,
+                factory=normalized_factory,
+                scope=scope,
             )
         )
+
+    async def __aenter__(self):
+        """switches the state to validating and start validation of the container"""
+        self._state = ContainerState.VALIDATING
+        validate_container_definitions(self._definitions)
+        await self._initialize_container_scoped()
+        self._state = ContainerState.SERVICING
+        return self
+
+    async def _initialize_container_scoped(self):
+        self._container_scope_components = await resolve_container_scoped_only(
+            self._definitions
+        )
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        self._state = ContainerState.CLOSING
+
+        # Reverse teardown of all container-scoped components
+        for component in reversed(self._container_scope_components):
+            await component.context_manager.__aexit__(exc_type, exc_val, exc_tb)
+
+        self._container_scope_components.clear()
+
+    @overload
+    def __iadd__(self, other: type) -> Self: ...
+
+    @overload
+    def __iadd__(self, other: Callable[..., Any]) -> Self: ...
+
+    @overload
+    def __iadd__(self, other: object) -> Self: ...
 
     def __iadd__(self, other: object) -> Self:
         if inspect.isclass(other):
             self.add_component_type(other)
-            return self
-        if callable(other):
+        elif callable(other):
             self.add_component_factory(other)
-            return self
-        self.add_component_implementation(other)
+        else:
+            self.add_component_implementation(other)
         return self
-
-    async def get_component(self, component_type: type[T]) -> T:
-        maybe_component = await self.get_optional_component(component_type)
-        if maybe_component is None:
-            raise ComponentNotFoundError(component_type=component_type)
-        return maybe_component
-
-    async def get_optional_component(self, component_type: type[T]) -> T | None:
-        component_list = await self.get_components(component_type)
-        if len(component_list) == 0:
-            return None
-        if len(component_list) == 1:
-            return component_list[0]
-        msg = f"Multiple components of type {component_type} registered"
-        raise ContainerError(msg)
-
-    async def get_components(self, component_type: type[T]) -> list[T]:
-        self._type_map = self._type_map or (await resolve(self._definitions))
-        return self._type_map.get(component_type, [])
-
-    async def resolve_function_dependencies(
-        self, fn: Callable[..., Any]
-    ) -> dict[str, Any]:
-        """
-        Resolve dependencies for a function's keyword-only arguments.
-        """
-        sig = inspect.signature(fn)
-
-        param_types: dict[str, type] = {
-            name: param.annotation
-            for name, param in sig.parameters.items()
-            if param.kind == inspect.Parameter.KEYWORD_ONLY
-            and param.annotation != inspect.Parameter.empty
-        }
-
-        resolved = await resolve(self._definitions)
-
-        results: dict[str, Any] = {}
-        for name, param_type in param_types.items():
-            matches = resolved.get(param_type)
-            if matches:
-                results[name] = matches[0]
-
-        return results

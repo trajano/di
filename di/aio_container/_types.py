@@ -27,15 +27,11 @@ class ComponentDefinition(Generic[I]):
     """
     Component definition structure containing metadata about a registered component.
 
-    :param type: The main implementation class/type for the component.
     :param satisfied_types: All types (interfaces or base classes) satisfied by the component.
     :param dependencies: Constructor-injected types this component depends on.
     :param factory: A callable factory that produces the component wrapped in an async context manager.
-    :param component_scope: The lifetime scope of the component (e.g., container or function scoped).
+    :param scope: The lifetime scope of the component (e.g., container or function scoped).
     """
-
-    type: type[I]
-    """The primary type (class) of the implementation."""
 
     satisfied_types: set[Type]
     """A set of types satisfied by the implementation (excluding 'object')."""
@@ -50,10 +46,24 @@ class ComponentDefinition(Generic[I]):
     Must accept keyword-only arguments and return an async context-managed instance.
     """
 
-    component_scope: ComponentScope
+    scope: ComponentScope
     """
     The lifetime scope of the component:
 
     - CONTAINER: Singleton for the lifetime of the container.
     - FUNCTION: Transient, created on each resolve call.
     """
+
+
+@dataclass
+class ContainerScopeComponent(Generic[I]):
+    """
+    A component that is in the container scope.
+    """
+
+    satisfied_types: set[Type]
+    """A set of types satisfied by the implementation (excluding 'object')."""
+    context_manager: AbstractAsyncContextManager[I]
+    """The context manager for the instance."""
+    instance: I
+    """The active instance."""
