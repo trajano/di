@@ -95,6 +95,7 @@ def test_missing_dependency_error():
 
 def test_list_dependency_allowed():
     defs = [
+        make_def({B}, set(), ComponentScope.CONTAINER),  # satisfies B
         make_def({A}, {list[B]}, ComponentScope.CONTAINER),
     ]
     validate_container_definitions(defs)
@@ -102,6 +103,7 @@ def test_list_dependency_allowed():
 
 def test_set_dependency_allowed():
     defs = [
+        make_def({B}, set(), ComponentScope.CONTAINER),  # satisfies B
         make_def({A}, {set[B]}, ComponentScope.CONTAINER),
     ]
     validate_container_definitions(defs)

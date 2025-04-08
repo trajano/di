@@ -6,6 +6,7 @@ from di.exceptions import (
     ComponentNotFoundError,
     CycleDetectedError,
 )
+from ._toposort import _toposort_components
 
 
 def validate_container_definitions(definitions: list[ComponentDefinition[Any]]):
@@ -32,7 +33,7 @@ def validate_container_definitions(definitions: list[ComponentDefinition[Any]]):
 
     _detect_unresolved_dependencies(definitions, type_to_scope)
     _detect_scope_violations(definitions, type_to_scope)
-    _detect_cycles(type_to_definition, type_to_scope)
+    _detect_cycles(definitions)
 
 
 def _detect_unresolved_dependencies(
@@ -64,6 +65,11 @@ def _detect_scope_violations(
             args = get_args(dep)
 
             if origin in (list, set) and args:
+                for arg in args:
+                    if type_to_scope.get(arg) != ComponentScope.CONTAINER:
+                        raise ContainerInitializationError(
+                            f"Multi-injection dependency {origin}[{arg}] is satisfied by a non-container-scoped component"
+                        )
                 continue
 
             dep_scope = type_to_scope.get(dep)
@@ -73,31 +79,5 @@ def _detect_scope_violations(
                 )
 
 
-def _detect_cycles(
-    type_to_definition: dict[type, ComponentDefinition[Any]],
-    type_to_scope: dict[type, ComponentScope],
-):
-    visited = set()
-    visiting = set()
-
-    def dfs(current: type):
-        if current in visiting:
-            raise CycleDetectedError(component_type=current)
-        if current in visited:
-            return
-        visiting.add(current)
-        definition = type_to_definition.get(current)
-        if definition:
-            for dep in definition.dependencies:
-                origin = get_origin(dep)
-                args = get_args(dep)
-                if origin in (list, set) and args:
-                    continue
-                if type_to_scope.get(dep) == ComponentScope.CONTAINER:
-                    dfs(dep)
-        visiting.remove(current)
-        visited.add(current)
-
-    for t, scope in type_to_scope.items():
-        if scope == ComponentScope.CONTAINER:
-            dfs(t)
+def _detect_cycles(definitions: list[ComponentDefinition[Any]]):
+    _toposort_components(definitions)
