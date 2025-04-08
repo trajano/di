@@ -3,6 +3,7 @@ from ._types import ComponentDefinition, ResolvedComponent
 from di.enums import ComponentScope
 from ._toposort import _toposort_components
 import inspect
+import functools
 
 from di.exceptions import ComponentNotFoundError
 
@@ -10,7 +11,7 @@ T = TypeVar("T")
 
 
 async def resolve_container_scoped_only(
-        definitions: list[ComponentDefinition[Any]],
+    definitions: list[ComponentDefinition[Any]],
 ) -> list[ResolvedComponent]:
     """
     Resolves all container-scoped components in topological order and enters
@@ -64,9 +65,9 @@ async def resolve_container_scoped_only(
             args = get_args(dep_type)
 
             if (
-                    origin in (list, set)
-                    and args
-                    and args[0] in definition.collection_dependencies
+                origin in (list, set)
+                and args
+                and args[0] in definition.collection_dependencies
             ):
                 expected_type = args[0]
                 kwargs[name] = [
@@ -96,11 +97,11 @@ async def resolve_container_scoped_only(
 
 
 async def resolve_satisfying_components(
-        typ: type[T],
-        /,
-        *,
-        resolved_components: list[ResolvedComponent[Any]],
-        definitions: list[ComponentDefinition[Any]],
+    typ: type[T],
+    /,
+    *,
+    resolved_components: list[ResolvedComponent[Any]],
+    definitions: list[ComponentDefinition[Any]],
 ) -> list[T]:
     """
     Resolve all component instances satisfying a given type, including those
@@ -203,24 +204,24 @@ async def resolve_satisfying_components(
 
     return results
 
-async def resolve_callable(
-        fn: Callable[..., Awaitable[T]],
-        container_scope_components: list[ResolvedComponent[Any]],
-        definitions: list[ComponentDefinition[Any]]
-) ->  Callable[..., Awaitable[T]]:
-    """
-    Resolves the required dependencies of the callable and returns a new coroutine function
-    with those arguments already applied. The result can be awaited directly.
 
-    This is intended to support `@autowired`-style use cases.
+async def resolve_callable_dependencies(
+    fn: Callable[..., Awaitable[T]],
+    container_scope_components: list[ResolvedComponent[Any]],
+    definitions: list[ComponentDefinition[Any]],
+) -> Callable[..., Awaitable[T]]:
+    """
+    Resolves the required dependencies of the callable and returns a coroutine function
+    with those keyword-only arguments pre-applied. The resulting function will still accept
+    any positional and other keyword arguments the caller provides.
 
     :param fn: A function whose dependencies are declared via keyword-only parameters.
     :param container_scope_components: Already resolved container-scoped components.
     :param definitions: All component definitions.
-    :return: A coroutine function that requires no arguments.
+    :return: A coroutine function that may still take user-supplied arguments.
     """
     sig = inspect.signature(fn)
-    kwargs = {}
+    injected_kwargs = {}
 
     for name, param in sig.parameters.items():
         if param.kind != param.KEYWORD_ONLY:
@@ -242,7 +243,7 @@ async def resolve_callable(
                 resolved_components=container_scope_components,
                 definitions=definitions,
             )
-            kwargs[name] = matches[0] if matches else None
+            injected_kwargs[name] = matches[0] if matches else None
 
         # list[X] or set[X]
         elif origin in (list, set) and args:
@@ -252,7 +253,7 @@ async def resolve_callable(
                 resolved_components=container_scope_components,
                 definitions=definitions,
             )
-            kwargs[name] = origin(matches)
+            injected_kwargs[name] = origin(matches)
 
         # Direct required dependency
         else:
@@ -263,9 +264,10 @@ async def resolve_callable(
             )
             if not matches:
                 raise ComponentNotFoundError(component_type=dep_type)
-            kwargs[name] = matches[0]
+            injected_kwargs[name] = matches[0]
 
-    async def wrapped() -> T:
-        return await fn(**kwargs)
+    @functools.wraps(fn)
+    async def wrapped(*args: Any, **user_kwargs: Any) -> T:
+        return await fn(*args, **user_kwargs, **injected_kwargs)
 
     return wrapped

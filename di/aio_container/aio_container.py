@@ -11,7 +11,7 @@ from di.enums import ComponentScope, ContainerState
 from di.exceptions import DuplicateRegistrationError
 from ._convert_to_factory import convert_to_factory
 from ._types import ComponentDefinition, ResolvedComponent
-from .resolver import resolve_container_scoped_only
+from .resolver import resolve_container_scoped_only, resolve_callable_dependencies
 from .validator import validate_container_definitions
 
 P = ParamSpec("P")
@@ -153,20 +153,29 @@ class AioContainer(contextlib.AbstractAsyncContextManager):
             await component.context_manager.__aexit__(exc_type, exc_val, exc_tb)
         self._container_scope_components.clear()
 
-    def get_definition(self, typ: type) -> ComponentDefinition[Any]:
-        for definition in self._definitions:
-            if typ in definition.satisfied_types:
-                return definition
-        raise LookupError(f"No component definition found for {typ!r}")
+    async def resolve_callable(
+        self, fn: Callable[..., Awaitable[T]]
+    ) -> Callable[..., Awaitable[T]]:
+        return await resolve_callable_dependencies(
+            fn,
+            container_scope_components=self._container_scope_components,
+            definitions=self._definitions,
+        )
 
-    def get_instance(self, typ: type) -> Any:
-        for component in self._container_scope_components:
-            if typ in component.satisfied_types:
-                return component.instance
-        raise LookupError(f"No container-scoped instance found for {typ!r}")
-
-    def satisfied_types(self) -> set[type]:
-        result = set()
-        for definition in self._definitions:
-            result.update(definition.satisfied_types)
-        return result
+    # def get_definition(self, typ: type) -> ComponentDefinition[Any]:
+    #     for definition in self._definitions:
+    #         if typ in definition.satisfied_types:
+    #             return definition
+    #     raise LookupError(f"No component definition found for {typ!r}")
+    #
+    # def get_instance(self, typ: type) -> Any:
+    #     for component in self._container_scope_components:
+    #         if typ in component.satisfied_types:
+    #             return component.instance
+    #     raise LookupError(f"No container-scoped instance found for {typ!r}")
+    #
+    # def satisfied_types(self) -> set[type]:
+    #     result = set()
+    #     for definition in self._definitions:
+    #         result.update(definition.satisfied_types)
+    #     return result
