@@ -25,8 +25,30 @@ from typing import Callable, Awaitable, TypeVar
 
 from ._types import ContainerAsyncFactory
 
+T = TypeVar("T")
 I = TypeVar("I")
 
+
+class AsyncContextWrapper(AbstractAsyncContextManager[T]):
+    """
+    Wrap a synchronous context manager to make it usable in `async with`.
+
+    This is useful for integrating traditional blocking resources (e.g., file handles,
+    database sessions) into an asyncio-compatible system without blocking the event loop.
+
+    :param sync_cm: An instance of a synchronous context manager.
+    """
+
+    def __init__(self, sync_cm: AbstractContextManager[T]):
+        self._sync_cm = sync_cm
+        self._entered: T | None = None
+
+    async def __aenter__(self) -> T:
+        self._entered = await asyncio.to_thread(self._sync_cm.__enter__)
+        return self._entered
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await asyncio.to_thread(self._sync_cm.__exit__, exc_type, exc_val, exc_tb)
 
 class NoOpAsyncContextManager(AbstractAsyncContextManager[I]):
     """
@@ -122,8 +144,13 @@ def convert_component_type_to_factory(
     """
 
     if issubclass(component_type, AbstractAsyncContextManager):
-        def async_context_manager_factory(**kwargs) -> AbstractAsyncContextManager[I]:
-            return component_type(**kwargs)
+        def async_context_manager_factory(*args, **kwargs) -> AbstractAsyncContextManager[I]:
+            return component_type(*args, **kwargs)
+        return async_context_manager_factory
+
+    if issubclass(component_type, AbstractContextManager):
+        def async_context_manager_factory(*args, **kwargs) -> AbstractAsyncContextManager[I]:
+            return AsyncContextWrapper(component_type(*args, **kwargs))
         return async_context_manager_factory
 
     def sync_factory(**kwargs) -> I:

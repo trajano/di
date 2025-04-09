@@ -156,3 +156,40 @@ async def test_dependency_injection_of_tracked_disposable():
     assert result == "ok"
     assert tracker["entered"] is True
     assert tracker["exited"] is True
+
+@pytest.mark.asyncio
+async def test_sync_context_manager_injected_as_function_scope():
+    tracker = {"entered": False, "exited": False}
+
+    class SyncTrackedDisposable:
+        def __enter__(self):
+            tracker["entered"] = True
+            return self
+
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            tracker["exited"] = True
+
+    # Register as function-scoped component using a sync context manager
+    definition = ComponentDefinition(
+        type=SyncTrackedDisposable,
+        satisfied_types={SyncTrackedDisposable},
+        dependencies=set(),
+        collection_dependencies=set(),
+        factory=convert_to_factory(SyncTrackedDisposable),
+        scope=ComponentScope.FUNCTION,
+    )
+
+    async def handler(*, dep: SyncTrackedDisposable) -> str:
+        assert isinstance(dep, SyncTrackedDisposable)
+        return "injected"
+
+    wrapped = await resolve_callable_dependencies(
+        handler,
+        container_scope_components=[],
+        definitions=[definition],
+    )
+    result = await wrapped()
+
+    assert result == "injected"
+    assert tracker["entered"] is True
+    assert tracker["exited"] is True
