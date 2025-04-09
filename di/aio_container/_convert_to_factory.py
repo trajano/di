@@ -1,6 +1,6 @@
 import asyncio
 import inspect
-from contextlib import AbstractContextManager
+from contextlib import AbstractContextManager, AbstractAsyncContextManager
 from typing import Any, Callable, Awaitable, overload, Type, TypeVar
 
 from ._transformers import (
@@ -47,6 +47,7 @@ def convert_to_factory(source: Any) -> ContainerAsyncFactory:
         return convert_component_type_to_factory(source)
 
     if callable(source):
+
         if asyncio.iscoroutinefunction(source):
             return convert_async_def_to_factory(source)
 

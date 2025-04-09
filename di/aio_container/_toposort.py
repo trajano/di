@@ -4,6 +4,8 @@ from di.enums import ComponentScope
 import inspect
 from collections import defaultdict, deque
 
+from .. import CycleDetectedError
+
 
 def _toposort_components(
     definitions: list[ComponentDefinition[Any]],
@@ -51,7 +53,7 @@ def _toposort_components(
                 queue.append(dependent)
 
     if len(sorted_nodes) != len(all_nodes):
-        raise ValueError("Circular dependency detected")
+        raise CycleDetectedError
 
     return sorted_nodes
 

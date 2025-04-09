@@ -52,8 +52,10 @@ class E:
 
 def make_def(satisfies, deps, scope, factory=None):
     return ComponentDefinition[Any](
+        type=next(iter(satisfies)),
         satisfied_types=satisfies,
         dependencies=deps,
+        collection_dependencies=set(),
         factory=factory or make_factory(next(iter(satisfies))),
         scope=scope,
     )

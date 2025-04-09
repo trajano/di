@@ -20,7 +20,7 @@ class CycleDetectedError(ContainerError):
 
     def __init__(
         self,
-        component_type: typing.Type[typing.Any],
+        component_type: typing.Type[typing.Any] | None = None,
         message: str | None = None,
     ):
         self.component_type = component_type

@@ -121,6 +121,11 @@ def convert_component_type_to_factory(
     :return: An async factory producing instances of the component type.
     """
 
+    if issubclass(component_type, AbstractAsyncContextManager):
+        def async_context_manager_factory(**kwargs) -> AbstractAsyncContextManager[I]:
+            return component_type(**kwargs)
+        return async_context_manager_factory
+
     def sync_factory(**kwargs) -> I:
         return component_type(**kwargs)
 
