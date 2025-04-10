@@ -22,6 +22,7 @@ See the high-level design documentation in `__init__.py` for full details.
 import asyncio
 from collections.abc import Awaitable, Callable
 from contextlib import AbstractAsyncContextManager, AbstractContextManager
+from types import TracebackType
 from typing import TypeVar
 
 from ._types import ContainerAsyncFactory
@@ -193,7 +194,11 @@ def convert_sync_context_manager_to_factory(
             self._entered = await asyncio.to_thread(self._sync_cm.__enter__)
             return self._entered
 
-        async def __aexit__(self, exc_type, exc_val, exc_tb):
+        async def __aexit__(self,
+                            exc_type: type[BaseException] | None,
+                            exc_val: BaseException | None,
+                            exc_tb: TracebackType | None,
+                            ):
             await asyncio.to_thread(self._sync_cm.__exit__, exc_type, exc_val, exc_tb)
 
     def factory(*args, **kwargs) -> AbstractAsyncContextManager[I]:

@@ -15,7 +15,8 @@ def validate_container_definitions(definitions: list[ComponentDefinition[Any]]) 
     Validates all component definitions for:
 
     - Scope rule: container-scoped components may only depend on container-scoped ones.
-    - Dependency rule: all dependencies must be satisfied unless they are list[T] or set[T].
+    - Dependency rule: all dependencies must be satisfied unless they are list[T] or
+      set[T].
     - No cycles are allowed among container-scoped components.
 
     :param definitions: List of all registered component definitions.
@@ -68,7 +69,8 @@ def _detect_scope_violations(
             if origin in (list, set) and args:
                 for arg in args:
                     if type_to_scope.get(arg) != ComponentScope.CONTAINER:
-                        msg = f"Multi-injection dependency {origin}[{arg}] is satisfied by a non-container-scoped component"
+                        msg = (f"Multi-injection dependency {origin}[{arg}] is "
+                               f"satisfied by a non-container-scoped component")
                         raise ContainerInitializationError(
                             msg
                         )
@@ -76,7 +78,8 @@ def _detect_scope_violations(
 
             dep_scope = type_to_scope.get(dep)
             if dep_scope != ComponentScope.CONTAINER:
-                msg = f"Container-scoped component cannot depend on function-scoped dependency: {dep}"
+                msg = (f"Container-scoped component cannot depend on function-scoped "
+                       f"dependency: {dep}")
                 raise ContainerInitializationError(
                     msg
                 )

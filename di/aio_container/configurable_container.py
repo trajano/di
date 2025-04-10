@@ -1,7 +1,7 @@
 import contextlib
 from collections.abc import Awaitable, Callable
 from contextlib import AbstractAsyncContextManager, AbstractContextManager
-from typing import Any, ParamSpec, Self, Tuple, TypeVar
+from typing import Any, ParamSpec, Self, TypeVar
 
 from di import DuplicateRegistrationError
 from di._util import (
@@ -150,7 +150,7 @@ class ConfigurableAioContainer(ConfigurableContainer):
             )
         )
 
-    def get_definitions(self) -> Tuple[ComponentDefinition[Any], ...]:
+    def get_definitions(self) -> tuple[ComponentDefinition[Any], ...]:
         """
         Return the collected component definitions for use in AioContainer.
         """
