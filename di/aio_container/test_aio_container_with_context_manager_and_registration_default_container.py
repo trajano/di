@@ -5,7 +5,6 @@ import pytest
 
 from di.aio_container import (
     AioContainer,
-    ConfigurableAioContainer,
     autowired_with_container,
 )
 
@@ -22,8 +21,6 @@ class Resource:
 
 @pytest.mark.asyncio
 async def test_aio_container():
-    configurable_container = ConfigurableAioContainer()
-
     @component
     class Config:
         def __init__(self):

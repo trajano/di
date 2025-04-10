@@ -55,7 +55,8 @@ class AioContainer(contextlib.AbstractAsyncContextManager):
         elif definitions and not container:
             self._definitions = list(definitions)
         else:
-            raise ValueError("Cannot specify both definitions and container")
+            msg = "Cannot specify both definitions and container"
+            raise ValueError(msg)
         self._state = ContainerState.INITIALIZING
         self._container_scope_components: list[ResolvedComponent[Any]] = []
 

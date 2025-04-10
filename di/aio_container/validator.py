@@ -10,7 +10,7 @@ from ._toposort import _toposort_components
 from ._types import ComponentDefinition
 
 
-def validate_container_definitions(definitions: list[ComponentDefinition[Any]]):
+def validate_container_definitions(definitions: list[ComponentDefinition[Any]]) -> None:
     """
     Validates all component definitions for:
 
@@ -40,7 +40,7 @@ def validate_container_definitions(definitions: list[ComponentDefinition[Any]]):
 def _detect_unresolved_dependencies(
     definitions: list[ComponentDefinition[Any]],
     type_to_scope: dict[type, ComponentScope],
-):
+) -> None:
     for definition in definitions:
         for dep in definition.dependencies:
             origin = get_origin(dep)
@@ -56,7 +56,7 @@ def _detect_unresolved_dependencies(
 def _detect_scope_violations(
     definitions: list[ComponentDefinition[Any]],
     type_to_scope: dict[type, ComponentScope],
-):
+) -> None:
     for definition in definitions:
         if definition.scope != ComponentScope.CONTAINER:
             continue
@@ -68,17 +68,19 @@ def _detect_scope_violations(
             if origin in (list, set) and args:
                 for arg in args:
                     if type_to_scope.get(arg) != ComponentScope.CONTAINER:
+                        msg = f"Multi-injection dependency {origin}[{arg}] is satisfied by a non-container-scoped component"
                         raise ContainerInitializationError(
-                            f"Multi-injection dependency {origin}[{arg}] is satisfied by a non-container-scoped component"
+                            msg
                         )
                 continue
 
             dep_scope = type_to_scope.get(dep)
             if dep_scope != ComponentScope.CONTAINER:
+                msg = f"Container-scoped component cannot depend on function-scoped dependency: {dep}"
                 raise ContainerInitializationError(
-                    f"Container-scoped component cannot depend on function-scoped dependency: {dep}"
+                    msg
                 )
 
 
-def _detect_cycles(definitions: list[ComponentDefinition[Any]]):
+def _detect_cycles(definitions: list[ComponentDefinition[Any]]) -> None:
     _toposort_components(definitions)

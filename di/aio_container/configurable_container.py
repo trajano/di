@@ -28,7 +28,7 @@ class ConfigurableAioContainer(ConfigurableContainer):
         self._definitions: list[ComponentDefinition[Any]] = []
         self._registered_sources: set = set()
 
-    def _ensure_not_registered(self, component_source: Any):
+    def _ensure_not_registered(self, component_source: Any) -> None:
         if component_source in self._registered_sources:
             raise DuplicateRegistrationError(type_or_factory=component_source)
         self._registered_sources.add(component_source)

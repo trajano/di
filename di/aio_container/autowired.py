@@ -34,7 +34,8 @@ def autowired(
 
     def decorator(fn: Callable[P, Awaitable[R]]) -> Callable[..., Awaitable[R]]:
         if not inspect.iscoroutinefunction(fn):
-            raise TypeError("@autowire can only be applied to async def functions")
+            msg = "@autowire can only be applied to async def functions"
+            raise TypeError(msg)
 
         @functools.wraps(fn)
         async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
@@ -54,7 +55,8 @@ def autowired_with_container(
 ) -> Callable[[Callable[P, Awaitable[R]]], Callable[..., Awaitable[R]]]:
     def decorator(fn: Callable[P, Awaitable[R]]) -> Callable[..., Awaitable[R]]:
         if not inspect.iscoroutinefunction(fn):
-            raise TypeError("@autowire can only be applied to async def functions")
+            msg = "@autowire can only be applied to async def functions"
+            raise TypeError(msg)
 
         @functools.wraps(fn)
         async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
