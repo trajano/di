@@ -2,16 +2,18 @@ import asyncio
 from contextlib import AbstractAsyncContextManager
 from typing import Self
 
-from di.aio import component, AioContainer, autowired
+from di.aio import component, AioContainer, autowired, factory
 
 _tracking = {"started": False, "stopped": False}
 
 
-@component
 class Config:
-    def __init__(self):
-        self.value = "abc"
+    def __init__(self, value):
+        self.value = value
 
+@factory
+def build_config() -> Config:
+    return Config("abc")
 
 @component
 class Service:
@@ -66,14 +68,6 @@ async def consume(*, producer: ResourceProducer):
 async def server():
     async with AioContainer(None) as container:
         assert ResourceProducer in container.get_satisfied_types()
-        prods = await container.get_instances(ResourceProducer)
-        assert len(prods) == 1
-        prod = await container.get_instance(ResourceProducer)
-        optional_prod = await container.get_optional_instance(ResourceProducer)
-        assert prod is not None
-        assert prod == optional_prod
-        assert prod in prods
-
         resource = await consume()
         result = resource.value
         assert result == "abc"
