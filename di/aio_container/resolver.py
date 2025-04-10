@@ -224,73 +224,54 @@ async def resolve_callable_dependencies(
     :param definitions: All component definitions.
     :return: A coroutine function that may still take user-supplied arguments.
     """
-    sig = inspect.signature(fn)
-    type_to_instance = {
-        typ: component.instance
-        for component in container_scope_components
-        for typ in component.satisfied_types
-    }
-    type_to_definition = {
-        typ: definition
-        for definition in definitions
-        for typ in definition.satisfied_types
-    }
 
     @functools.wraps(fn)
-    async def wrapped(*args: Any, **user_kwargs: Any) -> T:
-        injected_kwargs: dict[str, Any] = {}
-        async with contextlib.AsyncExitStack() as stack:
-            constructed: dict[type, Any] = dict(type_to_instance)
+    async def wrapped(*wrapped_args: Any, **user_kwargs: Any) -> T:
 
-            for name, param in sig.parameters.items():
-                if param.kind != param.KEYWORD_ONLY:
-                    continue
-                if param.annotation is inspect.Parameter.empty:
-                    continue
-                if param.default is not inspect.Parameter.empty:
-                    continue
+        sig = inspect.signature(fn)
+        injected_kwargs = {}
+        for name, param in sig.parameters.items():
+            if param.kind != param.KEYWORD_ONLY:
+                continue
+            if param.annotation is inspect.Parameter.empty:
+                continue
+            if param.default is not inspect.Parameter.empty:
+                continue
 
-                dep_type = param.annotation
-                origin = get_origin(dep_type)
-                args_ = get_args(dep_type)
+            dep_type = param.annotation
+            origin = get_origin(dep_type)
+            args = get_args(dep_type)
 
-                # Optional[X] or Union[X, None]
-                if origin is Union and type(None) in args_ and len(args_) == 2:
-                    inner_type = next(a for a in args_ if a is not type(None))
-                    definition = type_to_definition.get(inner_type)
-                    if not definition:
-                        injected_kwargs[name] = None
-                        continue
-                    factory = definition.factory()
-                    instance = await stack.enter_async_context(factory)
-                    constructed[inner_type] = instance
-                    injected_kwargs[name] = instance
+            # Optional[X] or Union[X, None]
+            if origin is Union and type(None) in args and len(args) == 2:
+                inner_type = next(a for a in args if a is not type(None))
+                matches = await resolve_satisfying_components(
+                    inner_type,
+                    resolved_components=container_scope_components,
+                    definitions=definitions,
+                )
+                injected_kwargs[name] = matches[0] if matches else None
 
-                # list[X] or set[X]
-                elif origin in (list, set) and args_:
-                    item_type = args_[0]
-                    items = []
-                    for definition in definitions:
-                        if item_type in definition.satisfied_types:
-                            factory = definition.factory()
-                            instance = await stack.enter_async_context(factory)
-                            constructed[item_type] = instance
-                            items.append(instance)
-                    injected_kwargs[name] = origin(items)
+            # list[X] or set[X]
+            elif origin in (list, set) and args:
+                item_type = args[0]
+                matches = await resolve_satisfying_components(
+                    item_type,
+                    resolved_components=container_scope_components,
+                    definitions=definitions,
+                )
+                injected_kwargs[name] = origin(matches)
 
-                # Direct required dependency
-                else:
-                    if dep_type in constructed:
-                        injected_kwargs[name] = constructed[dep_type]
-                    elif dep_type in type_to_definition:
-                        definition = type_to_definition[dep_type]
-                        factory = definition.factory()
-                        instance = await stack.enter_async_context(factory)
-                        constructed[dep_type] = instance
-                        injected_kwargs[name] = instance
-                    else:
-                        raise ComponentNotFoundError(component_type=dep_type)
+            # Direct required dependency
+            else:
+                matches = await resolve_satisfying_components(
+                    dep_type,
+                    resolved_components=container_scope_components,
+                    definitions=definitions,
+                )
+                if matches:
+                    injected_kwargs[name] = matches[0]
 
-            return await fn(*args, **user_kwargs, **injected_kwargs)
+        return await fn(*wrapped_args, **user_kwargs, **injected_kwargs)
 
     return wrapped

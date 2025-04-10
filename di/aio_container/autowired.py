@@ -11,8 +11,8 @@ R = TypeVar("R")
 
 def autowired_with_container(
     container: AioContainer,
-) -> Callable[[Callable[P, Awaitable[R]]], Callable[P, Awaitable[R]]]:
-    def decorator(fn: Callable[P, Awaitable[R]]) -> Callable[P, Awaitable[R]]:
+) -> Callable[[Callable[P, Awaitable[R]]], Callable[..., Awaitable[R]]]:
+    def decorator(fn: Callable[P, Awaitable[R]]) -> Callable[..., Awaitable[R]]:
         if not inspect.iscoroutinefunction(fn):
             raise TypeError("@autowire can only be applied to async def functions")
 

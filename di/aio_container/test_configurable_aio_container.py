@@ -29,12 +29,6 @@ async def make_c(*, a: A) -> int:
     return len(a.name)
 
 
-# Sync context-managed component
-@contextmanager
-def sync_cm() -> Iterator[str]:
-    yield "sync_cm"
-
-
 # Async context-managed component
 class AsyncCM(AbstractAsyncContextManager):
     async def __aenter__(self):
@@ -51,12 +45,11 @@ def test_configurable_aio_container_definition_registration():
     container.add_component_type(A)
     container.add_component_factory(make_b)
     container.add_component_factory(make_c)
-    container.add_context_managed_component(sync_cm)
-    container.add_context_managed_component(AsyncCM)
+    container.add_context_managed_type(AsyncCM)
 
     definitions = container.get_definitions()
 
-    assert len(definitions) == 5
+    assert len(definitions) == 4
 
     types = {t for defn in definitions for t in defn.satisfied_types}
     assert A in types

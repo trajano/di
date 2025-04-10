@@ -124,3 +124,23 @@ async def test_resolve_callable_with_user_args():
     )
     result = await wrapped(99, y="extra")
     assert result == "99-extra-injected-c"
+
+@pytest.mark.asyncio
+async def test_resolve_callable_with_user_args_no_default():
+    defs = [
+        make_definition(C, deps=set()),
+        make_definition(B, deps={C}),
+    ]
+
+    async def run(x: int, *, b: B, y) -> str:
+        assert isinstance(b, B)
+        assert isinstance(b.c, C)
+        assert x == 99
+        assert y == "extra"
+        return f"{x}-{y}-{b.c.label}"
+
+    wrapped = await resolve_callable_dependencies(
+        run, container_scope_components=[], definitions=defs
+    )
+    result = await wrapped(99, y="extra")
+    assert result == "99-extra-injected-c"
