@@ -23,10 +23,12 @@ Key Components
     Can be finalized into an `AioContainer` for runtime resolution.
 
 - **AioContainer**:
-    Finalized container that supports dependency resolution and manages component lifecycles.
+    Finalized container that supports dependency resolution and manages component
+    lifecycles.
 
 - **default_aio_container**:
-    A global container used by decorators such as `@component`, `@factory`, and `@autowired`.
+    A global container used by decorators such as `@component`, `@factory`, and
+    `@autowired`.
 
 - **@component**:
     Registers a type or instance into the default container before execution.
@@ -35,7 +37,7 @@ Key Components
     Registers a factory (sync or async) that declares dependencies via keyword-only arguments.
     Supports configurable lifecycles (container or function scoped).
 
-- **@autowired_with_container**:
+- **@autowired**:
     Decorator that injects dependencies into `async def` functions using a specified container.
     Automatically resolves dependencies at call time and handles function-scoped lifetimes.
 
@@ -52,7 +54,8 @@ Supported Dependency Types
 ---------------------------
 - **Direct Dependencies** — Injected by type (e.g., `*, db: Database`)
 - **Optional Dependencies** — Type annotated with `Optional[T]` or `T | None`
-- **Collection Dependencies** — `list[T]` or `set[T]` inject all matching container-scoped components
+- **Collection Dependencies** — `list[T]` or `set[T]` inject all matching
+  container-scoped components
 
 Constraints
 -----------
@@ -102,6 +105,7 @@ from .factory import factory
 
 __all__ = [
     "AioContainer",
+    "ConfigurableAioContainer",
     "Container",
     "autowired",
     "autowired_with_container",
