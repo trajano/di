@@ -17,6 +17,7 @@ async def test_function_scope_cleanup():
 
     class TrackedDisposable:
         def __init__(self):
+            # no-op
             pass
 
         async def __aenter__(self):
@@ -41,7 +42,9 @@ async def test_function_scope_cleanup():
     async def run(*, x: TrackedDisposable) -> bool:
         return isinstance(x, TrackedDisposable)
 
-    wrapped = await resolve_callable_dependencies(run, container_scope_components=[], definitions=defs)
+    wrapped = await resolve_callable_dependencies(
+        run, container_scope_components=[], definitions=defs
+    )
     result = await wrapped()
     assert result is True
     assert tracker["entered"] is True
@@ -54,6 +57,7 @@ async def test_converted():
 
     class TrackedDisposable:
         def __init__(self):
+            # no-op
             pass
 
         async def __aenter__(self):
@@ -65,8 +69,8 @@ async def test_converted():
 
     factory = convert_to_factory(TrackedDisposable)
     x = factory()
-    assert isinstance(x,contextlib.AbstractAsyncContextManager)
-    assert isinstance(x,TrackedDisposable)
+    assert isinstance(x, contextlib.AbstractAsyncContextManager)
+    assert isinstance(x, TrackedDisposable)
     async with x:
         assert tracker["entered"] is True
     assert tracker["exited"] is True
@@ -78,6 +82,7 @@ async def test_not_converted():
 
     class TrackedDisposable:
         def __init__(self):
+            # no-op
             pass
 
         async def __aenter__(self):
@@ -97,12 +102,14 @@ async def test_not_converted():
         assert tracker["entered"] is True
     assert tracker["exited"] is True
 
+
 @pytest.mark.asyncio
 async def test_disposable():
     tracker = {"entered": False, "exited": False}
 
     class TrackedDisposable:
         def __init__(self):
+            # no-op
             pass
 
         async def __aenter__(self):
@@ -113,11 +120,12 @@ async def test_disposable():
             tracker["exited"] = True
 
     x = TrackedDisposable()
-    assert isinstance(x,contextlib.AbstractAsyncContextManager)
-    assert isinstance(x,TrackedDisposable)
+    assert isinstance(x, contextlib.AbstractAsyncContextManager)
+    assert isinstance(x, TrackedDisposable)
     async with x:
         assert tracker["entered"] is True
     assert tracker["exited"] is True
+
 
 @pytest.mark.asyncio
 async def test_dependency_injection_of_tracked_disposable():
@@ -156,6 +164,7 @@ async def test_dependency_injection_of_tracked_disposable():
     assert result == "ok"
     assert tracker["entered"] is True
     # this cannot be asserted as the context manager didn't exit assert tracker["exited"] is True
+
 
 @pytest.mark.asyncio
 async def test_sync_context_manager_injected_as_function_scope():

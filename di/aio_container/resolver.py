@@ -1,14 +1,36 @@
-from typing import Any, get_origin, get_args, Union, TypeVar, Awaitable, Callable
-from ._types import ComponentDefinition, ResolvedComponent
-from di.enums import ComponentScope
-from ._toposort import _toposort_components
-import inspect
-import contextlib
 import functools
+import inspect
+from inspect import Parameter
+from typing import Any, get_origin, get_args, Union, TypeVar, Awaitable, Callable
 
+from di.enums import ComponentScope
 from di.exceptions import ComponentNotFoundError
+from ._toposort import _toposort_components
+from ._types import ComponentDefinition, ResolvedComponent
 
 T = TypeVar("T")
+
+
+def _maybe_dependency(param: Parameter) -> bool:
+    return (
+        param.kind == param.KEYWORD_ONLY
+        and param.annotation is not inspect.Parameter.empty
+        and param.default is inspect.Parameter.empty
+    )
+
+
+def _maybe_collection_dependency(
+    param: Parameter, definition: ComponentDefinition
+) -> bool:
+    dep_type = param.annotation
+    origin = get_origin(dep_type)
+    args = get_args(dep_type)
+
+    is_collection = origin in (list, set)
+    if len(args) == 0:
+        return False
+    is_arg_in_collection_dependencies = args[0] in definition.collection_dependencies
+    return is_collection and is_arg_in_collection_dependencies
 
 
 async def resolve_container_scoped_only(
@@ -54,22 +76,13 @@ async def resolve_container_scoped_only(
         kwargs = {}
         for name, param in sig.parameters.items():
             # Only consider typed keyword-only parameters without defaults
-            if param.kind != param.KEYWORD_ONLY:
-                continue
-            if param.annotation is inspect.Parameter.empty:
-                continue
-            if param.default is not inspect.Parameter.empty:
+            if not _maybe_dependency(param):
                 continue
 
             dep_type = param.annotation
-            origin = get_origin(dep_type)
             args = get_args(dep_type)
 
-            if (
-                origin in (list, set)
-                and args
-                and args[0] in definition.collection_dependencies
-            ):
+            if _maybe_collection_dependency(param, definition):
                 expected_type = args[0]
                 kwargs[name] = [
                     instance
@@ -144,11 +157,7 @@ async def resolve_satisfying_components(
         kwargs = {}
 
         for name, param in sig.parameters.items():
-            if param.kind != param.KEYWORD_ONLY:
-                continue
-            if param.annotation is inspect.Parameter.empty:
-                continue
-            if param.default is not inspect.Parameter.empty:
+            if not _maybe_dependency(param):
                 continue
 
             dep = param.annotation
@@ -207,9 +216,9 @@ async def resolve_satisfying_components(
 
 
 async def resolve_callable_dependencies(
-        fn: Callable[..., Awaitable[T]],
-        container_scope_components: list[ResolvedComponent[Any]],
-        definitions: list[ComponentDefinition[Any]],
+    fn: Callable[..., Awaitable[T]],
+    container_scope_components: list[ResolvedComponent[Any]],
+    definitions: list[ComponentDefinition[Any]],
 ) -> Callable[..., Awaitable[T]]:
     """
     Resolves the required dependencies of the callable and returns a coroutine function
@@ -227,15 +236,10 @@ async def resolve_callable_dependencies(
 
     @functools.wraps(fn)
     async def wrapped(*wrapped_args: Any, **user_kwargs: Any) -> T:
-
         sig = inspect.signature(fn)
         injected_kwargs = {}
         for name, param in sig.parameters.items():
-            if param.kind != param.KEYWORD_ONLY:
-                continue
-            if param.annotation is inspect.Parameter.empty:
-                continue
-            if param.default is not inspect.Parameter.empty:
+            if not _maybe_dependency(param):
                 continue
 
             dep_type = param.annotation

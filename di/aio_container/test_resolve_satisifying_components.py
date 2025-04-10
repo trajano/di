@@ -125,6 +125,7 @@ async def test_resolve_callable_with_user_args():
     result = await wrapped(99, y="extra")
     assert result == "99-extra-injected-c"
 
+
 @pytest.mark.asyncio
 async def test_resolve_callable_with_user_args_no_default():
     defs = [

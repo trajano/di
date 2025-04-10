@@ -5,7 +5,7 @@ import typing
 from collections.abc import Awaitable, Callable, Coroutine
 from contextlib import AbstractAsyncContextManager, AbstractContextManager
 from inspect import isclass
-from typing import Any
+from typing import Any, AsyncGenerator
 
 
 def extract_dependencies_from_signature(fn: Callable[..., Any]) -> set[type]:
@@ -39,35 +39,70 @@ def extract_satisfied_types_from_return_of_callable(
     if return_annotation is inspect.Signature.empty:
         raise TypeError("Return type must be known")
 
-    return return_annotation, extract_satisfied_types_from_type(return_annotation)
+    return _unwrap_type(return_annotation), extract_satisfied_types_from_type(
+        return_annotation
+    )
 
 
-def extract_satisfied_types_from_type(component_type: type) -> set[type]:
+def _unwrap_type(typ: type) -> type:
     """
-    Recursively extract all types satisfied by a component type.
+    Recursively unwraps wrapper types to extract the innermost concrete type.
 
-    - Unwraps Awaitable[T], Coroutine[..., T], AbstractAsyncContextManager[T], AbstractContextManager[T].
-    - Includes all classes in the MRO (method resolution order) of the unwrapped type.
-    - Always includes the original type if class-based.
-    - Excludes `object`.
+    This function strips away generic asynchronous or context manager wrappers,
+    such as:
 
-    :param component_type: The type annotation to analyze.
-    :return: A set of types that the component satisfies.
+    - :class:`typing.Awaitable`
+    - :class:`typing.Coroutine`
+    - :class:`contextlib.AbstractAsyncContextManager`
+    - :class:`contextlib.AbstractContextManager`
+    - :class:`typing.AsyncGenerator`
+
+    The innermost type is returned, which is useful for introspection or resolving
+    base types during dependency injection analysis.
+
+    :param typ: The possibly wrapped type to unwrap.
+    :type typ: type
+    :return: The innermost unwrapped type.
+    :rtype: type
+
+    :example:
+
+    .. code-block:: python
+
+        _unwrap_type(Awaitable[int])                       # returns int
+        _unwrap_type(AbstractAsyncContextManager[str])     # returns str
+        _unwrap_type(AsyncGenerator[str, None])            # returns str
     """
-    origin = typing.get_origin(component_type)
-    args = typing.get_args(component_type)
-
+    origin = typing.get_origin(typ)
     unwrap_targets = {
         Awaitable,
         Coroutine,
         AbstractAsyncContextManager,
         AbstractContextManager,
     }
+    args = typing.get_args(typ)
 
-    if origin in unwrap_targets and args:
-        return extract_satisfied_types_from_type(args[-1])
+    if isinstance(origin, type) and issubclass(origin, AsyncGenerator):
+        return _unwrap_type(args[0])
+    elif origin in unwrap_targets and args:
+        return _unwrap_type(args[-1])
+    return typ
 
-    if isclass(component_type):
-        return {cls for cls in component_type.mro() if cls is not object}
 
-    return {component_type}
+def extract_satisfied_types_from_type(typ: type) -> set[type]:
+    """
+    Extract all types satisfied by a component type.
+
+    - Unwraps Awaitable[T], Coroutine[..., T], AbstractAsyncContextManager[T], AbstractContextManager[T].
+    - Includes all classes in the MRO (method resolution order) of the unwrapped type.
+    - Always includes the original type if class-based.
+    - Excludes `object`.
+
+    :param typ: The type annotation to analyze.
+    :return: A set of types that the component satisfies.
+    """
+    unwrapped_type = _unwrap_type(typ)
+    if isclass(unwrapped_type):
+        return {cls for cls in unwrapped_type.mro() if cls is not object}
+
+    return {unwrapped_type}

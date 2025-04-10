@@ -1,12 +1,16 @@
+import contextlib
+import inspect
+
 import pytest
 import pytest_asyncio
-
+from contextlib import asynccontextmanager, contextmanager
 from ._transformers import (
     convert_async_def_to_factory,
     convert_sync_def_to_factory,
     convert_component_type_to_factory,
     convert_sync_context_manager_to_factory,
     convert_implementation_to_factory,
+    convert_async_context_manager_to_factory,
 )
 
 
@@ -88,3 +92,30 @@ async def test_convert_implementation_to_factory():
     factory = convert_implementation_to_factory(instance)
     async with factory() as result:
         assert result is instance
+
+
+@pytest.mark.asyncio
+async def test_convert_asynccontextmanager():
+    """An asynccontextmanager cannot be detected at runtime without running it.
+
+    Therefore it must be converted explicitly.
+    """
+    tracking = {
+        "before_yield": False,
+        "after_yield": False,
+    }
+
+    class MyDep:
+        def __init__(self):
+            self.value = 42
+
+    @asynccontextmanager
+    async def get_connection():
+        tracking["before_yield"] = True
+        yield MyDep()
+        tracking["after_yield"] = True
+
+    factory = convert_async_context_manager_to_factory(get_connection)
+
+    async with factory() as result:
+        assert result.value == 42

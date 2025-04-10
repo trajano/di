@@ -1,5 +1,7 @@
 import contextlib
-from typing import Callable, Awaitable, TypeVar, Any, ParamSpec, Self, Tuple
+import inspect
+from contextlib import AbstractAsyncContextManager, AbstractContextManager
+from typing import Callable, Awaitable, TypeVar, Any, ParamSpec, Self, Tuple, Iterable
 
 from di._util import (
     extract_dependencies_from_signature,
@@ -87,9 +89,42 @@ class ConfigurableAioContainer:
             )
         )
 
+    def add_context_managed_function(
+        self,
+        fn: Callable[..., contextlib.AbstractAsyncContextManager],
+        *,
+        scope: ComponentScope = ComponentScope.CONTAINER,
+    ) -> None:
+        """
+        Register a component type that implements sync or async context management.
+
+        This ensures that the component's lifecycle is handled via `async with`
+        and cleanup is invoked on container exit.
+
+        :param fn: A callable annotated with @asynccontextmanager
+        :param scope: The lifecycle scope for the component (default: CONTAINER).
+        :raises DuplicateRegistrationError: If the type has already been registered.
+        """
+        self._ensure_not_registered(fn)
+        deps, collection_deps = extract_dependencies_from_callable(fn)
+        return_type, satisfied_types = extract_satisfied_types_from_return_of_callable(
+            fn
+        )
+        self._definitions.append(
+            ComponentDefinition(
+                type=return_type,
+                satisfied_types=satisfied_types,
+                dependencies=deps,
+                collection_dependencies=collection_deps,
+                factory=fn,
+                scope=scope,
+            )
+        )
+
     def add_context_managed_type(
         self,
-        cm: type[contextlib.AbstractAsyncContextManager] | type[contextlib.AbstractContextManager],
+        cm: type[contextlib.AbstractAsyncContextManager]
+        | type[contextlib.AbstractContextManager],
         *,
         scope: ComponentScope = ComponentScope.CONTAINER,
     ) -> None:
@@ -105,9 +140,7 @@ class ConfigurableAioContainer:
         """
         self._ensure_not_registered(cm)
         factory = convert_to_factory(cm)
-        deps, collection_deps = extract_dependencies_from_callable(
-            cm.__init__
-        )
+        deps, collection_deps = extract_dependencies_from_callable(cm.__init__)
         self._definitions.append(
             ComponentDefinition(
                 type=cm,
@@ -125,13 +158,27 @@ class ConfigurableAioContainer:
         """
         return tuple(self._definitions)
 
+    def __iadd__(self, other: Any) -> Self:
+        """Routes to the proper add method"""
+        if isinstance(other, type):
+            if issubclass(other, (AbstractContextManager, AbstractAsyncContextManager)):
+                self.add_context_managed_type(other)
+            else:
+                self.add_component_type(other)
+        elif callable(other):
+            self.add_component_factory(other)
+        else:
+            self.add_component_implementation(other)
+
+        return self
+
 
 class AioContainer(contextlib.AbstractAsyncContextManager):
     """
     Runtime container that resolves and manages container-scoped components.
     """
 
-    def __init__(self, definitions: list[ComponentDefinition[Any]]) -> None:
+    def __init__(self, definitions: Iterable[ComponentDefinition[Any]]) -> None:
         self._definitions = list(definitions)
         self._state = ContainerState.INITIALIZING
         self._container_scope_components: list[ResolvedComponent[Any]] = []
@@ -160,21 +207,3 @@ class AioContainer(contextlib.AbstractAsyncContextManager):
             container_scope_components=self._container_scope_components,
             definitions=self._definitions,
         )
-
-    # def get_definition(self, typ: type) -> ComponentDefinition[Any]:
-    #     for definition in self._definitions:
-    #         if typ in definition.satisfied_types:
-    #             return definition
-    #     raise LookupError(f"No component definition found for {typ!r}")
-    #
-    # def get_instance(self, typ: type) -> Any:
-    #     for component in self._container_scope_components:
-    #         if typ in component.satisfied_types:
-    #             return component.instance
-    #     raise LookupError(f"No container-scoped instance found for {typ!r}")
-    #
-    # def satisfied_types(self) -> set[type]:
-    #     result = set()
-    #     for definition in self._definitions:
-    #         result.update(definition.satisfied_types)
-    #     return result

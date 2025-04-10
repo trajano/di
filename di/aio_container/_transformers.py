@@ -50,6 +50,7 @@ class AsyncContextWrapper(AbstractAsyncContextManager[T]):
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         await asyncio.to_thread(self._sync_cm.__exit__, exc_type, exc_val, exc_tb)
 
+
 class NoOpAsyncContextManager(AbstractAsyncContextManager[I]):
     """
     A no-op asynchronous context manager that simply yields a given instance
@@ -92,6 +93,7 @@ def convert_async_def_to_factory(
                 return await fn(*args, **kwargs)
 
             async def __aexit__(self, exc_type, exc_val, exc_tb):
+                # no-op
                 pass
 
         return AsyncContext()
@@ -144,13 +146,21 @@ def convert_component_type_to_factory(
     """
 
     if issubclass(component_type, AbstractAsyncContextManager):
-        def async_context_manager_factory(*args, **kwargs) -> AbstractAsyncContextManager[I]:
+
+        def async_context_manager_factory(
+            *args, **kwargs
+        ) -> AbstractAsyncContextManager[I]:
             return component_type(*args, **kwargs)
+
         return async_context_manager_factory
 
     if issubclass(component_type, AbstractContextManager):
-        def async_context_manager_factory(*args, **kwargs) -> AbstractAsyncContextManager[I]:
+
+        def async_context_manager_factory(
+            *args, **kwargs
+        ) -> AbstractAsyncContextManager[I]:
             return AsyncContextWrapper(component_type(*args, **kwargs))
+
         return async_context_manager_factory
 
     def sync_factory(**kwargs) -> I:
@@ -209,3 +219,15 @@ def convert_implementation_to_factory(implementation: I) -> ContainerAsyncFactor
         return implementation
 
     return convert_sync_def_to_factory(factory)
+
+
+def convert_async_context_manager_to_factory(
+    cm: Callable[..., AbstractAsyncContextManager[I]],
+) -> ContainerAsyncFactory[I]:
+    """
+    Adapt an async context manager function into a ContainerAsyncFactory.
+
+    Since async context managers already conform to the ContainerAsyncFactory interface,
+    this is effectively an identity conversion.
+    """
+    return cm

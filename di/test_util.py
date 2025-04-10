@@ -1,10 +1,18 @@
 # test_util.py
+import typing
 
 import pytest
-from contextlib import AbstractAsyncContextManager, AbstractContextManager
-from typing import Awaitable, Coroutine, Any, Protocol
+from contextlib import (
+    AbstractAsyncContextManager,
+    AbstractContextManager,
+    asynccontextmanager,
+)
+from typing import Awaitable, Coroutine, Any, Protocol, AsyncGenerator
 
-from ._util import extract_satisfied_types_from_type
+from ._util import (
+    extract_satisfied_types_from_type,
+    extract_satisfied_types_from_return_of_callable,
+)
 
 
 class Resource:
@@ -53,6 +61,15 @@ class Impl(ProtoA, ProtoB):
         return 42
 
 
+async def get_resource() -> Resource:
+    return Resource()
+
+
+@asynccontextmanager
+async def get_resource_acm() -> AsyncGenerator[Resource, Any]:
+    yield Resource()
+
+
 def test_extract_from_direct_class_type():
     assert Resource in extract_satisfied_types_from_type(Resource)
 
@@ -84,3 +101,20 @@ def test_extract_multiple_protocols():
     assert Impl in satisfied
     assert ProtoA in satisfied
     assert ProtoB in satisfied
+
+
+def test_extract_satisfied_types_from_return_of_callable():
+    return_type, satisfied = extract_satisfied_types_from_return_of_callable(
+        get_resource
+    )
+    assert Resource in satisfied
+    assert Resource == return_type
+
+
+def test_extract_satisfied_types_from_return_of_asyncontextmanager():
+    return_type, satisfied = extract_satisfied_types_from_return_of_callable(
+        get_resource_acm
+    )
+    assert issubclass(typing.get_origin(return_type), typing.AsyncGenerator)
+    assert Resource in satisfied
+    assert Resource == return_type

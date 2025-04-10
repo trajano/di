@@ -47,18 +47,8 @@ def convert_to_factory(source: Any) -> ContainerAsyncFactory:
         return convert_component_type_to_factory(source)
 
     if callable(source):
-
         if asyncio.iscoroutinefunction(source):
             return convert_async_def_to_factory(source)
-
-        try:
-            sig = inspect.signature(source)
-            if sig.return_annotation is not inspect.Signature.empty and issubclass(
-                sig.return_annotation, AbstractContextManager
-            ):
-                return convert_sync_context_manager_to_factory(source)  # type: ignore
-        except (ValueError, TypeError):
-            pass  # If we can’t analyze it, fallback to sync def
 
         return convert_sync_def_to_factory(source)
 
