@@ -92,19 +92,20 @@ You may also use the decorators directly with the default container:
     await handler()
 """
 
-from .aio_container import AioContainer, ConfigurableAioContainer
-from .autowired import autowired_with_container
+from .aio_container import AioContainer
+from .configurable_container import ConfigurableAioContainer
+from .autowired import autowired_with_container, autowired
 from .component import component
 from .container import Container
-from .default_aio_container import default_aio_container
+from .default_container import default_container
 from .factory import factory
 
 __all__ = [
     "AioContainer",
-    "ConfigurableAioContainer",
     "Container",
-    "default_aio_container",
+    "default_container",
     "component",
     "factory",
+    "autowired",
     "autowired_with_container",
 ]

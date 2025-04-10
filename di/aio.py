@@ -5,7 +5,7 @@ from .aio_container import (
     Container,
     autowired,
     component,
-    default_aio_container,
+    default_container,
     factory,
 )
 from .exceptions import (
@@ -24,6 +24,6 @@ __all__ = [
     "DuplicateRegistrationError",
     "autowired",
     "component",
-    "default_aio_container",
+    "default_container",
     "factory",
 ]

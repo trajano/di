@@ -13,27 +13,24 @@ Usage:
 """
 
 from collections.abc import Callable
-from typing import TypeVar, overload
+from typing import TypeVar, overload, Optional, Union
 
-from di.register_to_container import register_class_to_container
-
-from .container import Container
-from .default_aio_container import default_aio_container
+from .default_container import default_container
+from ..configurable_container import ConfigurableContainer
 
 T = TypeVar("T")
 
 
 @overload
-def component(cls: type[T]) -> type[T]: ...  # pragma: no cover
+def component(cls: type[T]) -> type[T]: ...
 @overload
-def component(
-    *, container: Container = default_aio_container
-) -> Callable[[type[T]], type[T]]: ...  # pragma: no cover
-
+def component(*, container: ConfigurableContainer) -> Callable[[type[T]], type[T]]: ...
 
 def component(
-    cls: type[T] | None = None, *, container: Container = default_aio_container
-) -> type[T] | Callable[[type[T]], type[T]]:
+        cls: Optional[type[T]] = None,
+        *,
+        container: ConfigurableContainer = default_container,
+) -> Union[type[T], Callable[[type[T]], type[T]]]:
     """Class decorator to register a component type with a container.
 
     Supports usage with or without parentheses.
@@ -42,4 +39,18 @@ def component(
     :param container: Optional; a container instance to register the component in.
     :return: Either the original class (if used directly), or a decorator function.
     """
-    return register_class_to_container(cls, container)
+    if cls is None:
+        return component_with_container(container=container)
+    else:
+        return component_with_container(container=container)(cls)
+
+
+def component_with_container(
+    *,
+    container: ConfigurableContainer,
+) -> Union[type[T], Callable[[type[T]], type[T]]]:
+    def wrap(target_cls: type[T]) -> type[T]:
+        container.add_component_type(target_cls)
+        return target_cls
+
+    return wrap

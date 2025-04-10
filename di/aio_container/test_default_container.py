@@ -1,27 +1,19 @@
+import asyncio
 from contextlib import AbstractAsyncContextManager
 from typing import Self
-import pytest
-from di.enums import ComponentScope
-from ._types import ComponentDefinition
-from ._convert_to_factory import convert_to_factory
-from di._util import (
-    extract_satisfied_types_from_type,
-    extract_dependencies_from_signature,
-)
-from di.aio_container import (
-    AioContainer,
-    ConfigurableAioContainer,
-    autowired_with_container,
-)
+
+from di.aio import component, AioContainer, autowired
 
 _tracking = {"started": False, "stopped": False}
 
 
+@component
 class Config:
     def __init__(self):
         self.value = "abc"
 
 
+@component
 class Service:
     def __init__(self, *, config: Config):
         self.config = config
@@ -33,6 +25,7 @@ class Service:
         _tracking["stopped"] = True
 
 
+@component
 class Consumer:
     def __init__(self, *, service: Service):
         self.service = service
@@ -44,11 +37,7 @@ class Consumer:
         await self.service.stop()
 
 
-class Resource:
-    def __init__(self, value):
-        self.value = value
-
-
+@component
 class ResourceProducer(AbstractAsyncContextManager):
     def __init__(self, *, consumer: Consumer):
         self._consumer = consumer
@@ -64,20 +53,20 @@ class ResourceProducer(AbstractAsyncContextManager):
         await self._consumer.stop()
 
 
-@pytest.mark.asyncio
-async def test_aio_container():
-    configurable_container = ConfigurableAioContainer()
-    configurable_container += Config
-    configurable_container += Service
-    configurable_container += Consumer
-    configurable_container += ResourceProducer
+class Resource:
+    def __init__(self, value):
+        self.value = value
 
-    async with AioContainer(
-        definitions=configurable_container.get_definitions()
-    ) as container:
+
+@autowired
+async def consume(*, producer: ResourceProducer):
+    return await producer.get_resource()
+
+
+async def server():
+    async with AioContainer(None) as container:
         assert ResourceProducer in container.get_satisfied_types()
         prods = await container.get_instances(ResourceProducer)
-        print(prods)
         assert len(prods) == 1
         prod = await container.get_instance(ResourceProducer)
         optional_prod = await container.get_optional_instance(ResourceProducer)
@@ -85,10 +74,10 @@ async def test_aio_container():
         assert prod == optional_prod
         assert prod in prods
 
-        @autowired_with_container(container=container)
-        async def consume(*, producer: ResourceProducer):
-            return await producer.get_resource()
-
         resource = await consume()
         result = resource.value
         assert result == "abc"
+
+
+def test_typical_usage_scenario():
+    asyncio.run(server())

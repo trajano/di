@@ -57,9 +57,9 @@ class ConfigurableContainer(Protocol):
         """
         ...
 
-    def add_context_managed_component(
+    def add_context_managed_type(
         self,
-        component_type: type,
+        cm_type: type,
         *,
         scope: ComponentScope = ComponentScope.CONTAINER,
     ) -> None:
@@ -69,7 +69,7 @@ class ConfigurableContainer(Protocol):
         This ensures that the component's lifecycle is handled via `async with`
         and cleanup is invoked on container exit.
 
-        :param component_type: A class that implements either `__enter__/__exit__`
+        :param cm_type: A class that implements either `__enter__/__exit__`
                                or `__aenter__/__aexit__`.
         :param scope: The lifecycle scope for the component (default: CONTAINER).
         :raises DuplicateRegistrationError: If the type has already been registered.
