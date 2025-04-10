@@ -1,5 +1,6 @@
 import inspect
-from typing import Callable, Any, get_origin, get_args
+from collections.abc import Callable
+from typing import Any, get_args, get_origin
 
 
 def extract_dependencies_from_callable(

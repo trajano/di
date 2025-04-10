@@ -1,9 +1,11 @@
 import pytest
-from di.enums import ComponentScope
+
 from di._util import (
-    extract_satisfied_types_from_type,
     extract_dependencies_from_signature,
+    extract_satisfied_types_from_type,
 )
+from di.enums import ComponentScope
+
 from ._convert_to_factory import convert_to_factory
 from ._types import ComponentDefinition
 from .aio_container import AioContainer

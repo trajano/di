@@ -13,11 +13,12 @@ Usage:
 """
 
 from collections.abc import Callable
-from typing import TypeVar, overload, Optional, Union, ParamSpec, Any
+from typing import Any, ParamSpec, TypeVar, overload
 
-from .default_container import default_container
-from .configurable_container import ConfigurableContainer
 from di.enums import ComponentScope
+
+from .configurable_container import ConfigurableContainer
+from .default_container import default_container
 
 P = ParamSpec("P")
 
@@ -35,11 +36,11 @@ def factory(
 
 
 def factory(
-    fn: Optional[Callable[P, T]] = None,
+    fn: Callable[P, T] | None = None,
     *,
     container: ConfigurableContainer = default_container,
     scope: ComponentScope = ComponentScope.CONTAINER,
-) -> Union[Callable[..., T], Callable[[Callable[P, T]], Callable[..., T]]]:
+) -> Callable[..., T] | Callable[[Callable[P, T]], Callable[..., T]]:
     """Class decorator to register a factory type with a container.
 
     Supports usage with or without parentheses.
@@ -51,8 +52,7 @@ def factory(
     """
     if fn is None:
         return factory_with_container(container=container, scope=scope)
-    else:
-        return factory_with_container(container=container, scope=scope)(fn)
+    return factory_with_container(container=container, scope=scope)(fn)
 
 
 def factory_with_container(

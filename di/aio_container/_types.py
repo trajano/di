@@ -1,6 +1,6 @@
 from contextlib import AbstractAsyncContextManager
 from dataclasses import dataclass
-from typing import Protocol, TypeVar, Generic, Type
+from typing import Generic, Protocol, Type, TypeVar
 
 from di.enums import ComponentScope
 

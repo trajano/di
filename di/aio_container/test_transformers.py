@@ -1,16 +1,16 @@
-import contextlib
-import inspect
+
+from contextlib import asynccontextmanager
 
 import pytest
 import pytest_asyncio
-from contextlib import asynccontextmanager, contextmanager
+
 from ._transformers import (
-    convert_async_def_to_factory,
-    convert_sync_def_to_factory,
-    convert_component_type_to_factory,
-    convert_sync_context_manager_to_factory,
-    convert_implementation_to_factory,
     convert_async_context_manager_to_factory,
+    convert_async_def_to_factory,
+    convert_component_type_to_factory,
+    convert_implementation_to_factory,
+    convert_sync_context_manager_to_factory,
+    convert_sync_def_to_factory,
 )
 
 

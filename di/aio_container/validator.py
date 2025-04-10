@@ -1,12 +1,13 @@
-from typing import Any, get_origin, get_args
-from ._types import ComponentDefinition
+from typing import Any, get_args, get_origin
+
 from di.enums import ComponentScope
 from di.exceptions import (
-    ContainerInitializationError,
     ComponentNotFoundError,
-    CycleDetectedError,
+    ContainerInitializationError,
 )
+
 from ._toposort import _toposort_components
+from ._types import ComponentDefinition
 
 
 def validate_container_definitions(definitions: list[ComponentDefinition[Any]]):

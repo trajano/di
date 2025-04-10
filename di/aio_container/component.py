@@ -13,10 +13,10 @@ Usage:
 """
 
 from collections.abc import Callable
-from typing import TypeVar, overload, Optional, Union
+from typing import TypeVar, overload
 
-from .default_container import default_container
 from ..configurable_container import ConfigurableContainer
+from .default_container import default_container
 
 T = TypeVar("T")
 
@@ -28,10 +28,10 @@ def component(*, container: ConfigurableContainer) -> Callable[[type[T]], type[T
 
 
 def component(
-    cls: Optional[type[T]] = None,
+    cls: type[T] | None = None,
     *,
     container: ConfigurableContainer = default_container,
-) -> Union[type[T], Callable[[type[T]], type[T]]]:
+) -> type[T] | Callable[[type[T]], type[T]]:
     """Class decorator to register a component type with a container.
 
     Supports usage with or without parentheses.
@@ -42,14 +42,13 @@ def component(
     """
     if cls is None:
         return component_with_container(container=container)
-    else:
-        return component_with_container(container=container)(cls)
+    return component_with_container(container=container)(cls)
 
 
 def component_with_container(
     *,
     container: ConfigurableContainer,
-) -> Union[type[T], Callable[[type[T]], type[T]]]:
+) -> type[T] | Callable[[type[T]], type[T]]:
     def wrap(target_cls: type[T]) -> type[T]:
         container.add_component_type(target_cls)
         return target_cls

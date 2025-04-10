@@ -1,9 +1,7 @@
 import asyncio
 from contextlib import (
     AbstractAsyncContextManager,
-    contextmanager,
 )
-from typing import Iterator
 
 import pytest
 

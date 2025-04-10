@@ -1,16 +1,16 @@
-import pytest
-import asyncio
-from types import SimpleNamespace
 from contextlib import asynccontextmanager
 
-from di.enums import ComponentScope
-from ._types import ComponentDefinition
-from ._convert_to_factory import convert_to_factory
+import pytest
+
 from di._util import (
-    extract_satisfied_types_from_type,
     extract_dependencies_from_signature,
+    extract_satisfied_types_from_type,
 )
 from di.aio_container import AioContainer
+from di.enums import ComponentScope
+
+from ._convert_to_factory import convert_to_factory
+from ._types import ComponentDefinition
 from .autowired import autowired_with_container
 from .resolver import resolve_callable_dependencies
 

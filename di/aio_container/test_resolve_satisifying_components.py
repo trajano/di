@@ -1,14 +1,15 @@
+
 import pytest
-from typing import Any
-import contextlib
+
 from di.enums import ComponentScope
-from ._types import ComponentDefinition, ResolvedComponent
-from .resolver import (
-    resolve_satisfying_components,
-    resolve_container_scoped_only,
-    resolve_callable_dependencies,
-)
+
 from ._convert_to_factory import convert_to_factory
+from ._types import ComponentDefinition
+from .resolver import (
+    resolve_callable_dependencies,
+    resolve_container_scoped_only,
+    resolve_satisfying_components,
+)
 
 
 class C:

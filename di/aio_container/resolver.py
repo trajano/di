@@ -1,10 +1,12 @@
 import functools
 import inspect
+from collections.abc import Awaitable, Callable
 from inspect import Parameter
-from typing import Any, get_origin, get_args, Union, TypeVar, Awaitable, Callable
+from typing import Any, TypeVar, Union, get_args, get_origin
 
 from di.enums import ComponentScope
 from di.exceptions import ComponentNotFoundError
+
 from ._toposort import _toposort_components
 from ._types import ComponentDefinition, ResolvedComponent
 

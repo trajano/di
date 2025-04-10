@@ -1,12 +1,12 @@
 import contextlib
-from contextlib import AbstractContextManager, AbstractAsyncContextManager
-from typing import Callable, Awaitable, TypeVar, Any, ParamSpec, Self
-from typing import Tuple
+from collections.abc import Awaitable, Callable
+from contextlib import AbstractAsyncContextManager, AbstractContextManager
+from typing import Any, ParamSpec, Self, Tuple, TypeVar
 
 from di import DuplicateRegistrationError
 from di._util import (
-    extract_satisfied_types_from_type,
     extract_satisfied_types_from_return_of_callable,
+    extract_satisfied_types_from_type,
 )
 from di.aio_container._convert_to_factory import convert_to_factory
 from di.aio_container._extractors import extract_dependencies_from_callable

@@ -1,13 +1,15 @@
-import pytest
 from typing import Protocol, runtime_checkable
+
+import pytest
 
 from di._util import (
     extract_dependencies_from_signature,
     extract_satisfied_types_from_type,
 )
-from ._extractors import extract_dependencies_from_callable
 from di.enums import ComponentScope
+
 from ._convert_to_factory import convert_to_factory
+from ._extractors import extract_dependencies_from_callable
 from ._types import ComponentDefinition, ResolvedComponent
 from .resolver import resolve_container_scoped_only
 

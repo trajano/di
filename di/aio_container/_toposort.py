@@ -1,10 +1,11 @@
-from typing import Any, get_origin, get_args
-from ._types import ComponentDefinition, ResolvedComponent
-from di.enums import ComponentScope
 import inspect
 from collections import defaultdict, deque
+from typing import Any, get_args, get_origin
 
-from .. import CycleDetectedError
+from di.enums import ComponentScope
+from di.exceptions import CycleDetectedError
+
+from ._types import ComponentDefinition, ResolvedComponent
 
 
 def _toposort_components(
@@ -29,7 +30,7 @@ def _toposort_components(
             if dep in all_nodes:
                 graph[dep].add(component_type)
 
-    in_degree = {node: 0 for node in all_nodes}
+    in_degree = dict.fromkeys(all_nodes, 0)
     for deps in graph.values():
         for dep in deps:
             in_degree[dep] += 1

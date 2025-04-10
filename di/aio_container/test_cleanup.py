@@ -4,9 +4,10 @@ from typing import TypeVar
 import pytest
 
 from di.aio_container.resolver import resolve_callable_dependencies
+from di.enums import ComponentScope
+
 from ._convert_to_factory import convert_to_factory
 from ._types import ComponentDefinition
-from di.enums import ComponentScope
 
 T = TypeVar("T")
 

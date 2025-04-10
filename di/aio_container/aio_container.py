@@ -1,26 +1,23 @@
 import contextlib
+from collections.abc import Awaitable, Callable, Iterable
 from typing import (
-    Callable,
-    Awaitable,
-    TypeVar,
     Any,
     ParamSpec,
     Self,
-    Iterable,
+    TypeVar,
     overload,
-    Union,
-    Optional,
 )
 
-from .configurable_container import ConfigurableAioContainer
 from di.enums import ContainerState
 from di.exceptions import ComponentNotFoundError
+
 from ._types import ComponentDefinition, ResolvedComponent
+from .configurable_container import ConfigurableAioContainer
 from .default_aio_container_future import default_aio_container_future
 from .default_container import default_container
 from .resolver import (
-    resolve_container_scoped_only,
     resolve_callable_dependencies,
+    resolve_container_scoped_only,
     resolve_satisfying_components,
 )
 from .validator import validate_container_definitions

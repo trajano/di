@@ -1,19 +1,15 @@
 from contextlib import AbstractAsyncContextManager
 from typing import Self
+
 import pytest
-from di.enums import ComponentScope
-from ._types import ComponentDefinition
-from ._convert_to_factory import convert_to_factory
-from di._util import (
-    extract_satisfied_types_from_type,
-    extract_dependencies_from_signature,
-)
+
 from di.aio_container import (
     AioContainer,
     ConfigurableAioContainer,
     autowired_with_container,
 )
-from .component import component_with_container, component
+
+from .component import component
 from .default_container import default_container
 
 _tracking = {"started": False, "stopped": False}

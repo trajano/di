@@ -93,9 +93,9 @@ You may also use the decorators directly with the default container:
 """
 
 from .aio_container import AioContainer
-from .configurable_container import ConfigurableAioContainer
-from .autowired import autowired_with_container, autowired
+from .autowired import autowired, autowired_with_container
 from .component import component
+from .configurable_container import ConfigurableAioContainer
 from .container import Container
 from .default_container import default_container
 from .factory import factory
@@ -103,9 +103,9 @@ from .factory import factory
 __all__ = [
     "AioContainer",
     "Container",
-    "default_container",
-    "component",
-    "factory",
     "autowired",
     "autowired_with_container",
+    "component",
+    "default_container",
+    "factory",
 ]

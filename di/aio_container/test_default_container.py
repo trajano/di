@@ -2,7 +2,7 @@ import asyncio
 from contextlib import AbstractAsyncContextManager
 from typing import Self
 
-from di.aio import component, AioContainer, autowired, factory
+from di.aio import AioContainer, autowired, component, factory
 
 _tracking = {"started": False, "stopped": False}
 

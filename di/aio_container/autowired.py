@@ -2,7 +2,7 @@ import asyncio
 import functools
 import inspect
 from collections.abc import Awaitable, Callable
-from typing import ParamSpec, TypeVar, overload, Optional
+from typing import ParamSpec, TypeVar, overload
 
 from di.aio_container import AioContainer
 from di.aio_container.default_aio_container_future import default_aio_container_future
@@ -23,7 +23,7 @@ def autowired(
 
 
 def autowired(
-    func: Optional[Callable[P, Awaitable[R]]] = None,
+    func: Callable[P, Awaitable[R]] | None = None,
     *,
     future_container: asyncio.Future[AioContainer] = default_aio_container_future,
 ) -> (
@@ -46,8 +46,7 @@ def autowired(
 
     if func:
         return decorator(func)
-    else:
-        return decorator
+    return decorator
 
 
 def autowired_with_container(

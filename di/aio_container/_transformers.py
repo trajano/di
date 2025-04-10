@@ -20,8 +20,9 @@ See the high-level design documentation in `__init__.py` for full details.
 """
 
 import asyncio
+from collections.abc import Awaitable, Callable
 from contextlib import AbstractAsyncContextManager, AbstractContextManager
-from typing import Callable, Awaitable, TypeVar
+from typing import TypeVar
 
 from ._types import ContainerAsyncFactory
 

@@ -1,14 +1,13 @@
 import asyncio
-import inspect
-from contextlib import AbstractContextManager, AbstractAsyncContextManager
-from typing import Any, Callable, Awaitable, overload, Type, TypeVar
+from collections.abc import Awaitable, Callable
+from contextlib import AbstractContextManager
+from typing import Any, TypeVar, overload
 
 from ._transformers import (
     convert_async_def_to_factory,
-    convert_sync_def_to_factory,
     convert_component_type_to_factory,
-    convert_sync_context_manager_to_factory,
     convert_implementation_to_factory,
+    convert_sync_def_to_factory,
 )
 from ._types import ContainerAsyncFactory
 

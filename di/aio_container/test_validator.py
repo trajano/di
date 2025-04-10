@@ -2,13 +2,14 @@ from typing import Any
 
 import pytest
 
-from ._types import ComponentDefinition, ContainerAsyncFactory
 from di.enums import ComponentScope
 from di.exceptions import (
-    ContainerInitializationError,
     ComponentNotFoundError,
+    ContainerInitializationError,
     CycleDetectedError,
 )
+
+from ._types import ComponentDefinition, ContainerAsyncFactory
 from .validator import validate_container_definitions
 
 
