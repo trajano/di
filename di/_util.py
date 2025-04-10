@@ -39,12 +39,12 @@ def extract_satisfied_types_from_return_of_callable(
     if return_annotation is inspect.Signature.empty:
         raise TypeError("Return type must be known")
 
-    return _unwrap_type(return_annotation), extract_satisfied_types_from_type(
+    return unwrap_type(return_annotation), extract_satisfied_types_from_type(
         return_annotation
     )
 
 
-def _unwrap_type(typ: type) -> type:
+def unwrap_type(typ: type) -> type:
     """
     Recursively unwraps wrapper types to extract the innermost concrete type.
 
@@ -83,9 +83,9 @@ def _unwrap_type(typ: type) -> type:
     args = typing.get_args(typ)
 
     if isinstance(origin, type) and issubclass(origin, AsyncGenerator):
-        return _unwrap_type(args[0])
+        return unwrap_type(args[0])
     elif origin in unwrap_targets and args:
-        return _unwrap_type(args[-1])
+        return unwrap_type(args[-1])
     return typ
 
 
@@ -101,7 +101,7 @@ def extract_satisfied_types_from_type(typ: type) -> set[type]:
     :param typ: The type annotation to analyze.
     :return: A set of types that the component satisfies.
     """
-    unwrapped_type = _unwrap_type(typ)
+    unwrapped_type = unwrap_type(typ)
     if isclass(unwrapped_type):
         return {cls for cls in unwrapped_type.mro() if cls is not object}
 

@@ -5,15 +5,20 @@ from typing import Callable, Awaitable, TypeVar, Any, ParamSpec, Self, Tuple, It
 
 from di._util import (
     extract_dependencies_from_signature,
+    unwrap_type,
     extract_satisfied_types_from_type,
     extract_satisfied_types_from_return_of_callable,
 )
 from ._extractors import extract_dependencies_from_callable
 from di.enums import ComponentScope, ContainerState
-from di.exceptions import DuplicateRegistrationError
+from di.exceptions import DuplicateRegistrationError,ComponentNotFoundError
 from ._convert_to_factory import convert_to_factory
 from ._types import ComponentDefinition, ResolvedComponent
-from .resolver import resolve_container_scoped_only, resolve_callable_dependencies
+from .resolver import (
+    resolve_container_scoped_only,
+    resolve_callable_dependencies,
+    resolve_satisfying_components,
+)
 from .validator import validate_container_definitions
 
 P = ParamSpec("P")
@@ -207,3 +212,26 @@ class AioContainer(contextlib.AbstractAsyncContextManager):
             container_scope_components=self._container_scope_components,
             definitions=self._definitions,
         )
+
+    async def get_instances(self, typ: type[T]) -> list[T]:
+        return await resolve_satisfying_components(
+            typ,
+            resolved_components=self._container_scope_components,
+            definitions=self._definitions,
+        )
+
+    async def get_instance(self, typ: type[T]) -> T:
+        maybe_instance = await self.get_optional_instance(typ)
+        if not maybe_instance:
+            raise ComponentNotFoundError(component_type=typ)
+        return maybe_instance
+
+    async def get_optional_instance(self, typ: type[T]) -> T|None:
+        return (await self.get_instances(typ))[0]
+
+    def get_satisfied_types(self) -> set[type]:
+        return {
+            satisfied_type
+            for definition in self._definitions
+            for satisfied_type in definition.satisfied_types
+        }
