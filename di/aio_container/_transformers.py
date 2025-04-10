@@ -20,6 +20,7 @@ See the high-level design documentation in `__init__.py` for full details.
 """
 
 import asyncio
+import types
 from collections.abc import Awaitable, Callable
 from contextlib import AbstractAsyncContextManager, AbstractContextManager
 from types import TracebackType
@@ -49,30 +50,13 @@ class AsyncContextWrapper(AbstractAsyncContextManager[T]):
         self._entered = await asyncio.to_thread(self._sync_cm.__enter__)
         return self._entered
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: types.TracebackType | None,
+    ):
         await asyncio.to_thread(self._sync_cm.__exit__, exc_type, exc_val, exc_tb)
-
-
-class NoOpAsyncContextManager(AbstractAsyncContextManager[I]):
-    """
-    A no-op asynchronous context manager that simply yields a given instance
-    without applying any additional lifecycle or cleanup behavior.
-
-    Used to wrap non-context-managed component instances for compatibility
-    with the container's `async with` resolution model.
-
-    :param value: The component instance to return on entry.
-    """
-
-    def __init__(self, value: I):
-        self._value = value
-
-    async def __aenter__(self) -> I:
-        return self._value
-
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        # no-op
-        pass
 
 
 def convert_async_def_to_factory(
@@ -194,11 +178,12 @@ def convert_sync_context_manager_to_factory(
             self._entered = await asyncio.to_thread(self._sync_cm.__enter__)
             return self._entered
 
-        async def __aexit__(self,
-                            exc_type: type[BaseException] | None,
-                            exc_val: BaseException | None,
-                            exc_tb: TracebackType | None,
-                            ):
+        async def __aexit__(
+            self,
+            exc_type: type[BaseException] | None,
+            exc_val: BaseException | None,
+            exc_tb: TracebackType | None,
+        ):
             await asyncio.to_thread(self._sync_cm.__exit__, exc_type, exc_val, exc_tb)
 
     def factory(*args, **kwargs) -> AbstractAsyncContextManager[I]:

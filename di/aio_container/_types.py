@@ -27,10 +27,13 @@ class ComponentDefinition(Generic[I]):
     """
     Component definition structure containing metadata about a registered component.
 
-    :param satisfied_types: All types (interfaces or base classes) satisfied by the component.
-    :param dependencies: Constructor-injected types this component depends on.I w
-    :param factory: A callable factory that produces the component wrapped in an async context manager.
-    :param scope: The lifetime scope of the component (e.g., container or function scoped).
+    :param satisfied_types: All types (interfaces or base classes) satisfied by the
+      component.
+    :param dependencies: Constructor-injected types this component depends on.
+    :param factory: A callable factory that produces the component wrapped in an
+      async context manager.
+    :param scope: The lifetime scope of the component (e.g., container or function
+      scoped).
     """
 
     type: type[I]

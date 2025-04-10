@@ -136,17 +136,17 @@ async def resolve_satisfying_components(
     :return: List of instances satisfying the type (usually length 1 unless multi-binding).
     :raises ComponentNotFoundError: If a required dependency cannot be resolved.
     """
-    results: list[T] = []
-
     # Cache to avoid duplicate instantiation
     constructed: dict[type, Any] = {
         t: c.instance for c in resolved_components for t in c.satisfied_types
     }
 
     # Step 1: Reuse already-resolved components
-    for component in resolved_components:
-        if typ in component.satisfied_types:
-            results.append(component.instance)
+    results = [
+        component.instance
+        for component in resolved_components
+        if typ in component.satisfied_types
+    ]
 
     # Step 2: Resolve function-scoped components if needed
     for definition in definitions:

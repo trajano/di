@@ -25,7 +25,7 @@ class DummyAsyncCM:
 
 
 def make_factory(t: type) -> ContainerAsyncFactory:
-    def factory(**kwargs):
+    def factory(**_kwargs):
         return DummyAsyncCM(t())
 
     return factory

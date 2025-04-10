@@ -1,4 +1,5 @@
 import contextlib
+import types
 from collections.abc import Awaitable, Callable, Iterable
 from typing import (
     Any,
@@ -70,7 +71,12 @@ class AioContainer(contextlib.AbstractAsyncContextManager):
         )
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: types.TracebackType | None,
+    ):
         self._state = ContainerState.CLOSING
         for component in reversed(self._container_scope_components):
             await component.context_manager.__aexit__(exc_type, exc_val, exc_tb)
