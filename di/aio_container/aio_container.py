@@ -87,9 +87,9 @@ class ConfigurableAioContainer:
             )
         )
 
-    def add_context_managed_component(
+    def add_context_managed_type(
         self,
-        component_type: type,
+        cm: type[contextlib.AbstractAsyncContextManager] | type[contextlib.AbstractContextManager],
         *,
         scope: ComponentScope = ComponentScope.CONTAINER,
     ) -> None:
@@ -99,20 +99,19 @@ class ConfigurableAioContainer:
         This ensures that the component's lifecycle is handled via `async with`
         and cleanup is invoked on container exit.
 
-        :param component_type: A class that implements either `__enter__/__exit__`
-                               or `__aenter__/__aexit__`.
+        :param cm: A context manager
         :param scope: The lifecycle scope for the component (default: CONTAINER).
         :raises DuplicateRegistrationError: If the type has already been registered.
         """
-        self._ensure_not_registered(component_type)
-        factory = convert_to_factory(component_type)
+        self._ensure_not_registered(cm)
+        factory = convert_to_factory(cm)
         deps, collection_deps = extract_dependencies_from_callable(
-            component_type.__init__
+            cm.__init__
         )
         self._definitions.append(
             ComponentDefinition(
-                type=component_type,
-                satisfied_types=extract_satisfied_types_from_type(component_type),
+                type=cm,
+                satisfied_types=extract_satisfied_types_from_type(cm),
                 dependencies=deps,
                 collection_dependencies=collection_deps,
                 factory=factory,
