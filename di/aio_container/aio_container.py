@@ -36,7 +36,7 @@ class AioContainer(contextlib.AbstractAsyncContextManager):
     @overload
     def __init__(
         self,
-        definitions: None = None,
+        *,
         container: ConfigurableAioContainer | None = None,
     ) -> None: ...
 
