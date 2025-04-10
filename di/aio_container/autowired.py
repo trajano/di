@@ -13,19 +13,23 @@ R = TypeVar("R")
 
 @overload
 def autowired(
-        func: Callable[P, Awaitable[R]],
+    func: Callable[P, Awaitable[R]],
 ) -> Callable[..., Awaitable[R]]: ...
 @overload
 def autowired(
-        *,
-        future_container: asyncio.Future[AioContainer],
+    *,
+    future_container: asyncio.Future[AioContainer],
 ) -> Callable[[Callable[P, Awaitable[R]]], Callable[..., Awaitable[R]]]: ...
 
+
 def autowired(
-        func: Optional[Callable[P, Awaitable[R]]] = None,
-        *,
-        future_container: asyncio.Future[AioContainer] = default_aio_container_future,
-) -> Callable[..., Awaitable[R]] | Callable[[Callable[P, Awaitable[R]]], Callable[..., Awaitable[R]]]:
+    func: Optional[Callable[P, Awaitable[R]]] = None,
+    *,
+    future_container: asyncio.Future[AioContainer] = default_aio_container_future,
+) -> (
+    Callable[..., Awaitable[R]]
+    | Callable[[Callable[P, Awaitable[R]]], Callable[..., Awaitable[R]]]
+):
     """This will autowire to a future container upon invocation."""
 
     def decorator(fn: Callable[P, Awaitable[R]]) -> Callable[..., Awaitable[R]]:

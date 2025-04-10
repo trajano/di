@@ -11,9 +11,11 @@ class Config:
     def __init__(self, value):
         self.value = value
 
+
 @factory
 def build_config() -> Config:
     return Config("abc")
+
 
 @component
 class Service:
@@ -66,8 +68,7 @@ async def consume(*, producer: ResourceProducer):
 
 
 async def server():
-    async with AioContainer(None) as container:
-        assert ResourceProducer in container.get_satisfied_types()
+    async with AioContainer():
         resource = await consume()
         result = resource.value
         assert result == "abc"

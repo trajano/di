@@ -13,7 +13,7 @@ Usage:
 """
 
 from collections.abc import Callable
-from typing import TypeVar, overload, Optional, Union, ParamSpec,Any
+from typing import TypeVar, overload, Optional, Union, ParamSpec, Any
 
 from .default_container import default_container
 from .configurable_container import ConfigurableContainer
@@ -27,13 +27,18 @@ T = TypeVar("T")
 @overload
 def factory(fn: Callable[..., T]) -> Callable[..., T]: ...
 @overload
-def factory(*, container: ConfigurableContainer,scope: ComponentScope = ComponentScope.CONTAINER) -> Callable[[Callable[P, T]], Callable[..., T]]: ...
+def factory(
+    *,
+    container: ConfigurableContainer,
+    scope: ComponentScope = ComponentScope.CONTAINER,
+) -> Callable[[Callable[P, T]], Callable[..., T]]: ...
+
 
 def factory(
-        fn: Optional[Callable[P,T]] = None,
-        *,
-        container: ConfigurableContainer = default_container,
-        scope: ComponentScope = ComponentScope.CONTAINER
+    fn: Optional[Callable[P, T]] = None,
+    *,
+    container: ConfigurableContainer = default_container,
+    scope: ComponentScope = ComponentScope.CONTAINER,
 ) -> Union[Callable[..., T], Callable[[Callable[P, T]], Callable[..., T]]]:
     """Class decorator to register a factory type with a container.
 
@@ -45,15 +50,15 @@ def factory(
     :return: Either the original class (if used directly), or a decorator function.
     """
     if fn is None:
-        return factory_with_container(container=container,scope=scope)
+        return factory_with_container(container=container, scope=scope)
     else:
         return factory_with_container(container=container, scope=scope)(fn)
 
 
 def factory_with_container(
-        *,
-        container: ConfigurableContainer,
-        scope: ComponentScope = ComponentScope.CONTAINER
+    *,
+    container: ConfigurableContainer,
+    scope: ComponentScope = ComponentScope.CONTAINER,
 ) -> Callable[..., Any]:
     def wrap(fn: type[T]) -> type[T]:
         container.add_component_factory(fn, scope=scope)

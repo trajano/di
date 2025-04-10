@@ -37,21 +37,24 @@ class AioContainer(contextlib.AbstractAsyncContextManager):
     @overload
     def __init__(self, definitions: Iterable[ComponentDefinition[Any]]) -> None: ...
     @overload
-    def __init__(self, definitions: None = None, container: ConfigurableAioContainer | None = None) -> None: ...
+    def __init__(
+        self,
+        definitions: None = None,
+        container: ConfigurableAioContainer | None = None,
+    ) -> None: ...
 
     def __init__(
-            self,
-            definitions: Iterable[ComponentDefinition[Any]] | None = None,
-            container: ConfigurableAioContainer | None = None,
+        self,
+        definitions: Iterable[ComponentDefinition[Any]] | None = None,
+        *,
+        container: ConfigurableAioContainer | None = None,
     ) -> None:
         if not definitions and not container:
             # this is the default container
             self._definitions = list(default_container.get_definitions())
             default_aio_container_future.set_result(self)
         elif container and not definitions:
-            self._definitions = list(
-                container.get_definitions()
-            )
+            self._definitions = list(container.get_definitions())
         elif definitions and not container:
             self._definitions = list(definitions)
         else:

@@ -26,10 +26,11 @@ def component(cls: type[T]) -> type[T]: ...
 @overload
 def component(*, container: ConfigurableContainer) -> Callable[[type[T]], type[T]]: ...
 
+
 def component(
-        cls: Optional[type[T]] = None,
-        *,
-        container: ConfigurableContainer = default_container,
+    cls: Optional[type[T]] = None,
+    *,
+    container: ConfigurableContainer = default_container,
 ) -> Union[type[T], Callable[[type[T]], type[T]]]:
     """Class decorator to register a component type with a container.
 

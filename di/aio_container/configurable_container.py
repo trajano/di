@@ -122,7 +122,7 @@ class ConfigurableAioContainer(ConfigurableContainer):
     def add_context_managed_type(
         self,
         cm_type: type[contextlib.AbstractAsyncContextManager]
-                 | type[contextlib.AbstractContextManager],
+        | type[contextlib.AbstractContextManager],
         *,
         scope: ComponentScope = ComponentScope.CONTAINER,
     ) -> None:
