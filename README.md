@@ -1,4 +1,4 @@
-# di
+# di_aio
 
 A lightweight and extensible **Dependency Injection (DI)** framework for Python.
 
@@ -21,13 +21,13 @@ This project offers a minimalistic yet powerful approach to defining and resolvi
 ## Installation
 
 > Use the `di.aio` module for asyncio-compatible dependency injection in your project.
-> The synchronous API is available in `di` and is documented in [di/basic\_container/README.md](di/basic_container/README.md).
+> The synchronous API is available in `di` and is documented in [di/basic\_container/README.md](di_aio/basic_container/README.md).
 
 ---
 
 ## Usage
 
-> For legacy usage examples without asyncio support, see: [di/basic\_container/README.md](di/basic_container/README.md).
+> For legacy usage examples without asyncio support, see: [di/basic\_container/README.md](di_aio/basic_container/README.md).
 
 ## Example
 
@@ -35,7 +35,8 @@ This is an example of how to register components using decorators and autowiring
 
 ```python
 import asyncio
-from di.aio import component, autowired
+from di_aio.aio import component, autowired
+
 
 @component
 class AsyncService:
@@ -43,11 +44,13 @@ class AsyncService:
         await asyncio.sleep(0.1)
         return "Fetched async result"
 
+
 class AsyncWorker:
     @autowired
     async def work(self, *, async_service: AsyncService):
         result = await async_service.fetch()
         print("Result:", result)
+
 
 worker = AsyncWorker()
 asyncio.run(worker.work())
@@ -57,7 +60,8 @@ The `@autowired` decorator can be used outside of classes as well
 
 ```python
 import asyncio
-from di.aio import component, autowired
+from di_aio.aio import component, autowired
+
 
 @component
 class AsyncService:
@@ -65,10 +69,12 @@ class AsyncService:
         await asyncio.sleep(0.1)
         return "Fetched async result"
 
+
 @autowired
 async def work(self, *, async_service: AsyncService):
     result = await async_service.fetch()
     print("Result:", result)
+
 
 asyncio.run(work())
 ```

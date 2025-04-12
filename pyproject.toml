@@ -1,6 +1,6 @@
 [project]
-name = "di"
-version = "0.1.0"
+name = "di_aio"
+version = "0.3.0"
 requires-python = ">=3.11"
 
 [build-system]
@@ -29,7 +29,7 @@ dev = [
 
 [tool.poe.tasks]
 lint = { sequence = ["pyright", "ruff"], help = "Run static analysis" }
-test = { cmd = "pytest --cov=di --cov-report=term-missing ./", help = "Run tests with coverage" }
+test = { cmd = "pytest", help = "Run tests with coverage" }
 fmt = { cmd = "ruff format ." }
 pyright = { cmd = "pyright" }
 ruff = { cmd = "ruff check --fix ." }
@@ -39,6 +39,7 @@ build = ["lint", "fmt", "test", "_uv-build"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
+addopts = "--cov=di_aio --cov-report=term-missing"
 
 [tool.ruff.lint]
 extend-select = ["ALL"]
