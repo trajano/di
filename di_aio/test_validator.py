@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, ParamSpec
 
 import pytest
 
@@ -7,9 +7,11 @@ from ._validator import validate_container_definitions
 from .enums import ComponentScope
 from .exceptions import (
     ComponentNotFoundError,
-    ContainerInitializationError,
+    ConfigurationError,
     CycleDetectedError,
 )
+
+P = ParamSpec("P")
 
 
 class DummyAsyncCM:
@@ -24,7 +26,7 @@ class DummyAsyncCM:
 
 
 def make_factory(t: type) -> ContainerAsyncFactory:
-    def factory(**_kwargs):
+    def factory(*_args: P.args, **_kwargs: P.kwargs):
         return DummyAsyncCM(t())
 
     return factory
@@ -83,7 +85,7 @@ def test_invalid_scope_violation():
         make_def({A}, set(), ComponentScope.FUNCTION),
         make_def({B}, {A}, ComponentScope.CONTAINER),
     ]
-    with pytest.raises(ContainerInitializationError):
+    with pytest.raises(ConfigurationError):
         validate_container_definitions(defs)
 
 

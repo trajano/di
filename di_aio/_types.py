@@ -1,9 +1,10 @@
 from contextlib import AbstractAsyncContextManager
 from dataclasses import dataclass
-from typing import Generic, Protocol, Type, TypeVar
+from typing import Generic, Protocol, Type, TypeVar, ParamSpec
 
 from .enums import ComponentScope
 
+P = ParamSpec("P")
 I_co = TypeVar("I_co", covariant=True)
 I = TypeVar("I")
 
@@ -19,7 +20,9 @@ class ContainerAsyncFactory(Protocol[I_co]):
     :returns: An async context manager yielding an instance of the target type.
     """
 
-    def __call__(self, *args, **kwargs) -> AbstractAsyncContextManager[I_co]: ...
+    def __call__(
+        self, *args: P.args, **kwargs: P.kwargs
+    ) -> AbstractAsyncContextManager[I_co]: ...
 
 
 @dataclass

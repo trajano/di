@@ -5,7 +5,7 @@ from ._types import ComponentDefinition
 from .enums import ComponentScope
 from .exceptions import (
     ComponentNotFoundError,
-    ContainerInitializationError,
+    ConfigurationError,
 )
 
 
@@ -72,7 +72,7 @@ def _detect_scope_violations(
                             f"Multi-injection dependency {origin}[{arg}] is "
                             f"satisfied by a non-container-scoped component"
                         )
-                        raise ContainerInitializationError(msg)
+                        raise ConfigurationError(msg)
                 continue
 
             dep_scope = type_to_scope.get(dep)
@@ -81,7 +81,7 @@ def _detect_scope_violations(
                     f"Container-scoped component cannot depend on function-scoped "
                     f"dependency: {dep}"
                 )
-                raise ContainerInitializationError(msg)
+                raise ConfigurationError(msg)
 
 
 def _detect_cycles(definitions: list[ComponentDefinition[Any]]) -> None:

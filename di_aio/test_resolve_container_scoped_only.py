@@ -15,7 +15,7 @@ from .resolver import resolve_container_scoped_only
 
 class Config:
     def __init__(self):
-        self.token = "abc123"
+        self.config_value = "abc123"
 
 
 class Service:
@@ -45,7 +45,7 @@ class ServiceWithConfigAndSources:
 
     def get(self) -> str:
         joined_sources = ",".join(source.provide() for source in self.sources)
-        return f"{self.config.token} {joined_sources}"
+        return f"{self.config.config_value} {joined_sources}"
 
 
 @pytest.mark.asyncio

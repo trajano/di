@@ -34,8 +34,8 @@ Key Components
     Registers a type or instance into the default container before execution.
 
 - **@factory**:
-    Registers a factory (sync or async) that declares dependencies via keyword-only arguments.
-    Supports configurable lifecycles (container or function scoped).
+    Registers a factory (sync or async) that declares dependencies via keyword-only
+    arguments. Supports configurable lifecycles (container or function scoped).
 
 - **@autowired**:
     Decorator that injects dependencies into `async def` functions using a specified container.

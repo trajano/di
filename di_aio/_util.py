@@ -37,7 +37,8 @@ def extract_satisfied_types_from_return_of_callable(
     return_annotation = sig.return_annotation
 
     if return_annotation is inspect.Signature.empty:
-        raise TypeError("Return type must be known")
+        msg = "Return type must be known"
+        raise TypeError(msg)
 
     return unwrap_type(return_annotation), extract_satisfied_types_from_type(
         return_annotation
@@ -93,7 +94,8 @@ def extract_satisfied_types_from_type(typ: type) -> set[type]:
     """
     Extract all types satisfied by a component type.
 
-    - Unwraps Awaitable[T], Coroutine[..., T], AbstractAsyncContextManager[T], AbstractContextManager[T].
+    - Unwraps Awaitable[T], Coroutine[..., T], AbstractAsyncContextManager[T],
+      AbstractContextManager[T].
     - Includes all classes in the MRO (method resolution order) of the unwrapped type.
     - Always includes the original type if class-based.
     - Excludes `object`.

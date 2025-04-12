@@ -7,8 +7,10 @@ class ContainerError(RuntimeError):
     """Exception for errors in the container."""
 
 
-class ContainerInitializationError(ContainerError):
-    """Raised when a container-scoped component depends on a non-container-scoped one."""
+class ConfigurationError(ContainerError):
+    """Exception when there is a configuration error.
+
+    Raised when a container-scoped component depends on a non-container-scoped one."""
 
 
 class CycleDetectedError(ContainerError):
@@ -47,7 +49,7 @@ class ComponentNotFoundError(ContainerError):
         super().__init__(message)
 
 
-class DuplicateRegistrationError(ContainerError):
+class DuplicateRegistrationError(ConfigurationError):
     """Exception raised when two EXACT components are registered.
 
     The components are either component types, component factories or component

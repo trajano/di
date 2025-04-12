@@ -26,8 +26,11 @@ from contextlib import AbstractAsyncContextManager, AbstractContextManager
 from types import TracebackType
 from typing import TypeVar
 
+from typing_extensions import ParamSpec
+
 from ._types import ContainerAsyncFactory
 
+P = ParamSpec("P")
 T = TypeVar("T")
 I = TypeVar("I")
 
@@ -37,7 +40,8 @@ class AsyncContextWrapper(AbstractAsyncContextManager[T]):
     Wrap a synchronous context manager to make it usable in `async with`.
 
     This is useful for integrating traditional blocking resources (e.g., file handles,
-    database sessions) into an asyncio-compatible system without blocking the event loop.
+    database sessions) into an asyncio-compatible system without blocking the event
+    loop.
 
     :param sync_cm: An instance of a synchronous context manager.
     """
@@ -186,7 +190,7 @@ def convert_sync_context_manager_to_factory(
         ):
             await asyncio.to_thread(self._sync_cm.__exit__, exc_type, exc_val, exc_tb)
 
-    def factory(*args, **kwargs) -> AbstractAsyncContextManager[I]:
+    def factory(*args: P.args, **kwargs: P.kwargs) -> AbstractAsyncContextManager[I]:
         sync_cm = sync_cm_fn(*args, **kwargs)
         return AsyncContextWrapper(sync_cm)
 

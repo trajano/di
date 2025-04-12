@@ -21,4 +21,6 @@ class ConfigurableContainer(Protocol):
 
 
 class Container(Protocol):
-    pass
+    async def resolve_callable(
+        self, fn: Callable[..., Awaitable[T]]
+    ) -> Callable[..., Awaitable[T]]: ...

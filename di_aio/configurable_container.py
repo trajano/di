@@ -28,7 +28,7 @@ class ConfigurableAioContainer(ConfigurableContainer):
         self._definitions: list[ComponentDefinition[Any]] = []
         self._registered_sources: set = set()
 
-    def _ensure_not_registered(self, component_source: Any) -> None:
+    def _ensure_not_registered(self, component_source: object | type) -> None:
         if component_source in self._registered_sources:
             raise DuplicateRegistrationError(type_or_factory=component_source)
         self._registered_sources.add(component_source)
@@ -156,7 +156,7 @@ class ConfigurableAioContainer(ConfigurableContainer):
         """
         return tuple(self._definitions)
 
-    def __iadd__(self, other: Any) -> Self:
+    def __iadd__(self, other: object) -> Self:
         """Routes to the proper add method"""
         if isinstance(other, type):
             if issubclass(other, (AbstractContextManager, AbstractAsyncContextManager)):

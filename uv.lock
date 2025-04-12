@@ -67,8 +67,8 @@ toml = [
 ]
 
 [[package]]
-name = "di"
-version = "0.1.0"
+name = "di-aio"
+version = "0.3.0"
 source = { editable = "." }
 
 [package.dev-dependencies]

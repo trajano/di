@@ -2,13 +2,16 @@ import functools
 import inspect
 from collections.abc import Awaitable, Callable
 from inspect import Parameter
-from typing import Any, TypeVar, Union, get_args, get_origin
+from typing import Any, ParamSpec, TypeVar, Union, get_args, get_origin
 
 from ._toposort import _toposort_components
 from ._types import ComponentDefinition, ResolvedComponent
 from .enums import ComponentScope
 from .exceptions import ComponentNotFoundError
 
+UNION_NONE_ARGS_LENGTH = 2
+
+P = ParamSpec("P")
 T = TypeVar("T")
 
 
@@ -32,6 +35,16 @@ def _maybe_collection_dependency(
         return False
     is_arg_in_collection_dependencies = args[0] in definition.collection_dependencies
     return is_collection and is_arg_in_collection_dependencies
+
+
+def _is_dep_optional(origin: type, args: tuple[Any]) -> bool:
+    return (
+        origin is Union and type(None) in args and len(args) == UNION_NONE_ARGS_LENGTH
+    )
+
+
+def _is_dep_collection(origin: type, args: tuple[Any]) -> bool:
+    return origin in (list, set) and len(args) == 1
 
 
 async def resolve_container_scoped_only(
@@ -132,7 +145,7 @@ async def resolve_satisfying_components(
     :param typ: The type to resolve.
     :param resolved_components: Components already resolved (e.g., container-scoped).
     :param definitions: All component definitions, already topologically sorted.
-    :return: List of instances satisfying the type (usually length 1 unless multi-binding).
+    :return: List of instances satisfying the type.
     :raises ComponentNotFoundError: If a required dependency cannot be resolved.
     """
     # Cache to avoid duplicate instantiation
@@ -165,8 +178,7 @@ async def resolve_satisfying_components(
             origin = get_origin(dep)
             args = get_args(dep)
 
-            # Optional[X] or Union[X, NoneType]
-            if origin is Union and type(None) in args and len(args) == 2:
+            if _is_dep_optional(origin, args):
                 inner_type = next(a for a in args if a is not type(None))
                 matches = await resolve_satisfying_components(
                     inner_type,
@@ -175,8 +187,7 @@ async def resolve_satisfying_components(
                 )
                 kwargs[name] = matches[0] if matches else None
 
-            # list[X] or set[X]
-            elif origin in (list, set) and args:
+            elif _is_dep_collection(origin, args):
                 item_type = args[0]
                 matches = await resolve_satisfying_components(
                     item_type,
@@ -222,9 +233,9 @@ async def resolve_callable_dependencies(
     definitions: list[ComponentDefinition[Any]],
 ) -> Callable[..., Awaitable[T]]:
     """
-    Resolves the required dependencies of the callable and returns a coroutine function
-    with those keyword-only arguments pre-applied. The resulting function will still accept
-    any positional and other keyword arguments the caller provides.
+    Resolves the required dependencies of the callable and returns a coroutine
+    function with those keyword-only arguments pre-applied. The resulting function
+    will still accept any positional and other keyword arguments the caller provides.
 
     This version ensures that all function-scoped components are entered and cleaned up
     using an async context manager stack.
@@ -236,7 +247,7 @@ async def resolve_callable_dependencies(
     """
 
     @functools.wraps(fn)
-    async def wrapped(*wrapped_args: Any, **user_kwargs: Any) -> T:
+    async def wrapped(*wrapped_args: P.args, **user_kwargs: P.kwargs) -> T:
         sig = inspect.signature(fn)
         injected_kwargs = {}
         for name, param in sig.parameters.items():
@@ -247,8 +258,8 @@ async def resolve_callable_dependencies(
             origin = get_origin(dep_type)
             args = get_args(dep_type)
 
-            # Optional[X] or Union[X, None]
-            if origin is Union and type(None) in args and len(args) == 2:
+            # is Optional[X] or Union[X, None]
+            if _is_dep_optional(origin, args):
                 inner_type = next(a for a in args if a is not type(None))
                 matches = await resolve_satisfying_components(
                     inner_type,
@@ -257,8 +268,8 @@ async def resolve_callable_dependencies(
                 )
                 injected_kwargs[name] = matches[0] if matches else None
 
-            # list[X] or set[X]
-            elif origin in (list, set) and args:
+            # is list[X] or set[X]
+            elif _is_dep_collection(origin, args):
                 item_type = args[0]
                 matches = await resolve_satisfying_components(
                     item_type,
