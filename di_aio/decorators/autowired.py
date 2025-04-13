@@ -16,12 +16,14 @@ R = TypeVar("R")
 @overload
 def autowired(
     func: Callable[P, Awaitable[R]],
-) -> Callable[..., Awaitable[R]]: ...
+) -> Callable[..., Awaitable[R]]: ...  # pragma: no cover
 @overload
 def autowired(
     *,
     future_context: FutureContext | None,
-) -> Callable[[Callable[P, Awaitable[R]]], Callable[..., Awaitable[R]]]: ...
+) -> Callable[
+    [Callable[P, Awaitable[R]]], Callable[..., Awaitable[R]]
+]: ...  # pragma: no cover
 
 
 def autowired(
@@ -62,15 +64,15 @@ def autowired(
     return decorator
 
 
-def autowired_with_container(
-    container: Context,
+def autowired_with_context(
+    context: Context,
 ) -> Callable[[Callable[P, Awaitable[R]]], Callable[..., Awaitable[R]]]:
     """Decorate injecting dependencies using a specific container.
 
     Primarily used in tests to inject dependencies from an explicit container
     instead of a future-resolved default.
 
-    :param container: A container instance for dependency resolution.
+    :param context: A container instance for dependency resolution.
     :returns: A wrapped coroutine with injected arguments.
     :raises TypeError: If applied to a non-async function.
     """
@@ -82,7 +84,7 @@ def autowired_with_container(
 
         @functools.wraps(fn)
         async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
-            resolved_fn = await container.resolve_callable(fn)
+            resolved_fn = await context.resolve_callable(fn)
             return await resolved_fn(*args, **kwargs)
 
         return wrapper

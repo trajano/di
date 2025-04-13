@@ -5,7 +5,7 @@ import pytest
 
 from di_aio import default_container
 from di_aio.alt import AioContext, component
-from di_aio.testing import autowired_with_container
+from di_aio.testing import autowired_with_context
 
 _tracking = {"started": False, "stopped": False}
 
@@ -70,7 +70,7 @@ async def test_aio_container():
         assert prod == optional_prod
         assert prod in prods
 
-        @autowired_with_container(container=container)
+        @autowired_with_context(context=container)
         async def consume(*, producer: ResourceProducer):
             return await producer.get_resource()
 

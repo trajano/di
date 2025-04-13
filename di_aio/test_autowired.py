@@ -7,7 +7,7 @@ from ._util import (
     extract_dependencies_from_signature,
     extract_satisfied_types_from_type,
 )
-from .decorators import autowired_with_container
+from .decorators import autowired_with_context
 from .enums import ComponentScope
 
 
@@ -45,7 +45,7 @@ async def test_autowire_injects_dependencies():
 
     async with container:
 
-        @autowired_with_container(container=container)
+        @autowired_with_context(context=container)
         async def handler(x: int, *, b: B):
             return x, b
 

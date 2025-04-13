@@ -57,9 +57,7 @@ class ComponentDefinition(Generic[T]):
     Must accept keyword-only arguments and return an async context-managed instance.
     """
 
-    def build_context_manager(
-        self, *_args: P.args, **kwargs: P.kwargs
-    ) -> AbstractAsyncContextManager[T]:
+    def build_context_manager(self, **kwargs: dict) -> AbstractAsyncContextManager[T]:
         """Use the factory to return the async context manager.
 
         This does extra assertions to ensure it is valid at runtime.

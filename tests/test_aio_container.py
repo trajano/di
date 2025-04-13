@@ -1,7 +1,7 @@
 import pytest
 
 from di_aio.alt import AioContext, ConfigurableAioContainer
-from di_aio.testing import autowired_with_container
+from di_aio.testing import autowired_with_context
 
 
 class Config:
@@ -31,7 +31,7 @@ async def test_alt_container():
         definitions=configurable_container.get_definitions(),
     ) as container:
 
-        @autowired_with_container(container=container)
+        @autowired_with_context(context=container)
         async def consume(*, consumer: Consumer):
             return consumer.service.config.value
 

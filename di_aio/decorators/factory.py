@@ -25,13 +25,13 @@ T = TypeVar("T")
 
 
 @overload
-def factory(fn: Callable[..., T]) -> Callable[..., T]: ...
+def factory(fn: Callable[..., T]) -> Callable[..., T]: ...  # pragma: no cover
 @overload
 def factory(
     *,
     container: ConfigurableContainer,
     scope: ComponentScope = ComponentScope.CONTAINER,
-) -> Callable[[Callable[P, T]], Callable[..., T]]: ...
+) -> Callable[[Callable[P, T]], Callable[..., T]]: ...  # pragma: no cover
 
 
 def factory(

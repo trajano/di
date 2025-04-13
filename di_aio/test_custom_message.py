@@ -1,6 +1,5 @@
 from di_aio.exceptions import (
     ComponentNotFoundError,
-    ContainerLockedError,
     CycleDetectedError,
     DuplicateRegistrationError,
 )
@@ -22,8 +21,3 @@ def test_duplicate_registration_error():
     exc = DuplicateRegistrationError(type_or_factory=int, message="Custom not found")
     assert str(exc) == "Custom not found"
     assert exc.type_or_factory is int
-
-
-def test_container_locked_error():
-    exc = ContainerLockedError(message="Custom not found")
-    assert str(exc) == "Custom not found"

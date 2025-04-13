@@ -69,18 +69,3 @@ class DuplicateRegistrationError(ConfigurationError):
         if message is None:
             message = f"Registering {type_or_factory} twice."
         super().__init__(message)
-
-
-class ContainerLockedError(ContainerError):
-    """Raised when the container is already locked and an attempt to modify it is done.
-
-    :param message: Optional custom message to override the default one.
-    """
-
-    def __init__(
-        self,
-        message: str | None = None,
-    ) -> None:
-        if message is None:
-            message = "Container is locked after first resolution."
-        super().__init__(message)

@@ -22,9 +22,11 @@ T = TypeVar("T")
 
 
 @overload
-def component(cls: type[T]) -> type[T]: ...
+def component(cls: type[T]) -> type[T]: ...  # pragma: no cover
 @overload
-def component(*, container: ConfigurableContainer) -> Callable[[type[T]], type[T]]: ...
+def component(
+    *, container: ConfigurableContainer
+) -> Callable[[type[T]], type[T]]: ...  # pragma: no cover
 
 
 def component(

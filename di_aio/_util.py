@@ -4,7 +4,7 @@ import inspect
 import typing
 from collections.abc import AsyncGenerator, Awaitable, Callable, Coroutine, Generator
 from contextlib import AbstractAsyncContextManager, AbstractContextManager
-from inspect import Parameter, isclass
+from inspect import Parameter
 from typing import Any
 
 
@@ -103,10 +103,7 @@ def extract_satisfied_types_from_type(typ: type) -> set[type]:
     :return: A set of types that the component satisfies.
     """
     unwrapped_type = unwrap_type(typ)
-    if isclass(unwrapped_type):
-        return {cls for cls in unwrapped_type.mro() if cls is not object}
-
-    return {unwrapped_type}
+    return {cls for cls in unwrapped_type.mro() if cls is not object}
 
 
 def maybe_dependency(param: Parameter) -> bool:
