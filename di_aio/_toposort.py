@@ -1,13 +1,10 @@
-import inspect
 from collections import defaultdict, deque
-from typing import Any, ParamSpec, ParamSpecKwargs, get_args, get_origin
+from typing import Any, ParamSpec
 
-from ._types import ComponentDefinition, ResolvedComponent
-from .enums import ComponentScope
+from ._types import ComponentDefinition
 from .exceptions import CycleDetectedError
 
 P = ParamSpec("P")
-PK = ParamSpecKwargs(P)
 
 
 def _toposort_components(
@@ -58,80 +55,3 @@ def _toposort_components(
         raise CycleDetectedError
 
     return sorted_nodes
-
-
-async def resolve_container_scoped_only(
-    definitions: list[ComponentDefinition[Any]],
-) -> list[ResolvedComponent]:
-    """Resolve container scoped definitions.
-
-    Resolves all container-scoped components in topological order and enters
-    their async context managers. Returns the ordered list of live container
-    components wrapped in ContainerScopeComponent entries.
-
-    The result order ensures that calling __aexit__() in reverse safely
-    tears down dependencies after their dependents.
-
-    :param definitions: All registered component definitions.
-    :return: Ordered list of initialized ContainerScopeComponent instances.
-    """
-    sorted_types = _toposort_components(definitions)
-
-    # Index container-scoped definitions by satisfied type
-    type_to_definition = {
-        definition.type: definition
-        for definition in definitions
-        if definition.scope == ComponentScope.CONTAINER
-    }
-
-    # Create instances in resolved order
-    instances: list[ResolvedComponent] = []
-    constructed: dict[type, Any] = {}
-
-    for t in sorted_types:
-        definition = type_to_definition[t]
-        sig = inspect.signature(definition.type.__init__)
-        kwargs = {}
-        for name, param in sig.parameters.items():
-            # Only consider typed keyword-only parameters without defaults
-            if param.kind != param.KEYWORD_ONLY:
-                continue
-            if param.annotation is inspect.Parameter.empty:
-                continue
-            if param.default is not inspect.Parameter.empty:
-                continue
-
-            dep_type = param.annotation
-            origin = get_origin(dep_type)
-            args = get_args(dep_type)
-
-            if (
-                origin in (list, set)
-                and args
-                and args[0] in definition.collection_dependencies
-            ):
-                expected_type = args[0]
-                kwargs[name] = [
-                    instance
-                    for typ, instance in constructed.items()
-                    if isinstance(instance, expected_type)
-                ]
-                continue
-
-            kwargs[name] = constructed[dep_type]
-
-        context_manager = definition.factory(**kwargs)
-        instance = await context_manager.__aenter__()
-
-        instances.append(
-            ResolvedComponent(
-                satisfied_types=definition.satisfied_types,
-                context_manager=context_manager,
-                instance=instance,
-            )
-        )
-
-        for typ in definition.satisfied_types:
-            constructed[typ] = instance
-
-    return instances
