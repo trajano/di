@@ -2,7 +2,7 @@
 
 import inspect
 import typing
-from collections.abc import AsyncGenerator, Awaitable, Callable, Coroutine
+from collections.abc import AsyncGenerator, Awaitable, Callable, Coroutine, Generator
 from contextlib import AbstractAsyncContextManager, AbstractContextManager
 from inspect import Parameter, isclass
 from typing import Any
@@ -77,10 +77,13 @@ def unwrap_type(typ: type) -> type:
         Coroutine,
         AbstractAsyncContextManager,
         AbstractContextManager,
+        Generator,
     }
     args = typing.get_args(typ)
 
     if isinstance(origin, type) and issubclass(origin, AsyncGenerator):
+        return unwrap_type(args[0])
+    if isinstance(origin, type) and issubclass(origin, Generator):
         return unwrap_type(args[0])
     if origin in unwrap_targets and args:
         return unwrap_type(args[-1])
@@ -105,6 +108,7 @@ def extract_satisfied_types_from_type(typ: type) -> set[type]:
 
     return {unwrapped_type}
 
+
 def maybe_dependency(param: Parameter) -> bool:
     """Check if the parameter may be a dependency.
 
@@ -114,7 +118,7 @@ def maybe_dependency(param: Parameter) -> bool:
     :return:  parameter may be a dependency.
     """
     return (
-            param.kind == param.KEYWORD_ONLY
-            and param.annotation is not inspect.Parameter.empty
-            and param.default is inspect.Parameter.empty
+        param.kind == param.KEYWORD_ONLY
+        and param.annotation is not inspect.Parameter.empty
+        and param.default is inspect.Parameter.empty
     )

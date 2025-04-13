@@ -26,7 +26,7 @@ class ContainerAsyncFactory(Protocol[I_co, P]):
         self,
         *args: P.args,
         **kwargs: P.kwargs,
-    ) -> AbstractAsyncContextManager[I_co]: ...
+    ) -> AbstractAsyncContextManager[I_co]: ...  # pragma: no cover
 
 
 @dataclass
@@ -56,6 +56,19 @@ class ComponentDefinition(Generic[T]):
 
     Must accept keyword-only arguments and return an async context-managed instance.
     """
+
+    def build_context_manager(
+        self, *_args: P.args, **kwargs: P.kwargs
+    ) -> AbstractAsyncContextManager[T]:
+        """Use the factory to return the async context manager.
+
+        This does extra assertions to ensure it is valid at runtime.
+        """
+        ret = self.factory(**kwargs)
+        if not isinstance(ret, AbstractAsyncContextManager):
+            msg = f"unexpected type for the context {type(ret)}"  # pragma: no cover
+            raise TypeError(msg)  # pragma: no cover
+        return ret
 
     scope: ComponentScope
     """

@@ -7,6 +7,7 @@ from typing import Any, ParamSpec, Self, TypeVar
 from ._context import AioContext
 from ._convert_to_factory import convert_to_factory
 from ._extractors import extract_dependencies_from_callable
+from ._transformers import convert_sync_context_manager_to_factory
 from ._types import ComponentDefinition
 from ._util import (
     extract_satisfied_types_from_return_of_callable,
@@ -126,6 +127,38 @@ class ConfigurableAioContainer(ConfigurableContainer):
                 dependencies=deps,
                 collection_dependencies=collection_deps,
                 factory=fn,
+                scope=scope,
+            ),
+        )
+
+    def add_sync_context_managed_function(
+        self,
+        fn: Callable[..., AbstractContextManager],
+        *,
+        scope: ComponentScope = ComponentScope.CONTAINER,
+    ) -> None:
+        """Register a component type that returns an abstract async context manager.
+
+        This ensures that the component's lifecycle is handled via `async with`
+        and cleanup is invoked on container exit.
+
+        :param fn: A callable annotated with @contextmanager
+        :param scope: The lifecycle scope for the component (default: CONTAINER).
+        :raises DuplicateRegistrationError: If the type has already been registered.
+        """
+        self._ensure_not_registered(fn)
+        deps, collection_deps = extract_dependencies_from_callable(fn)
+        return_type, satisfied_types = extract_satisfied_types_from_return_of_callable(
+            fn,
+        )
+        async_fn = convert_sync_context_manager_to_factory(fn)
+        self._definitions.append(
+            ComponentDefinition(
+                type=return_type,
+                satisfied_types=satisfied_types,
+                dependencies=deps,
+                collection_dependencies=collection_deps,
+                factory=async_fn,
                 scope=scope,
             ),
         )

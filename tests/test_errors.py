@@ -19,8 +19,10 @@ def reset():
     """
     reset_default_aio_context()
 
+
 class Worker(Protocol):
     pass
+
 
 @component
 class AsyncService:
@@ -36,13 +38,13 @@ class AsyncWorker(Worker):
         result = await async_service.fetch()
         print("Result:", result)
 
+
 @component
 class SecondAsyncWorker(Worker):
     @autowired
     async def work(self, *, async_service: AsyncService):
         result = await async_service.fetch()
         print("Result:", result)
-
 
 
 @pytest.mark.asyncio
@@ -57,5 +59,3 @@ async def test_more_than_one_optional():
     async with default_container.context() as context:
         with pytest.raises(LookupError):
             await context.get_instance(Worker)
-
-

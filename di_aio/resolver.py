@@ -17,6 +17,7 @@ UNION_NONE_ARGS_LENGTH = 2
 P = ParamSpec("P")
 T = TypeVar("T")
 
+
 def _maybe_collection_dependency(
     param: Parameter,
     definition: ComponentDefinition,
@@ -102,7 +103,7 @@ async def resolve_container_scoped_only(
 
             kwargs[name] = constructed[dep_type]
 
-        context_manager = definition.factory(**kwargs)
+        context_manager = definition.build_context_manager(**kwargs)
         instance = await context_manager.__aenter__()
 
         instances.append(

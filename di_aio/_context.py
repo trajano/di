@@ -22,11 +22,13 @@ class AioContext(AbstractAsyncContextManager, Context):
     """Async DI container that manages container-scoped components."""
 
     @overload
-    def __init__(self, *, definitions: Iterable[ComponentDefinition[Any]]) -> None:
-        ... # pragma: no cover
+    def __init__(
+        self, *, definitions: Iterable[ComponentDefinition[Any]]
+    ) -> None: ...  # pragma: no cover
     @overload
-    def __init__(self, *, container: ConfigurableContainer) -> None:
-        ... # pragma: no cover
+    def __init__(
+        self, *, container: ConfigurableContainer
+    ) -> None: ...  # pragma: no cover
 
     def __init__(
         self,
@@ -45,8 +47,8 @@ class AioContext(AbstractAsyncContextManager, Context):
         elif definitions and not container:
             self._definitions = list(definitions)
         else:
-            msg = "Must be either definitions or container" # pragma: no cover
-            raise ValueError(msg) # pragma: no cover
+            msg = "Must be either definitions or container"  # pragma: no cover
+            raise ValueError(msg)  # pragma: no cover
 
         self._state = ContainerState.INITIALIZING
         self._container_scope_components: list[ResolvedComponent[Any]] = []
