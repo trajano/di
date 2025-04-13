@@ -23,11 +23,11 @@ class SyncContextManager:
     def __init__(self) -> None:
         self.state = "initial"
 
-    def __enter__(self)->Self:
+    def __enter__(self) -> Self:
         self.state = "entered"
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb)->None:
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         self.state = "exited"
 
 

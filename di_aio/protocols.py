@@ -16,7 +16,8 @@ class Context(Protocol[T_co]):
     """Async context for resolving DI-managed callable dependencies."""
 
     async def resolve_callable(
-        self, fn: Callable[..., Awaitable[T]],
+        self,
+        fn: Callable[..., Awaitable[T]],
     ) -> Callable[..., Awaitable[T]]:
         """Inject dependencies into a coroutine-compatible callable."""
         ...  # pragma: no cover

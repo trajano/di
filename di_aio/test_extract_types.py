@@ -21,7 +21,7 @@ class CustomAsyncContext(AbstractAsyncContextManager):
     async def __aenter__(self) -> Self:
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb)->None:
+    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
         # no-op
         pass
 
@@ -30,7 +30,7 @@ class CustomSyncContext(AbstractContextManager):
     def __enter__(self) -> Self:
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb)->None:
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         # no-op
         pass
 

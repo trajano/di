@@ -24,7 +24,7 @@ async def test_function_scope_cleanup():
             tracker["entered"] = True
             return self
 
-        async def __aexit__(self, exc_type, exc_val, exc_tb)->None:
+        async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
             tracker["exited"] = True
 
     def make_definition_for_type(typ):
@@ -43,7 +43,9 @@ async def test_function_scope_cleanup():
         return isinstance(x, TrackedDisposable)
 
     wrapped = await resolve_callable_dependencies(
-        run, container_scope_components=[], definitions=defs,
+        run,
+        container_scope_components=[],
+        definitions=defs,
     )
     result = await wrapped()
     assert result is True
@@ -64,7 +66,7 @@ async def test_converted():
             tracker["entered"] = True
             return self
 
-        async def __aexit__(self, exc_type, exc_val, exc_tb)->None:
+        async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
             tracker["exited"] = True
 
     factory = convert_to_factory(TrackedDisposable)
@@ -89,7 +91,7 @@ async def test_not_converted():
             tracker["entered"] = True
             return self
 
-        async def __aexit__(self, exc_type, exc_val, exc_tb)->None:
+        async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
             tracker["exited"] = True
 
     disposable_type = TrackedDisposable
@@ -116,7 +118,7 @@ async def test_disposable():
             tracker["entered"] = True
             return self
 
-        async def __aexit__(self, exc_type, exc_val, exc_tb)->None:
+        async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
             tracker["exited"] = True
 
     x = TrackedDisposable()
@@ -132,11 +134,11 @@ async def test_dependency_injection_of_tracked_disposable():
     tracker = {"entered": False, "exited": False}
 
     class TrackedDisposable:
-        async def __aenter__(self)->Self:
+        async def __aenter__(self) -> Self:
             tracker["entered"] = True
             return self
 
-        async def __aexit__(self, exc_type, exc_val, exc_tb)->None:
+        async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
             tracker["exited"] = True
 
     # Register it as a function-scoped component
@@ -171,11 +173,11 @@ async def test_sync_context_manager_injected_as_function_scope():
     tracker = {"entered": False, "exited": False}
 
     class SyncTrackedDisposable:
-        def __enter__(self)->Self:
+        def __enter__(self) -> Self:
             tracker["entered"] = True
             return self
 
-        def __exit__(self, exc_type, exc_val, exc_tb)->None:
+        def __exit__(self, exc_type, exc_val, exc_tb) -> None:
             tracker["exited"] = True
 
     # Register as function-scoped component using a sync context manager

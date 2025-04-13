@@ -23,7 +23,9 @@ class ContainerAsyncFactory(Protocol[I_co, P]):
     """
 
     def __call__(
-        self, *args: P.args, **kwargs: P.kwargs,
+        self,
+        *args: P.args,
+        **kwargs: P.kwargs,
     ) -> AbstractAsyncContextManager[I_co]: ...
 
 

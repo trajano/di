@@ -28,7 +28,7 @@ async def make_c(*, a: A) -> int:
 
 # Async context-managed component
 class AsyncCM(AbstractAsyncContextManager):
-    async def __aenter__(self)->Self:
+    async def __aenter__(self) -> Self:
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:

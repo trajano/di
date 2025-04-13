@@ -57,9 +57,11 @@ class Consumer:
     async def stop(self) -> None:
         await self.service.stop()
 
+
 class Resource:
     def __init__(self, value) -> None:
         self.value = value
+
 
 @component
 class ResourceProducer(AbstractAsyncContextManager):
@@ -70,7 +72,7 @@ class ResourceProducer(AbstractAsyncContextManager):
         await self._consumer.start()
         return self
 
-    async def get_resource(self)->Resource:
+    async def get_resource(self) -> Resource:
         return Resource(self._consumer.service.config.value)
 
     async def __aexit__(self, exc_type, exc_value, traceback, /) -> None:

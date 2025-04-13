@@ -26,7 +26,8 @@ def _maybe_dependency(param: Parameter) -> bool:
 
 
 def _maybe_collection_dependency(
-    param: Parameter, definition: ComponentDefinition,
+    param: Parameter,
+    definition: ComponentDefinition,
 ) -> bool:
     dep_type = param.annotation
     origin = get_origin(dep_type)

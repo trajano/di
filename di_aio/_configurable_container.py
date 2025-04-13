@@ -105,7 +105,7 @@ class ConfigurableAioContainer(ConfigurableContainer):
         *,
         scope: ComponentScope = ComponentScope.CONTAINER,
     ) -> None:
-        """Register a component type that implements sync or async context management.
+        """Register a component type that returns an abstract async context manager.
 
         This ensures that the component's lifecycle is handled via `async with`
         and cleanup is invoked on container exit.
