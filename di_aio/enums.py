@@ -1,3 +1,5 @@
+"""Enumerations."""
+
 from enum import Enum
 
 

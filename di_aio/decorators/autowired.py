@@ -1,3 +1,5 @@
+"""Autowired."""
+
 import functools
 import inspect
 from collections.abc import Awaitable, Callable

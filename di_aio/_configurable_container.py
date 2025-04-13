@@ -1,7 +1,10 @@
+"""Configurable container."""
+
 from collections.abc import Awaitable, Callable
 from contextlib import AbstractAsyncContextManager, AbstractContextManager
 from typing import Any, ParamSpec, Self, TypeVar
 
+from ._context import AioContext
 from ._convert_to_factory import convert_to_factory
 from ._extractors import extract_dependencies_from_callable
 from ._types import ComponentDefinition
@@ -9,7 +12,6 @@ from ._util import (
     extract_satisfied_types_from_return_of_callable,
     extract_satisfied_types_from_type,
 )
-from .context import AioContext
 from .default_aio_container_future import default_context_holder
 from .enums import ComponentScope
 from .exceptions import DuplicateRegistrationError

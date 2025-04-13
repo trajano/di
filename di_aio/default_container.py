@@ -1,5 +1,5 @@
 """Provide the default container."""
 
-from .configurable_container import ConfigurableAioContainer
+from ._configurable_container import ConfigurableAioContainer
 
 default_container = ConfigurableAioContainer(is_default=True)

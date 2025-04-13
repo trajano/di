@@ -1,3 +1,5 @@
+"""Protocols used by the module."""
+
 import types
 from collections.abc import Awaitable, Callable
 from typing import Any, ParamSpec, Protocol, TypeVar
