@@ -41,7 +41,7 @@ async def test_autowire_injects_dependencies():
         scope=ComponentScope.CONTAINER,
     )
 
-    container = AioContainer([a_def, b_def])
+    container = AioContainer(definitions=[a_def, b_def])
 
     async with container:
 

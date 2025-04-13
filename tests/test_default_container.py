@@ -2,7 +2,7 @@ import asyncio
 from contextlib import AbstractAsyncContextManager
 from typing import Self
 
-from di_aio import AioContainer, autowired, component, factory
+from di_aio import autowired, component, default_container, factory
 
 _tracking = {"started": False, "stopped": False}
 
@@ -68,7 +68,7 @@ async def consume(*, producer: ResourceProducer):
 
 
 async def server():
-    async with AioContainer():
+    async with default_container.context():
         resource = await consume()
         result = resource.value
         assert result == "abc"

@@ -11,12 +11,9 @@ from typing import (
 
 from ._types import ComponentDefinition, ResolvedComponent
 from ._validator import validate_container_definitions
-from .configurable_container import ConfigurableAioContainer
-from .default_aio_container_future import default_aio_container_future
-from .default_container import default_container
 from .enums import ContainerState
 from .exceptions import ComponentNotFoundError
-from .protocols import Container
+from .protocols import ConfigurableContainer, Container
 from .resolver import (
     resolve_callable_dependencies,
     resolve_container_scoped_only,
@@ -33,30 +30,26 @@ class AioContainer(contextlib.AbstractAsyncContextManager, Container):
     """
 
     @overload
-    def __init__(self, definitions: Iterable[ComponentDefinition[Any]]) -> None: ...
+    def __init__(self, *, definitions: Iterable[ComponentDefinition[Any]]) -> None: ...
     @overload
     def __init__(
         self,
         *,
-        container: ConfigurableAioContainer | None = None,
+        container: ConfigurableContainer,
     ) -> None: ...
 
     def __init__(
         self,
-        definitions: Iterable[ComponentDefinition[Any]] | None = None,
         *,
-        container: ConfigurableAioContainer | None = None,
+        definitions: Iterable[ComponentDefinition[Any]] | None = None,
+        container: ConfigurableContainer | None = None,
     ) -> None:
-        if not definitions and not container:
-            # this is the default container
-            self._definitions = list(default_container.get_definitions())
-            default_aio_container_future.set_result(self)
-        elif container and not definitions:
+        if container and not definitions:
             self._definitions = list(container.get_definitions())
         elif definitions and not container:
             self._definitions = list(definitions)
         else:
-            msg = "Cannot specify both definitions and container"
+            msg = "Must be either definitions or container"
             raise ValueError(msg)
         self._state = ContainerState.INITIALIZING
         self._container_scope_components: list[ResolvedComponent[Any]] = []

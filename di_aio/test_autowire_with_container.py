@@ -51,7 +51,7 @@ async def test_autowired_with_asynccontextmanager():
         scope=ComponentScope.FUNCTION,
     )
 
-    container = AioContainer([request_def, request_scoped_def])
+    container = AioContainer(definitions=[request_def, request_scoped_def])
 
     @autowired_with_container(container=container)
     async def handler(*, arg: str, scoped: RequestScoped):
@@ -84,7 +84,7 @@ async def test_autowired_with_container_and_function_scope():
         scope=ComponentScope.FUNCTION,
     )
 
-    container = AioContainer([request_def, request_scoped_def])
+    container = AioContainer(definitions=[request_def, request_scoped_def])
 
     @autowired_with_container(container=container)
     async def handler(*, arg: str, scoped: RequestScoped):
@@ -117,7 +117,7 @@ async def test_autowired_with_container_and_function_scope_no_decorator():
         scope=ComponentScope.FUNCTION,
     )
 
-    container = AioContainer([request_def, request_scoped_def])
+    container = AioContainer(definitions=[request_def, request_scoped_def])
 
     async def handler(*, arg: str, scoped: RequestScoped):
         return scoped.source, arg

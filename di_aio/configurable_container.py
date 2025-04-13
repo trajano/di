@@ -10,9 +10,11 @@ from ._util import (
     extract_satisfied_types_from_return_of_callable,
     extract_satisfied_types_from_type,
 )
+from .aio_container import AioContainer
+from .default_aio_container_future import default_aio_container_future
 from .enums import ComponentScope
 from .exceptions import DuplicateRegistrationError
-from .protocols import ConfigurableContainer
+from .protocols import ConfigurableContainer, Container
 
 P = ParamSpec("P")
 T = TypeVar("T")
@@ -152,7 +154,7 @@ class ConfigurableAioContainer(ConfigurableContainer):
 
     def get_definitions(self) -> tuple[ComponentDefinition[Any], ...]:
         """
-        Return the collected component definitions for use in AioContainer.
+        Return the collected component definitions.
         """
         return tuple(self._definitions)
 
@@ -169,3 +171,14 @@ class ConfigurableAioContainer(ConfigurableContainer):
             self.add_component_implementation(other)
 
         return self
+
+    def context(self, *, is_default: bool = True) -> Container:
+        """
+        Creates the runtime container.
+
+        The output is suitable for suitable for use with `async with`.
+        """
+        container = AioContainer(container=self)
+        if is_default:
+            default_aio_container_future.set_result(container)
+        return container
