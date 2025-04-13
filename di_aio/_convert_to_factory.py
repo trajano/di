@@ -36,7 +36,9 @@ def convert_to_factory(source: T) -> ContainerAsyncFactory[T, P]: ...
 
 
 def convert_to_factory(source: Any) -> ContainerAsyncFactory:
-    """Dispatch to the correct transformer based on the type and structure
+    """Convert any source to factory.
+
+    Dispatch to the correct transformer based on the type and structure
     of the input. Accepts functions, types, or literal instances.
 
     :param source: Any supported component source.

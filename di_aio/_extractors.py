@@ -6,7 +6,9 @@ from typing import Any, get_args, get_origin
 def extract_dependencies_from_callable(
     fn: Callable[..., Any],
 ) -> tuple[set[type], set[type]]:
-    """Extracts mandatory constructor dependencies and collection dependencies from
+    """Extract dependencies from callable.
+
+    Extracts mandatory constructor dependencies and collection dependencies from
     a callable (e.g., __init__ or a factory).
 
     Dependencies must be keyword-only parameters with type annotations and no defaults.
