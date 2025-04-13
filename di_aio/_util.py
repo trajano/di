@@ -4,7 +4,7 @@ import inspect
 import typing
 from collections.abc import AsyncGenerator, Awaitable, Callable, Coroutine
 from contextlib import AbstractAsyncContextManager, AbstractContextManager
-from inspect import isclass
+from inspect import Parameter, isclass
 from typing import Any
 
 
@@ -104,3 +104,17 @@ def extract_satisfied_types_from_type(typ: type) -> set[type]:
         return {cls for cls in unwrapped_type.mro() if cls is not object}
 
     return {unwrapped_type}
+
+def maybe_dependency(param: Parameter) -> bool:
+    """Check if the parameter may be a dependency.
+
+    A parameter is maybe a dependency if it is keyword only, has an
+    annotation and has no default.
+    :param param: parameter
+    :return:  parameter may be a dependency.
+    """
+    return (
+            param.kind == param.KEYWORD_ONLY
+            and param.annotation is not inspect.Parameter.empty
+            and param.default is inspect.Parameter.empty
+    )

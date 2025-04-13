@@ -32,7 +32,7 @@ class CycleDetectedError(ContainerError):
         super().__init__(message)
 
 
-class ComponentNotFoundError(ContainerError):
+class ComponentNotFoundError(LookupError):
     """Exception raised when no component is found for the given type.
 
     :param component_type: The requested type that could not be resolved.

@@ -1,9 +1,11 @@
 import asyncio
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
+from typing import Any
 
 import pytest
-from typing import AsyncGenerator, Any
+
 from di_aio.alt import ConfigurableAioContainer, autowired, component
-from contextlib import asynccontextmanager, AbstractAsyncContextManager
 
 my_own_container = ConfigurableAioContainer()
 

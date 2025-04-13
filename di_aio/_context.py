@@ -22,9 +22,11 @@ class AioContext(AbstractAsyncContextManager, Context):
     """Async DI container that manages container-scoped components."""
 
     @overload
-    def __init__(self, *, definitions: Iterable[ComponentDefinition[Any]]) -> None: ...
+    def __init__(self, *, definitions: Iterable[ComponentDefinition[Any]]) -> None:
+        ... # pragma: no cover
     @overload
-    def __init__(self, *, container: ConfigurableContainer) -> None: ...
+    def __init__(self, *, container: ConfigurableContainer) -> None:
+        ... # pragma: no cover
 
     def __init__(
         self,
@@ -43,8 +45,8 @@ class AioContext(AbstractAsyncContextManager, Context):
         elif definitions and not container:
             self._definitions = list(definitions)
         else:
-            msg = "Must be either definitions or container"
-            raise ValueError(msg)
+            msg = "Must be either definitions or container" # pragma: no cover
+            raise ValueError(msg) # pragma: no cover
 
         self._state = ContainerState.INITIALIZING
         self._container_scope_components: list[ResolvedComponent[Any]] = []
@@ -120,7 +122,13 @@ class AioContext(AbstractAsyncContextManager, Context):
         :param typ: The type to resolve.
         :returns: The first matching instance or None.
         """
-        return (await self.get_instances(typ))[0]
+        instances = await self.get_instances(typ)
+        if len(instances) == 1:
+            return instances[0]
+        if len(instances) == 0:
+            return None
+        msg = f"Found {len(instances)} when requesting only one of {typ}"
+        raise LookupError(msg)
 
     def get_satisfied_types(self) -> set[type]:
         """Return all types satisfied by this container.

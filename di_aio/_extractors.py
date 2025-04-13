@@ -2,6 +2,8 @@ import inspect
 from collections.abc import Callable
 from typing import Any, get_args, get_origin
 
+from ._util import maybe_dependency
+
 
 def extract_dependencies_from_callable(
     fn: Callable[..., Any],
@@ -21,11 +23,7 @@ def extract_dependencies_from_callable(
     collection_deps: set[type] = set()
 
     for param in inspect.signature(fn).parameters.values():
-        if param.kind != param.KEYWORD_ONLY:
-            continue
-        if param.annotation is inspect.Parameter.empty:
-            continue
-        if param.default is not inspect.Parameter.empty:
+        if not maybe_dependency(param):
             continue
 
         annotation = param.annotation

@@ -8,6 +8,7 @@ from typing import Any, ParamSpec, TypeVar, Union, get_args, get_origin
 
 from ._toposort import _toposort_components
 from ._types import ComponentDefinition, ResolvedComponent
+from ._util import maybe_dependency
 from .enums import ComponentScope
 from .exceptions import ComponentNotFoundError
 
@@ -15,15 +16,6 @@ UNION_NONE_ARGS_LENGTH = 2
 
 P = ParamSpec("P")
 T = TypeVar("T")
-
-
-def _maybe_dependency(param: Parameter) -> bool:
-    return (
-        param.kind == param.KEYWORD_ONLY
-        and param.annotation is not inspect.Parameter.empty
-        and param.default is inspect.Parameter.empty
-    )
-
 
 def _maybe_collection_dependency(
     param: Parameter,
@@ -93,7 +85,7 @@ async def resolve_container_scoped_only(
         kwargs = {}
         for name, param in sig.parameters.items():
             # Only consider typed keyword-only parameters without defaults
-            if not _maybe_dependency(param):
+            if not maybe_dependency(param):
                 continue
 
             dep_type = param.annotation
@@ -178,7 +170,7 @@ async def resolve_satisfying_components(
         kwargs = {}
 
         for name, param in sig.parameters.items():
-            if not _maybe_dependency(param):
+            if not maybe_dependency(param):
                 continue
 
             dep = param.annotation
@@ -260,7 +252,7 @@ async def resolve_callable_dependencies(
         sig = inspect.signature(fn)
         injected_kwargs = {}
         for name, param in sig.parameters.items():
-            if not _maybe_dependency(param):
+            if not maybe_dependency(param):
                 continue
 
             dep_type = param.annotation

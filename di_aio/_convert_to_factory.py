@@ -18,21 +18,22 @@ P = ParamSpec("P")
 @overload
 def convert_to_factory(
     source: Callable[..., AbstractContextManager[T]],
-) -> ContainerAsyncFactory[T, P]: ...
+) -> ContainerAsyncFactory[T, P]: ... # pragma: no cover
 
 
 @overload
 def convert_to_factory(
     source: Callable[..., Awaitable[T]],
-) -> ContainerAsyncFactory[T, P]: ...
+) -> ContainerAsyncFactory[T, P]: ... # pragma: no cover
 
 
 @overload
-def convert_to_factory(source: type[T]) -> ContainerAsyncFactory[T, P]: ...
+def convert_to_factory(source: type[T]) -> ContainerAsyncFactory[T, P]:
+    ... # pragma: no cover
 
 
 @overload
-def convert_to_factory(source: T) -> ContainerAsyncFactory[T, P]: ...
+def convert_to_factory(source: T) -> ContainerAsyncFactory[T, P]: ... # pragma: no cover
 
 
 def convert_to_factory(source: Any) -> ContainerAsyncFactory:
