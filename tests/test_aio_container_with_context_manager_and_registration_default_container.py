@@ -4,7 +4,8 @@ from typing import Self
 import pytest
 
 from di_aio import default_container
-from di_aio.alt import AioContext, autowired_with_container, component
+from di_aio.alt import AioContext, component
+from di_aio.testing import autowired_with_container
 
 _tracking = {"started": False, "stopped": False}
 

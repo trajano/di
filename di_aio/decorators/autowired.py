@@ -13,24 +13,33 @@ R = TypeVar("R")
 
 @overload
 def autowired(
-    func: Callable[P, Awaitable[R]],
+        func: Callable[P, Awaitable[R]],
 ) -> Callable[..., Awaitable[R]]: ...
 @overload
 def autowired(
-    *,
-    future_context: FutureContext | None,
+        *,
+        future_context: FutureContext | None,
 ) -> Callable[[Callable[P, Awaitable[R]]], Callable[..., Awaitable[R]]]: ...
 
 
 def autowired(
-    func: Callable[P, Awaitable[R]] | None = None,
-    *,
-    future_context: FutureContext| None = None,
+        func: Callable[P, Awaitable[R]] | None = None,
+        *,
+        future_context: FutureContext | None = None,
 ) -> (
-    Callable[..., Awaitable[R]]
-    | Callable[[Callable[P, Awaitable[R]]], Callable[..., Awaitable[R]]]
+        Callable[..., Awaitable[R]]
+        | Callable[[Callable[P, Awaitable[R]]], Callable[..., Awaitable[R]]]
 ):
-    """This will autowire to a future container upon invocation."""
+    """Decorate auto-injecting dependencies from a future container.
+
+    Automatically resolves a callable's dependencies at invocation time using
+    the default or provided future context.
+
+    :param func: An async function to decorate (when used without parentheses).
+    :param future_context: Optional future context instance to use.
+    :returns: A wrapped coroutine with dependencies injected.
+    :raises TypeError: If applied to a non-async function.
+    """
 
     def decorator(fn: Callable[P, Awaitable[R]]) -> Callable[..., Awaitable[R]]:
         if not inspect.iscoroutinefunction(fn):
@@ -39,10 +48,7 @@ def autowired(
 
         @functools.wraps(fn)
         async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
-            if future_context is None:
-                the_context = default_context_holder
-            else:
-                the_context = future_context
+            the_context = future_context or default_context_holder
             context = the_context.result()
             resolved_fn = await context.resolve_callable(fn)
             return await resolved_fn(*args, **kwargs)
@@ -55,8 +61,18 @@ def autowired(
 
 
 def autowired_with_container(
-    container: Context,
+        container: Context,
 ) -> Callable[[Callable[P, Awaitable[R]]], Callable[..., Awaitable[R]]]:
+    """Decorate injecting dependencies using a specific container.
+
+    Primarily used in tests to inject dependencies from an explicit container
+    instead of a future-resolved default.
+
+    :param container: A container instance for dependency resolution.
+    :returns: A wrapped coroutine with injected arguments.
+    :raises TypeError: If applied to a non-async function.
+    """
+
     def decorator(fn: Callable[P, Awaitable[R]]) -> Callable[..., Awaitable[R]]:
         if not inspect.iscoroutinefunction(fn):
             msg = "@autowire can only be applied to async def functions"

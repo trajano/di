@@ -14,7 +14,7 @@ class Context(Protocol[T_co]):
     """Async context for resolving DI-managed callable dependencies."""
 
     async def resolve_callable(
-            self, fn: Callable[..., Awaitable[T]]
+        self, fn: Callable[..., Awaitable[T]]
     ) -> Callable[..., Awaitable[T]]:
         """Inject dependencies into a coroutine-compatible callable."""
         ...  # pragma: no cover
@@ -24,10 +24,10 @@ class Context(Protocol[T_co]):
         ...  # pragma: no cover
 
     async def __aexit__(
-            self,
-            exc_type: type[BaseException] | None,
-            exc_val: BaseException | None,
-            exc_tb: types.TracebackType | None,
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: types.TracebackType | None,
     ) -> bool | None:
         """Exit the context and clean up managed components."""
         ...  # pragma: no cover
@@ -53,10 +53,10 @@ class ConfigurableContainer(Protocol):
         ...  # pragma: no cover
 
     def add_component_factory(
-            self,
-            factory: Callable[P, T] | Callable[P, Awaitable[T]],
-            *,
-            scope: ComponentScope = ComponentScope.CONTAINER,
+        self,
+        factory: Callable[P, T] | Callable[P, Awaitable[T]],
+        *,
+        scope: ComponentScope = ComponentScope.CONTAINER,
     ) -> None:
         """Register a factory function that produces a component."""
         ...  # pragma: no cover

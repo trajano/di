@@ -1,9 +1,10 @@
-"""factory decorator for automatic container registration.
+"""Decorator for registering factory classes with a DI container.
 
-This module defines a `factory` decorator which adds the decorated class to
-a DI container. By default, the factory is registered in the `default_aio_container`.
+This module defines a ``factory`` decorator that registers the decorated
+class with a dependency injection container. By default, registration is
+done in the ``default_aio_container``.
 
-Usage:
+Usage::
 
     @factory
     class MyClass: ...
@@ -20,7 +21,6 @@ from di_aio.enums import ComponentScope
 from di_aio.protocols import ConfigurableContainer
 
 P = ParamSpec("P")
-
 T = TypeVar("T")
 
 
@@ -40,25 +40,32 @@ def factory(
     container: ConfigurableContainer = default_container,
     scope: ComponentScope = ComponentScope.CONTAINER,
 ) -> Callable[..., T] | Callable[[Callable[P, T]], Callable[..., T]]:
-    """Class decorator to register a factory type with a container.
+    """Class decorator to register a factory with a DI container.
 
-    Supports usage with or without parentheses.
+    Can be used with or without parentheses.
 
-    :param fn: The class to be registered, only used in no-parentheses form.
-    :param container: Optional; a container instance to register the factory in.
-    :param scope: Optional; a container instance to register the factory in.
-    :return: Either the original class (if used directly), or a decorator function.
+    :param fn: The class to register, if used without parentheses.
+    :param container: The container to register the factory with.
+    :param scope: The component scope for the registered factory.
+    :returns: The original class or a decorator function.
     """
     if fn is None:
-        return factory_with_container(container=container, scope=scope)
-    return factory_with_container(container=container, scope=scope)(fn)
+        return _factory_with_container(container=container, scope=scope)
+    return _factory_with_container(container=container, scope=scope)(fn)
 
 
-def factory_with_container(
+def _factory_with_container(
     *,
     container: ConfigurableContainer,
     scope: ComponentScope = ComponentScope.CONTAINER,
 ) -> Callable[..., Any]:
+    """Create a decorator that registers a factory with the given container.
+
+    :param container: The target container for registration.
+    :param scope: The scope to use for the registered component.
+    :returns: A decorator that registers the factory.
+    """
+
     def wrap(fn: type[T]) -> type[T]:
         container.add_component_factory(fn, scope=scope)
         return fn

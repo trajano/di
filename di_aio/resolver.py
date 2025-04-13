@@ -48,7 +48,7 @@ def _is_dep_collection(origin: type, args: tuple[Any]) -> bool:
 
 
 async def resolve_container_scoped_only(
-        definitions: list[ComponentDefinition[Any]],
+    definitions: list[ComponentDefinition[Any]],
 ) -> list[ResolvedComponent]:
     """Resolve container-scoped components in topological order.
 
@@ -125,11 +125,11 @@ async def resolve_container_scoped_only(
 
 
 async def resolve_satisfying_components(
-        typ: type[T],
-        /,
-        *,
-        resolved_components: list[ResolvedComponent[Any]],
-        definitions: list[ComponentDefinition[Any]],
+    typ: type[T],
+    /,
+    *,
+    resolved_components: list[ResolvedComponent[Any]],
+    definitions: list[ComponentDefinition[Any]],
 ) -> list[T]:
     """Resolve components matching a type from resolved and scoped sources.
 
@@ -232,9 +232,9 @@ async def resolve_satisfying_components(
 
 
 async def resolve_callable_dependencies(
-        fn: Callable[..., Awaitable[T]],
-        container_scope_components: list[ResolvedComponent[Any]],
-        definitions: list[ComponentDefinition[Any]],
+    fn: Callable[..., Awaitable[T]],
+    container_scope_components: list[ResolvedComponent[Any]],
+    definitions: list[ComponentDefinition[Any]],
 ) -> Callable[..., Awaitable[T]]:
     """Bind dependencies to a coroutine function using async context.
 

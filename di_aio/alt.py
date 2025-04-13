@@ -4,7 +4,7 @@ containers.
 
 from .configurable_container import ConfigurableAioContainer
 from .context import AioContext
-from .decorators import autowired, autowired_with_container, component, factory
+from .decorators import autowired, component, factory
 from .enums import ComponentScope
 from .exceptions import ContainerError
 from .future_context import FutureContext
@@ -16,7 +16,6 @@ __all__ = [
     "ContainerError",
     "FutureContext",
     "autowired",
-    "autowired_with_container",
     "component",
     "factory",
 ]

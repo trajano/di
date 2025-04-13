@@ -1,7 +1,5 @@
 import asyncio
-from contextlib import (
-    AbstractAsyncContextManager,
-)
+from contextlib import AbstractAsyncContextManager
 
 import pytest
 

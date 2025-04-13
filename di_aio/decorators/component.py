@@ -41,11 +41,11 @@ def component(
     :return: Either the original class (if used directly), or a decorator function.
     """
     if cls is None:
-        return component_with_container(container=container)
-    return component_with_container(container=container)(cls)
+        return _component_with_container(container=container)
+    return _component_with_container(container=container)(cls)
 
 
-def component_with_container(
+def _component_with_container(
     *,
     container: ConfigurableContainer,
 ) -> type[T] | Callable[[type[T]], type[T]]:
