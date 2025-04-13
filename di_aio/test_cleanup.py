@@ -16,7 +16,7 @@ async def test_function_scope_cleanup():
     tracker = {"entered": False, "exited": False}
 
     class TrackedDisposable:
-        def __init__(self):
+        def __init__(self) -> None:
             # no-op
             pass
 
@@ -56,7 +56,7 @@ async def test_converted():
     tracker = {"entered": False, "exited": False}
 
     class TrackedDisposable:
-        def __init__(self):
+        def __init__(self) -> None:
             # no-op
             pass
 
@@ -81,7 +81,7 @@ async def test_not_converted():
     tracker = {"entered": False, "exited": False}
 
     class TrackedDisposable:
-        def __init__(self):
+        def __init__(self) -> None:
             # no-op
             pass
 
@@ -108,7 +108,7 @@ async def test_disposable():
     tracker = {"entered": False, "exited": False}
 
     class TrackedDisposable:
-        def __init__(self):
+        def __init__(self) -> None:
             # no-op
             pass
 

@@ -11,17 +11,17 @@ from .resolver import (
 
 
 class C:
-    def __init__(self):
+    def __init__(self) -> None:
         self.label = "injected-c"
 
 
 class B:
-    def __init__(self, *, stuff: C):
+    def __init__(self, *, stuff: C) -> None:
         self.c = stuff
 
 
 class A:
-    def __init__(self, *, b: B):
+    def __init__(self, *, b: B) -> None:
         self.b = b
 
 

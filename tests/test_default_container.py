@@ -25,7 +25,7 @@ _tracking = {"started": False, "stopped": False}
 
 
 class Config:
-    def __init__(self, value):
+    def __init__(self, value) -> None:
         self.value = value
 
 
@@ -36,7 +36,7 @@ def build_config() -> Config:
 
 @component
 class Service:
-    def __init__(self, *, config: Config):
+    def __init__(self, *, config: Config) -> None:
         self.config = config
 
     async def start(self):
@@ -48,7 +48,7 @@ class Service:
 
 @component
 class Consumer:
-    def __init__(self, *, service: Service):
+    def __init__(self, *, service: Service) -> None:
         self.service = service
 
     async def start(self):
@@ -60,7 +60,7 @@ class Consumer:
 
 @component
 class ResourceProducer(AbstractAsyncContextManager):
-    def __init__(self, *, consumer: Consumer):
+    def __init__(self, *, consumer: Consumer) -> None:
         self._consumer = consumer
 
     async def __aenter__(self) -> Self:
@@ -75,7 +75,7 @@ class ResourceProducer(AbstractAsyncContextManager):
 
 
 class Resource:
-    def __init__(self, value):
+    def __init__(self, value) -> None:
         self.value = value
 
 

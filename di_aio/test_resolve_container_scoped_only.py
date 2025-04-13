@@ -14,12 +14,12 @@ from .resolver import resolve_container_scoped_only
 
 
 class Config:
-    def __init__(self):
+    def __init__(self) -> None:
         self.config_value = "abc123"
 
 
 class Service:
-    def __init__(self, *, xyz: Config):
+    def __init__(self, *, xyz: Config) -> None:
         self.config = xyz
 
 
@@ -39,7 +39,7 @@ class NumberSource:
 
 
 class ServiceWithConfigAndSources:
-    def __init__(self, *, config: Config, sources: list[Source]):
+    def __init__(self, *, config: Config, sources: list[Source]) -> None:
         self.config = config
         self.sources = sources
 

@@ -15,7 +15,7 @@ P = ParamSpec("P")
 
 
 class DummyAsyncCM:
-    def __init__(self, value):
+    def __init__(self, value) -> None:
         self._value = value
 
     async def __aenter__(self):

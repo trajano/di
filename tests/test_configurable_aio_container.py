@@ -10,7 +10,7 @@ from di_aio.exceptions import DuplicateRegistrationError
 
 # Component as a type (class)
 class A:
-    def __init__(self):
+    def __init__(self) -> None:
         self.name = "A"
 
 

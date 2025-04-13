@@ -12,12 +12,12 @@ from .enums import ComponentScope
 
 
 class A:
-    def __init__(self):
+    def __init__(self) -> None:
         self.value = "A"
 
 
 class B:
-    def __init__(self, *, a: A):
+    def __init__(self, *, a: A) -> None:
         self.a = a
 
 

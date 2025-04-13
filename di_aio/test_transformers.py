@@ -14,12 +14,12 @@ from ._transformers import (
 
 
 class Sample:
-    def __init__(self, *, name: str):
+    def __init__(self, *, name: str) -> None:
         self.name = name
 
 
 class SyncContextManager:
-    def __init__(self):
+    def __init__(self) -> None:
         self.state = "initial"
 
     def __enter__(self):
@@ -105,7 +105,7 @@ async def test_convert_asynccontextmanager():
     }
 
     class MyDep:
-        def __init__(self):
+        def __init__(self) -> None:
             self.value = 42
 
     @asynccontextmanager

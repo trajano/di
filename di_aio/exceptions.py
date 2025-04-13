@@ -25,7 +25,7 @@ class CycleDetectedError(ContainerError):
         self,
         component_type: type[Any] | None = None,
         message: str | None = None,
-    ):
+    ) -> None:
         self.component_type = component_type
         if message is None:
             message = f"Circular dependency detected involving {component_type}"
@@ -43,7 +43,7 @@ class ComponentNotFoundError(ContainerError):
         self,
         component_type: type[Any],
         message: str | None = None,
-    ):
+    ) -> None:
         self.component_type = component_type
         if message is None:
             message = f"Component of type {component_type} not found in container"
@@ -64,7 +64,7 @@ class DuplicateRegistrationError(ConfigurationError):
         self,
         type_or_factory: object,
         message: str | None = None,
-    ):
+    ) -> None:
         self.type_or_factory = type_or_factory
         if message is None:
             message = f"Registering {type_or_factory} twice."
@@ -80,7 +80,7 @@ class ContainerLockedError(ContainerError):
     def __init__(
         self,
         message: str | None = None,
-    ):
+    ) -> None:
         if message is None:
             message = "Container is locked after first resolution."
         super().__init__(message)

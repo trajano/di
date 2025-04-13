@@ -5,17 +5,17 @@ from di_aio.testing import autowired_with_container
 
 
 class Config:
-    def __init__(self):
+    def __init__(self) -> None:
         self.value = "abc"
 
 
 class Service:
-    def __init__(self, *, config: Config):
+    def __init__(self, *, config: Config) -> None:
         self.config = config
 
 
 class Consumer:
-    def __init__(self, *, service: Service):
+    def __init__(self, *, service: Service) -> None:
         self.service = service
 
 

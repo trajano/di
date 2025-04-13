@@ -43,7 +43,7 @@ class AsyncContextWrapper(AbstractAsyncContextManager[T]):
     :param sync_cm: An instance of a synchronous context manager.
     """
 
-    def __init__(self, sync_cm: AbstractContextManager[T]):
+    def __init__(self, sync_cm: AbstractContextManager[T]) -> None:
         self._sync_cm = sync_cm
         self._entered: T | None = None
 
@@ -180,7 +180,7 @@ def convert_sync_context_manager_to_factory(
     U = TypeVar("U")
 
     class AsyncContextWrapper(AbstractAsyncContextManager[U]):
-        def __init__(self, sync_cm: AbstractContextManager[U]):
+        def __init__(self, sync_cm: AbstractContextManager[U]) -> None:
             self._sync_cm = sync_cm
 
         async def __aenter__(self) -> U:

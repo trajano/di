@@ -15,12 +15,12 @@ from .resolver import resolve_callable_dependencies
 
 
 class Request:
-    def __init__(self, name: str):
+    def __init__(self, name: str) -> None:
         self.name = name
 
 
 class RequestScoped:
-    def __init__(self, *, request: Request):
+    def __init__(self, *, request: Request) -> None:
         self.source = f"Resolved for {request.name}"
 
 

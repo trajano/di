@@ -14,7 +14,7 @@ from ._convert_to_factory import convert_to_factory
 
 
 class SyncClass:
-    def __init__(self, *, value: str):
+    def __init__(self, *, value: str) -> None:
         self.value = value
 
 
