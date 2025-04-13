@@ -141,7 +141,7 @@ async def resolve_satisfying_components(
 
     :param typ: The type to resolve.
     :param resolved_components: Components already resolved (e.g.,
-        container-scoped).
+        container-scoped). This is immutable.
     :param definitions: All component definitions, already topologically
         sorted.
     :returns: List of instances satisfying the type.
@@ -169,6 +169,8 @@ async def resolve_satisfying_components(
 
         sig = inspect.signature(definition.type.__init__)
         kwargs = {}
+        args = ()
+        copy_of_resolved_components = resolved_components.copy()
 
         for name, param in sig.parameters.items():
             if not maybe_dependency(param):
@@ -176,22 +178,22 @@ async def resolve_satisfying_components(
 
             dep = param.annotation
             origin = get_origin(dep)
-            args = get_args(dep)
+            param_args = get_args(dep)
 
-            if _is_dep_optional(origin, args):
-                inner_type = next(a for a in args if a is not type(None))
+            if _is_dep_optional(origin, param_args):
+                inner_type = next(a for a in param_args if a is not type(None))
                 matches = await resolve_satisfying_components(
                     inner_type,
-                    resolved_components=resolved_components,
+                    resolved_components=copy_of_resolved_components,
                     definitions=definitions,
                 )
                 kwargs[name] = matches[0] if matches else None
 
-            elif _is_dep_collection(origin, args):
-                item_type = args[0]
+            elif _is_dep_collection(origin, param_args):
+                item_type = param_args[0]
                 matches = await resolve_satisfying_components(
                     item_type,
-                    resolved_components=resolved_components,
+                    resolved_components=copy_of_resolved_components,
                     definitions=definitions,
                 )
                 kwargs[name] = origin(matches)
@@ -200,17 +202,17 @@ async def resolve_satisfying_components(
             else:
                 matches = await resolve_satisfying_components(
                     dep,
-                    resolved_components=resolved_components,
+                    resolved_components=copy_of_resolved_components,
                     definitions=definitions,
                 )
                 if not matches:
                     raise ComponentNotFoundError(component_type=dep)
                 kwargs[name] = matches[0]
 
-        context_manager = definition.factory(**kwargs)
+        context_manager = definition.build_context_manager(*args, **kwargs)
         instance = await context_manager.__aenter__()
 
-        resolved_components.append(
+        copy_of_resolved_components.append(
             ResolvedComponent(
                 satisfied_types=definition.satisfied_types,
                 context_manager=context_manager,

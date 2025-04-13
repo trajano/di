@@ -78,7 +78,10 @@ def convert_async_def_to_factory(
     def factory(*args: P.args, **kwargs: P.kwargs) -> AbstractAsyncContextManager:
         class AsyncContext(AbstractAsyncContextManager):
             async def __aenter__(self) -> T:
-                return await fn(*args, **kwargs)
+                try:
+                    return await fn(*args, **kwargs)
+                except TypeError as e:
+                    raise TypeError(f"ar={args} kw={kwargs}") from e
 
             async def __aexit__(
                 self,

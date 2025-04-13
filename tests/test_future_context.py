@@ -1,16 +1,19 @@
 from collections.abc import Awaitable, Callable
+from typing import Self
 
 import pytest
-from typing import Self
+
 from di_aio.exceptions import ContainerError
 from di_aio.future_context import FutureContext
 from di_aio.protocols import Context
 
 
 class DummyContext(Context):
-    async def resolve_callable(self, fn) -> Callable[...,Awaitable]: ...
-    async def __aenter__(self) -> Self: return self
-    async def __aexit__(self, exc_type, exc_val, exc_tb)->None: ...
+    async def resolve_callable(self, fn) -> Callable[..., Awaitable]: ...
+    async def __aenter__(self) -> Self:
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None: ...
     async def get_instances(self, typ) -> list: ...
     async def get_instance(self, typ): ...
     async def get_optional_instance(self, typ): ...
