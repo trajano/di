@@ -1,5 +1,6 @@
 import functools
 import inspect
+from asyncio import Future
 from collections.abc import Awaitable, Callable
 from typing import ParamSpec, TypeVar, overload
 

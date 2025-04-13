@@ -27,9 +27,9 @@ FYI this project is not published to pypi.  Use uv workspaces and git submodules
 
 
 
-## Example
+## Default container and context
 
-This is an example of how to register components using decorators and autowiring.
+This is an example of how to register components using decorators and autowiring with the default container and context.
 
 ```python
 import asyncio
@@ -57,11 +57,43 @@ async def service():
 asyncio.run(service())
 ```
 
+
+## Alternate container and context
+
+For more advanced usage, the `di_aio.alt` package provides the components where there is no default.  This is an example of how to register components using decorators and autowiring with an alternate container and context.
+
+```python
+import asyncio
+from di_aio.alt import autowired, component, ConfigurableAioContainer
+
+my_own_container = ConfigurableAioContainer()
+
+@component(container=my_own_container)
+class AsyncService:
+    async def fetch(self):
+        await asyncio.sleep(0.1)
+        return "Fetched async result"
+
+@component(container=my_own_container)
+class AsyncWorker:
+    @autowired(future_context=my_own_container.future_context())
+    async def work(self, *, async_service: AsyncService):
+        result = await async_service.fetch()
+        print("Result:", result)
+
+async def service():
+    async with my_own_container.context() as context:
+        worker = await context.get_instance(AsyncWorker)
+        await worker.work()
+
+asyncio.run(service())
+```
+
 The `@autowired` decorator can be used outside of classes as well
 
 ```python
 import asyncio
-from di_aio.aio import component, autowired
+from di_aio import component, autowired
 
 
 @component

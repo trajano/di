@@ -1,4 +1,3 @@
-import contextlib
 from collections.abc import Awaitable, Callable
 from contextlib import AbstractAsyncContextManager, AbstractContextManager
 from typing import Any, ParamSpec, Self, TypeVar
@@ -30,6 +29,9 @@ class ConfigurableAioContainer(ConfigurableContainer):
         self._definitions: list[ComponentDefinition[Any]] = []
         self._registered_sources: set = set()
         self._is_default = is_default
+        # The Configurable AIO container is expected to be sync as such
+        # asyncio.Future is not available.
+        self._future_context: set[Context] = set()
 
     def _ensure_not_registered(self, component_source: object | type) -> None:
         if component_source in self._registered_sources:
@@ -92,7 +94,7 @@ class ConfigurableAioContainer(ConfigurableContainer):
 
     def add_context_managed_function(
         self,
-        fn: Callable[..., contextlib.AbstractAsyncContextManager],
+        fn: Callable[..., AbstractAsyncContextManager],
         *,
         scope: ComponentScope = ComponentScope.CONTAINER,
     ) -> None:
@@ -124,8 +126,7 @@ class ConfigurableAioContainer(ConfigurableContainer):
 
     def add_context_managed_type(
         self,
-        cm_type: type[contextlib.AbstractAsyncContextManager]
-        | type[contextlib.AbstractContextManager],
+        cm_type: type[AbstractAsyncContextManager] | type[AbstractContextManager],
         *,
         scope: ComponentScope = ComponentScope.CONTAINER,
     ) -> None:
@@ -188,4 +189,13 @@ class ConfigurableAioContainer(ConfigurableContainer):
                 msg = f"default context resolved already, {default_context_holder}"
                 raise ContainerError(msg)
             default_context_holder.add(container)
+        else:
+            if len(self._future_context) != 0:
+                msg = f"context resolved already, {self._future_context}"
+                raise ContainerError(msg)
+            self._future_context.add(container)
+
         return container
+
+    def future_context(self) -> set[Context]:
+        return self._future_context
