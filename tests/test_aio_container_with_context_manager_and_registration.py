@@ -4,7 +4,7 @@ from typing import Self
 import pytest
 
 from di_aio import (
-    AioContainer,
+    AioContext,
     ConfigurableAioContainer,
     autowired_with_container,
     component,
@@ -64,7 +64,7 @@ async def test_aio_container():
         async def __aexit__(self, exc_type, exc_value, traceback, /):
             await self._consumer.stop()
 
-    async with AioContainer(
+    async with AioContext(
         definitions=configurable_container.get_definitions()
     ) as container:
         assert ResourceProducer in container.get_satisfied_types()

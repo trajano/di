@@ -4,8 +4,8 @@ import inspect
 from collections.abc import Awaitable, Callable
 from typing import ParamSpec, TypeVar, overload
 
-from .aio_container import AioContainer
-from .default_aio_container_future import default_aio_container_future
+from .aio_container import AioContext
+from .default_aio_container_future import default_aio_context_future
 
 P = ParamSpec("P")
 R = TypeVar("R")
@@ -18,14 +18,14 @@ def autowired(
 @overload
 def autowired(
     *,
-    future_container: asyncio.Future[AioContainer],
+    future_context: asyncio.Future[AioContext],
 ) -> Callable[[Callable[P, Awaitable[R]]], Callable[..., Awaitable[R]]]: ...
 
 
 def autowired(
     func: Callable[P, Awaitable[R]] | None = None,
     *,
-    future_container: asyncio.Future[AioContainer] = default_aio_container_future,
+    future_context: asyncio.Future[AioContext] = default_aio_context_future,
 ) -> (
     Callable[..., Awaitable[R]]
     | Callable[[Callable[P, Awaitable[R]]], Callable[..., Awaitable[R]]]
@@ -39,7 +39,7 @@ def autowired(
 
         @functools.wraps(fn)
         async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
-            container = await future_container
+            container = await future_context
             resolved_fn = await container.resolve_callable(fn)
             return await resolved_fn(*args, **kwargs)
 
@@ -51,7 +51,7 @@ def autowired(
 
 
 def autowired_with_container(
-    container: AioContainer,
+    container: AioContext,
 ) -> Callable[[Callable[P, Awaitable[R]]], Callable[..., Awaitable[R]]]:
     def decorator(fn: Callable[P, Awaitable[R]]) -> Callable[..., Awaitable[R]]:
         if not inspect.iscoroutinefunction(fn):

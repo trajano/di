@@ -15,8 +15,8 @@ Usage:
 from collections.abc import Callable
 from typing import TypeVar, overload
 
-from .configurable_container import ConfigurableContainer
 from .default_container import default_container
+from .protocols import ConfigurableContainer
 
 T = TypeVar("T")
 

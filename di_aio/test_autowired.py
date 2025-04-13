@@ -6,7 +6,7 @@ from ._util import (
     extract_dependencies_from_signature,
     extract_satisfied_types_from_type,
 )
-from .aio_container import AioContainer
+from .aio_container import AioContext
 from .autowired import autowired_with_container
 from .enums import ComponentScope
 
@@ -41,7 +41,7 @@ async def test_autowire_injects_dependencies():
         scope=ComponentScope.CONTAINER,
     )
 
-    container = AioContainer(definitions=[a_def, b_def])
+    container = AioContext(definitions=[a_def, b_def])
 
     async with container:
 

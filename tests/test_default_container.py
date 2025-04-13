@@ -2,7 +2,15 @@ import asyncio
 from contextlib import AbstractAsyncContextManager
 from typing import Self
 
-from di_aio import autowired, component, default_container, factory
+from di_aio import (
+    autowired,
+    component,
+    default_container,
+    factory,
+    reset_default_aio_context_future,
+)
+
+reset_default_aio_context_future()
 
 _tracking = {"started": False, "stopped": False}
 

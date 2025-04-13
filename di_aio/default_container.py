@@ -2,4 +2,4 @@
 
 from .configurable_container import ConfigurableAioContainer
 
-default_container = ConfigurableAioContainer()
+default_container = ConfigurableAioContainer(is_default=True)

@@ -1,18 +1,17 @@
 # di_aio
 
-A lightweight and extensible **Dependency Injection (DI)** framework for Python.
-
-This project offers a minimalistic yet powerful approach to defining and resolving dependencies in Python applications using container-based injection and class decorators for automatic registration.
+A Dependency Injection (DI) framework for Python that works with AsyncIO.
 
 ---
 
 ## Features
 
+- 📦 **reasonable defaults** — Uses default instances (which can be overridden) to satisfy general usage.
 - 📦 **Component Registration** — Use `@component` to register classes into a DI container.
 - ⚙️ **Method Injection** — Use `@autowired` to inject dependencies into arbitrary methods or functions.
 - 🔄 **Automatic Dependency Resolution** — Constructor dependencies are automatically resolved and injected.
 - 🧱 **Custom Containers** — Manage multiple containers for different contexts or scopes.
-- 🔍 **Type-safe Lookup** — Retrieve components by type using indexing, `get_component`, or `get_optional_component`.
+- 🔍 **Type-safe Lookup** — Retrieve components by type using indexing, `get_instance`, `get_optional_instance` or `get_instances`.
 - 🔒 **Immutable Containers** — Containers become immutable after first use to ensure consistent state.
 - ⏳ **Async Support** — Works seamlessly with `async def` functions and methods, including `@autowired` injection.
 
@@ -20,14 +19,13 @@ This project offers a minimalistic yet powerful approach to defining and resolvi
 
 ## Installation
 
-> Use the `di.aio` module for asyncio-compatible dependency injection in your project.
-> The synchronous API is available in `di` and is documented in [di/basic\_container/README.md](di_aio/basic_container/README.md).
+FYI this project is not published to pypi.  Use uv workspaces and git submodules to integrate with your app.
 
 ---
 
 ## Usage
 
-> For legacy usage examples without asyncio support, see: [di/basic\_container/README.md](di_aio/basic_container/README.md).
+
 
 ## Example
 
@@ -35,7 +33,7 @@ This is an example of how to register components using decorators and autowiring
 
 ```python
 import asyncio
-from di_aio.aio import component, autowired
+from di_aio import autowired, component, default_container
 
 
 @component
@@ -44,16 +42,19 @@ class AsyncService:
         await asyncio.sleep(0.1)
         return "Fetched async result"
 
-
+@component
 class AsyncWorker:
     @autowired
     async def work(self, *, async_service: AsyncService):
         result = await async_service.fetch()
         print("Result:", result)
 
+async def service():
+    async with default_container.context() as context:
+        worker = await context.get_instance(AsyncWorker)
+        await worker.work()
 
-worker = AsyncWorker()
-asyncio.run(worker.work())
+asyncio.run(service())
 ```
 
 The `@autowired` decorator can be used outside of classes as well

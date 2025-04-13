@@ -8,7 +8,7 @@ from ._util import (
     extract_dependencies_from_signature,
     extract_satisfied_types_from_type,
 )
-from .aio_container import AioContainer
+from .aio_container import AioContext
 from .autowired import autowired_with_container
 from .enums import ComponentScope
 from .resolver import resolve_callable_dependencies
@@ -51,7 +51,7 @@ async def test_autowired_with_asynccontextmanager():
         scope=ComponentScope.FUNCTION,
     )
 
-    container = AioContainer(definitions=[request_def, request_scoped_def])
+    container = AioContext(definitions=[request_def, request_scoped_def])
 
     @autowired_with_container(container=container)
     async def handler(*, arg: str, scoped: RequestScoped):
@@ -84,7 +84,7 @@ async def test_autowired_with_container_and_function_scope():
         scope=ComponentScope.FUNCTION,
     )
 
-    container = AioContainer(definitions=[request_def, request_scoped_def])
+    container = AioContext(definitions=[request_def, request_scoped_def])
 
     @autowired_with_container(container=container)
     async def handler(*, arg: str, scoped: RequestScoped):
@@ -117,7 +117,7 @@ async def test_autowired_with_container_and_function_scope_no_decorator():
         scope=ComponentScope.FUNCTION,
     )
 
-    container = AioContainer(definitions=[request_def, request_scoped_def])
+    container = AioContext(definitions=[request_def, request_scoped_def])
 
     async def handler(*, arg: str, scoped: RequestScoped):
         return scoped.source, arg

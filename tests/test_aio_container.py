@@ -1,6 +1,6 @@
 import pytest
 
-from di_aio import AioContainer, ConfigurableAioContainer, autowired_with_container
+from di_aio import AioContext, ConfigurableAioContainer, autowired_with_container
 
 
 class Config:
@@ -25,7 +25,7 @@ async def test_aio_container():
     configurable_container += Service
     configurable_container += Consumer
 
-    async with AioContainer(
+    async with AioContext(
         definitions=configurable_container.get_definitions()
     ) as container:
 

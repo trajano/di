@@ -13,7 +13,7 @@ from ._types import ComponentDefinition, ResolvedComponent
 from ._validator import validate_container_definitions
 from .enums import ContainerState
 from .exceptions import ComponentNotFoundError
-from .protocols import ConfigurableContainer, Container
+from .protocols import ConfigurableContainer, Context
 from .resolver import (
     resolve_callable_dependencies,
     resolve_container_scoped_only,
@@ -24,7 +24,7 @@ P = ParamSpec("P")
 T = TypeVar("T")
 
 
-class AioContainer(contextlib.AbstractAsyncContextManager, Container):
+class AioContext(contextlib.AbstractAsyncContextManager, Context):
     """
     Runtime container that resolves and manages container-scoped components.
     """

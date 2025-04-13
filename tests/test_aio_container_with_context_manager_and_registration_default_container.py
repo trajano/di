@@ -3,7 +3,7 @@ from typing import Self
 
 import pytest
 
-from di_aio import AioContainer, autowired_with_container, component, default_container
+from di_aio import AioContext, autowired_with_container, component, default_container
 
 _tracking = {"started": False, "stopped": False}
 
@@ -57,9 +57,7 @@ async def test_aio_container():
         async def __aexit__(self, exc_type, exc_value, traceback, /):
             await self._consumer.stop()
 
-    async with AioContainer(
-        definitions=default_container.get_definitions()
-    ) as container:
+    async with AioContext(definitions=default_container.get_definitions()) as container:
         assert ResourceProducer in container.get_satisfied_types()
         prods = await container.get_instances(ResourceProducer)
         print(prods)

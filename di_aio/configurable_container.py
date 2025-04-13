@@ -10,11 +10,11 @@ from ._util import (
     extract_satisfied_types_from_return_of_callable,
     extract_satisfied_types_from_type,
 )
-from .aio_container import AioContainer
-from .default_aio_container_future import default_aio_container_future
+from .aio_container import AioContext
+from .default_aio_container_future import default_aio_context_future
 from .enums import ComponentScope
-from .exceptions import DuplicateRegistrationError
-from .protocols import ConfigurableContainer, Container
+from .exceptions import ContainerError, DuplicateRegistrationError
+from .protocols import ConfigurableContainer, Context
 
 P = ParamSpec("P")
 T = TypeVar("T")
@@ -26,9 +26,10 @@ class ConfigurableAioContainer(ConfigurableContainer):
     a finalized AioContainer.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, *, is_default: bool = False) -> None:
         self._definitions: list[ComponentDefinition[Any]] = []
         self._registered_sources: set = set()
+        self._is_default = is_default
 
     def _ensure_not_registered(self, component_source: object | type) -> None:
         if component_source in self._registered_sources:
@@ -172,13 +173,19 @@ class ConfigurableAioContainer(ConfigurableContainer):
 
         return self
 
-    def context(self, *, is_default: bool = True) -> Container:
+    def context(self) -> Context:
         """
         Creates the runtime container.
 
-        The output is suitable for suitable for use with `async with`.
+        The output is suitable for use with `async with`.
+
+        Note that if the default cannot be set twice, so this will raise
+        an asyncio.exceptions.InvalidStateError if the default was done twice.
         """
-        container = AioContainer(container=self)
-        if is_default:
-            default_aio_container_future.set_result(container)
+        container = AioContext(container=self)
+        if self._is_default:
+            if default_aio_context_future.done():
+                msg = f"future is done already, {default_aio_context_future.result()}"
+                raise ContainerError(msg)
+            default_aio_context_future.set_result(container)
         return container
