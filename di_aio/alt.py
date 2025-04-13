@@ -8,12 +8,14 @@ from .context import AioContext
 from .decorators import autowired, autowired_with_container, component, factory
 from .enums import ComponentScope
 from .exceptions import ContainerError
+from .future_context import FutureContext
 
 __all__ = [
     "AioContext",
     "ComponentScope",
     "ConfigurableAioContainer",
     "ContainerError",
+    "FutureContext",
     "autowired",
     "autowired_with_container",
     "component",

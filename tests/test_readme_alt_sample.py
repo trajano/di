@@ -2,7 +2,7 @@ import asyncio
 
 import pytest
 
-from di_aio.alt import autowired, component, ConfigurableAioContainer
+from di_aio.alt import ConfigurableAioContainer, autowired, component
 
 my_own_container = ConfigurableAioContainer()
 

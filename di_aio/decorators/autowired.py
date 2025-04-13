@@ -1,11 +1,10 @@
 import functools
 import inspect
-from asyncio import Future
 from collections.abc import Awaitable, Callable
 from typing import ParamSpec, TypeVar, overload
 
 from di_aio.default_aio_container_future import default_context_holder
-from di_aio.exceptions import ContainerError
+from di_aio.future_context import FutureContext
 from di_aio.protocols import Context
 
 P = ParamSpec("P")
@@ -19,14 +18,14 @@ def autowired(
 @overload
 def autowired(
     *,
-    future_context: set[Context] | None,
+    future_context: FutureContext | None,
 ) -> Callable[[Callable[P, Awaitable[R]]], Callable[..., Awaitable[R]]]: ...
 
 
 def autowired(
     func: Callable[P, Awaitable[R]] | None = None,
     *,
-    future_context: set[Context] | None = None,
+    future_context: FutureContext| None = None,
 ) -> (
     Callable[..., Awaitable[R]]
     | Callable[[Callable[P, Awaitable[R]]], Callable[..., Awaitable[R]]]
@@ -44,10 +43,7 @@ def autowired(
                 the_context = default_context_holder
             else:
                 the_context = future_context
-            if len(the_context) == 0:
-                w_msg = "Invocation attempted before context was present"
-                raise ContainerError(w_msg)
-            context = next(iter(the_context))
+            context = the_context.result()
             resolved_fn = await context.resolve_callable(fn)
             return await resolved_fn(*args, **kwargs)
 

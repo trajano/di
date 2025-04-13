@@ -12,7 +12,8 @@ from ._util import (
 from .context import AioContext
 from .default_aio_container_future import default_context_holder
 from .enums import ComponentScope
-from .exceptions import ContainerError, DuplicateRegistrationError
+from .exceptions import DuplicateRegistrationError
+from .future_context import FutureContext
 from .protocols import ConfigurableContainer, Context
 
 P = ParamSpec("P")
@@ -31,7 +32,7 @@ class ConfigurableAioContainer(ConfigurableContainer):
         self._is_default = is_default
         # The Configurable AIO container is expected to be sync as such
         # asyncio.Future is not available.
-        self._future_context: set[Context] = set()
+        self._future_context = FutureContext()
 
     def _ensure_not_registered(self, component_source: object | type) -> None:
         if component_source in self._registered_sources:
@@ -185,17 +186,11 @@ class ConfigurableAioContainer(ConfigurableContainer):
         """
         container = AioContext(container=self)
         if self._is_default:
-            if len(default_context_holder) != 0:
-                msg = f"default context resolved already, {default_context_holder}"
-                raise ContainerError(msg)
-            default_context_holder.add(container)
+            default_context_holder.set_result(container)
         else:
-            if len(self._future_context) != 0:
-                msg = f"context resolved already, {self._future_context}"
-                raise ContainerError(msg)
-            self._future_context.add(container)
+            self._future_context.set_result(container)
 
         return container
 
-    def future_context(self) -> set[Context]:
+    def future_context(self) -> FutureContext:
         return self._future_context
