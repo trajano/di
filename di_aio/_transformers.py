@@ -76,7 +76,7 @@ def convert_async_def_to_factory(
     :return: A factory returning the result in an async context manager.
     """
 
-    def factory(*args:P.args, **kwargs:P.kwargs) -> AbstractAsyncContextManager:
+    def factory(*args: P.args, **kwargs: P.kwargs) -> AbstractAsyncContextManager:
         class AsyncContext(AbstractAsyncContextManager):
             async def __aenter__(self) -> T:
                 return await fn(*args, **kwargs)
