@@ -15,8 +15,8 @@ Usage:
 from collections.abc import Callable
 from typing import TypeVar, overload
 
-from .default_container import default_container
-from .protocols import ConfigurableContainer
+from di_aio.default_container import default_container
+from di_aio.protocols import ConfigurableContainer
 
 T = TypeVar("T")
 

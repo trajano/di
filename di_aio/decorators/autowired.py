@@ -3,10 +3,9 @@ import inspect
 from collections.abc import Awaitable, Callable
 from typing import ParamSpec, TypeVar, overload
 
-from .context import AioContext
-from .default_aio_container_future import default_context_holder
-from .exceptions import ContainerError
-from .protocols import Context
+from di_aio.default_aio_container_future import default_context_holder
+from di_aio.exceptions import ContainerError
+from di_aio.protocols import Context
 
 P = ParamSpec("P")
 R = TypeVar("R")
@@ -19,14 +18,14 @@ def autowired(
 @overload
 def autowired(
     *,
-    future_context: set[Context],
+    future_context: set[Context] | None,
 ) -> Callable[[Callable[P, Awaitable[R]]], Callable[..., Awaitable[R]]]: ...
 
 
 def autowired(
     func: Callable[P, Awaitable[R]] | None = None,
     *,
-    future_context: set[Context] = default_context_holder,
+    future_context: set[Context] | None = None,
 ) -> (
     Callable[..., Awaitable[R]]
     | Callable[[Callable[P, Awaitable[R]]], Callable[..., Awaitable[R]]]
@@ -40,10 +39,14 @@ def autowired(
 
         @functools.wraps(fn)
         async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
-            if len(future_context) == 0:
-                msg = "Invocation attempted before context was present"
-                raise ContainerError(msg)
-            context = next(iter(future_context))
+            if future_context is None:
+                the_context = default_context_holder
+            else:
+                the_context = future_context
+            if len(the_context) == 0:
+                w_msg = "Invocation attempted before context was present"
+                raise ContainerError(w_msg)
+            context = next(iter(the_context))
             resolved_fn = await context.resolve_callable(fn)
             return await resolved_fn(*args, **kwargs)
 
@@ -55,7 +58,7 @@ def autowired(
 
 
 def autowired_with_container(
-    container: AioContext,
+    container: Context,
 ) -> Callable[[Callable[P, Awaitable[R]]], Callable[..., Awaitable[R]]]:
     def decorator(fn: Callable[P, Awaitable[R]]) -> Callable[..., Awaitable[R]]:
         if not inspect.iscoroutinefunction(fn):

@@ -4,10 +4,8 @@ This package exports functions, classes and objects that uses the API that
 utilizes a single default configurable container and runtime context.
 """
 
-from .autowired import autowired
-from .component import component
+from .decorators import autowired, component, factory
 from .default_container import default_container
-from .factory import factory
 from .protocols import ConfigurableContainer, Context
 
 __all__ = [

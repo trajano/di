@@ -15,9 +15,9 @@ Usage:
 from collections.abc import Callable
 from typing import Any, ParamSpec, TypeVar, overload
 
-from .configurable_container import ConfigurableContainer
-from .default_container import default_container
-from .enums import ComponentScope
+from di_aio.default_container import default_container
+from di_aio.enums import ComponentScope
+from di_aio.protocols import ConfigurableContainer
 
 P = ParamSpec("P")
 

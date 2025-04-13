@@ -8,8 +8,8 @@ from ._util import (
     extract_dependencies_from_signature,
     extract_satisfied_types_from_type,
 )
-from .autowired import autowired_with_container
 from .context import AioContext
+from .decorators import autowired_with_container
 from .enums import ComponentScope
 from .resolver import resolve_callable_dependencies
 
