@@ -1,5 +1,4 @@
-"""
-Package that provides alternate container creation to allow multiple DI
+"""Package that provides alternate container creation to allow multiple DI
 containers.
 """
 

@@ -10,7 +10,8 @@ class ContainerError(RuntimeError):
 class ConfigurationError(ContainerError):
     """Exception when there is a configuration error.
 
-    Raised when a container-scoped component depends on a non-container-scoped one."""
+    Raised when a container-scoped component depends on a non-container-scoped one.
+    """
 
 
 class CycleDetectedError(ContainerError):

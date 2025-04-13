@@ -21,8 +21,7 @@ T = TypeVar("T")
 
 
 class ConfigurableAioContainer(ConfigurableContainer):
-    """
-    Configurable container that accepts component registrations and builds
+    """Configurable container that accepts component registrations and builds
     a finalized AioContainer.
     """
 
@@ -99,8 +98,7 @@ class ConfigurableAioContainer(ConfigurableContainer):
         *,
         scope: ComponentScope = ComponentScope.CONTAINER,
     ) -> None:
-        """
-        Register a component type that implements sync or async context management.
+        """Register a component type that implements sync or async context management.
 
         This ensures that the component's lifecycle is handled via `async with`
         and cleanup is invoked on container exit.
@@ -131,8 +129,7 @@ class ConfigurableAioContainer(ConfigurableContainer):
         *,
         scope: ComponentScope = ComponentScope.CONTAINER,
     ) -> None:
-        """
-        Register a component type that implements sync or async context management.
+        """Register a component type that implements sync or async context management.
 
         This ensures that the component's lifecycle is handled via `async with`
         and cleanup is invoked on container exit.
@@ -156,13 +153,11 @@ class ConfigurableAioContainer(ConfigurableContainer):
         )
 
     def get_definitions(self) -> tuple[ComponentDefinition[Any], ...]:
-        """
-        Return the collected component definitions.
-        """
+        """Return the collected component definitions."""
         return tuple(self._definitions)
 
     def __iadd__(self, other: object) -> Self:
-        """Routes to the proper add method"""
+        """Routes to the proper add method."""
         if isinstance(other, type):
             if issubclass(other, (AbstractContextManager, AbstractAsyncContextManager)):
                 self.add_context_managed_type(other)
@@ -176,8 +171,7 @@ class ConfigurableAioContainer(ConfigurableContainer):
         return self
 
     def context(self) -> Context:
-        """
-        Creates the runtime container.
+        """Creates the runtime container.
 
         The output is suitable for use with `async with`.
 

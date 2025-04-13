@@ -25,9 +25,7 @@ T = TypeVar("T")
 
 
 class AioContext(contextlib.AbstractAsyncContextManager, Context):
-    """
-    Runtime container that resolves and manages container-scoped components.
-    """
+    """Runtime container that resolves and manages container-scoped components."""
 
     @overload
     def __init__(self, *, definitions: Iterable[ComponentDefinition[Any]]) -> None: ...

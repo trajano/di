@@ -2,8 +2,7 @@ from enum import Enum
 
 
 class ComponentScope(Enum):
-    """
-    Represent the lifetime scope of a component within the DI container.
+    """Represent the lifetime scope of a component within the DI container.
 
     :cvar CONTAINER: A container-scoped component is created once and reused
         for the lifetime of the container. It may only depend on other
@@ -19,8 +18,7 @@ class ComponentScope(Enum):
 
 
 class ContainerState(Enum):
-    """
-    Represents the internal state of the container lifecycle.
+    """Represents the internal state of the container lifecycle.
 
     :cvar INITIALIZING: Component registration phase.
     :cvar VALIDATING: Container-scoped components are being validated or resolved.

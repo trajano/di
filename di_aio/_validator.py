@@ -10,8 +10,7 @@ from .exceptions import (
 
 
 def validate_container_definitions(definitions: list[ComponentDefinition[Any]]) -> None:
-    """
-    Validates all component definitions for:
+    """Validates all component definitions for:
 
     - Scope rule: container-scoped components may only depend on container-scoped ones.
     - Dependency rule: all dependencies must be satisfied unless they are list[T] or

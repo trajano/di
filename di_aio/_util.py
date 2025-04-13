@@ -9,8 +9,7 @@ from typing import Any
 
 
 def extract_dependencies_from_signature(fn: Callable[..., Any]) -> set[type]:
-    """
-    Extract the types of each keyword-only argument from a callable's signature.
+    """Extract the types of each keyword-only argument from a callable's signature.
 
     :param fn: The function or callable to inspect.
     :return: A set of types representing the annotated keyword-only dependencies.
@@ -26,8 +25,7 @@ def extract_dependencies_from_signature(fn: Callable[..., Any]) -> set[type]:
 def extract_satisfied_types_from_return_of_callable(
     fn: Callable[..., Any],
 ) -> tuple[type, set[type]]:
-    """
-    Extract the return type of a callable and derive its satisfied types.
+    """Extract the return type of a callable and derive its satisfied types.
 
     :param fn: The callable to inspect.
     :return: A tuple of (return_type, satisfied_types)
@@ -46,8 +44,7 @@ def extract_satisfied_types_from_return_of_callable(
 
 
 def unwrap_type(typ: type) -> type:
-    """
-    Recursively unwraps wrapper types to extract the innermost concrete type.
+    """Recursively unwraps wrapper types to extract the innermost concrete type.
 
     This function strips away generic asynchronous or context manager wrappers,
     such as:
@@ -91,8 +88,7 @@ def unwrap_type(typ: type) -> type:
 
 
 def extract_satisfied_types_from_type(typ: type) -> set[type]:
-    """
-    Extract all types satisfied by a component type.
+    """Extract all types satisfied by a component type.
 
     - Unwraps Awaitable[T], Coroutine[..., T], AbstractAsyncContextManager[T],
       AbstractContextManager[T].

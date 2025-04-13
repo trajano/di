@@ -48,18 +48,18 @@ def _is_dep_collection(origin: type, args: tuple[Any]) -> bool:
 
 
 async def resolve_container_scoped_only(
-    definitions: list[ComponentDefinition[Any]],
+        definitions: list[ComponentDefinition[Any]],
 ) -> list[ResolvedComponent]:
-    """
-    Resolves all container-scoped components in topological order and enters
-    their async context managers. Returns the ordered list of live container
-    components wrapped in ContainerScopeComponent entries.
+    """Resolve container-scoped components in topological order.
 
-    The result order ensures that calling __aexit__() in reverse safely
+    Enters each component's async context and returns the ordered list of
+    initialized `ContainerScopeComponent` entries.
+
+    The result order ensures that calling ``__aexit__()`` in reverse safely
     tears down dependencies after their dependents.
 
     :param definitions: All registered component definitions.
-    :return: Ordered list of initialized ContainerScopeComponent instances.
+    :returns: Ordered list of initialized ContainerScopeComponent instances.
     """
     sorted_types = _toposort_components(definitions)
 
@@ -125,28 +125,32 @@ async def resolve_container_scoped_only(
 
 
 async def resolve_satisfying_components(
-    typ: type[T],
-    /,
-    *,
-    resolved_components: list[ResolvedComponent[Any]],
-    definitions: list[ComponentDefinition[Any]],
+        typ: type[T],
+        /,
+        *,
+        resolved_components: list[ResolvedComponent[Any]],
+        definitions: list[ComponentDefinition[Any]],
 ) -> list[T]:
-    """
-    Resolve all component instances satisfying a given type, including those
-    that need to be lazily constructed from function-scoped definitions.
+    """Resolve components matching a type from resolved and scoped sources.
+
+    This includes components that must be lazily created from function-scoped
+    definitions.
 
     This method handles:
-    - Direct type lookups (must be satisfied or raise ComponentNotFoundError).
-    - Optional dependencies (injected as `None` if not found).
-    - Collection dependencies (injected as empty list/set if not found).
+    - Direct type lookups (raises if unsatisfied).
+    - Optional dependencies (`None` if not found).
+    - Collection dependencies (empty list/set if not found).
 
     Assumes `definitions` are already topologically sorted.
 
     :param typ: The type to resolve.
-    :param resolved_components: Components already resolved (e.g., container-scoped).
-    :param definitions: All component definitions, already topologically sorted.
-    :return: List of instances satisfying the type.
-    :raises ComponentNotFoundError: If a required dependency cannot be resolved.
+    :param resolved_components: Components already resolved (e.g.,
+        container-scoped).
+    :param definitions: All component definitions, already topologically
+        sorted.
+    :returns: List of instances satisfying the type.
+    :raises ComponentNotFoundError: If a required dependency cannot be
+        resolved.
     """
     # Cache to avoid duplicate instantiation
     constructed: dict[type, Any] = {
@@ -228,22 +232,24 @@ async def resolve_satisfying_components(
 
 
 async def resolve_callable_dependencies(
-    fn: Callable[..., Awaitable[T]],
-    container_scope_components: list[ResolvedComponent[Any]],
-    definitions: list[ComponentDefinition[Any]],
+        fn: Callable[..., Awaitable[T]],
+        container_scope_components: list[ResolvedComponent[Any]],
+        definitions: list[ComponentDefinition[Any]],
 ) -> Callable[..., Awaitable[T]]:
-    """
-    Resolves the required dependencies of the callable and returns a coroutine
-    function with those keyword-only arguments pre-applied. The resulting function
-    will still accept any positional and other keyword arguments the caller provides.
+    """Bind dependencies to a coroutine function using async context.
 
-    This version ensures that all function-scoped components are entered and cleaned up
-    using an async context manager stack.
+    The returned function still accepts any positional and keyword arguments
+    provided by the caller.
 
-    :param fn: A function whose dependencies are declared via keyword-only parameters.
-    :param container_scope_components: Already resolved container-scoped components.
+    This ensures all function-scoped components are managed with an async
+    context manager stack.
+
+    :param fn: A function whose dependencies are declared via keyword-only
+        parameters.
+    :param container_scope_components: Already resolved container-scoped
+        components.
     :param definitions: All component definitions.
-    :return: A coroutine function that may still take user-supplied arguments.
+    :returns: A coroutine function that may still take user-supplied arguments.
     """
 
     @functools.wraps(fn)

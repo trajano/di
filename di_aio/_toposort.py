@@ -13,8 +13,7 @@ PK = ParamSpecKwargs(P)
 def _toposort_components(
     definitions: list[ComponentDefinition[Any]],
 ) -> list[type]:
-    """
-    Sort components in dependency order using topological sort.
+    """Sort components in dependency order using topological sort.
 
     Includes both regular and collection dependencies.
 
@@ -64,8 +63,7 @@ def _toposort_components(
 async def resolve_container_scoped_only(
     definitions: list[ComponentDefinition[Any]],
 ) -> list[ResolvedComponent]:
-    """
-    Resolves all container-scoped components in topological order and enters
+    """Resolves all container-scoped components in topological order and enters
     their async context managers. Returns the ordered list of live container
     components wrapped in ContainerScopeComponent entries.
 

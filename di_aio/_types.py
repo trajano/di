@@ -11,8 +11,7 @@ AnyType = type[Any]
 
 
 class ContainerAsyncFactory(Protocol[I_co, P]):
-    """
-    Represents a factory that returns an asynchronous context-managed instance
+    """Represents a factory that returns an asynchronous context-managed instance
     of type `I_co`.
 
     This factory can be called with any combination of arguments described by `P`,
@@ -28,8 +27,7 @@ class ContainerAsyncFactory(Protocol[I_co, P]):
 
 @dataclass
 class ComponentDefinition(Generic[T]):
-    """
-    Component definition structure containing metadata about a registered component.
+    """Component definition structure containing metadata about a registered component.
 
     :param satisfied_types: All types (interfaces or base classes) satisfied by the
       component.
@@ -66,9 +64,7 @@ class ComponentDefinition(Generic[T]):
 
 @dataclass
 class ResolvedComponent(Generic[T]):
-    """
-    A component that is resolved.
-    """
+    """A component that is resolved."""
 
     satisfied_types: set[AnyType]
     """A set of types satisfied by the implementation (excluding 'object')."""

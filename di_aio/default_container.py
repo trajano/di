@@ -1,4 +1,4 @@
-"""Provide the default container"""
+"""Provide the default container."""
 
 from .configurable_container import ConfigurableAioContainer
 
