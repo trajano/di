@@ -9,6 +9,7 @@ context-managed and produces the correct instance type.
 """
 
 import asyncio
+from typing import Self
 
 from ._convert_to_factory import convert_to_factory
 
@@ -19,10 +20,10 @@ class SyncClass:
 
 
 class DummyContextManager:
-    def __enter__(self):
+    def __enter__(self) -> Self:
         return self  # Yield self for isinstance check
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         pass
 
 

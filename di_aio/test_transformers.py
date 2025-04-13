@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+from typing import Self
 
 import pytest
 import pytest_asyncio
@@ -22,11 +23,11 @@ class SyncContextManager:
     def __init__(self) -> None:
         self.state = "initial"
 
-    def __enter__(self):
+    def __enter__(self)->Self:
         self.state = "entered"
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type, exc_val, exc_tb)->None:
         self.state = "exited"
 
 

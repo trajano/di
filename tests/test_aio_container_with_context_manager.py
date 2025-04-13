@@ -49,10 +49,10 @@ class ResourceProducer(AbstractAsyncContextManager):
         await self._consumer.start()
         return self
 
-    async def get_resource(self):
+    async def get_resource(self) -> Resource:
         return Resource(self._consumer.service.config.value)
 
-    async def __aexit__(self, exc_type, exc_value, traceback, /):
+    async def __aexit__(self, exc_type, exc_value, traceback, /)->None:
         await self._consumer.stop()
 
 

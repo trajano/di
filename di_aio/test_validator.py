@@ -1,4 +1,4 @@
-from typing import Any, ParamSpec
+from typing import Any, ParamSpec, Self
 
 import pytest
 
@@ -18,10 +18,10 @@ class DummyAsyncCM:
     def __init__(self, value) -> None:
         self._value = value
 
-    async def __aenter__(self):
-        return self._value
+    async def __aenter__(self) -> Self:
+        return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
         pass
 
 

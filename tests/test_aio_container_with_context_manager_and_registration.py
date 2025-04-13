@@ -57,7 +57,7 @@ async def test_aio_container():
         async def get_resource(self):
             return Resource(self._consumer.service.config.value)
 
-        async def __aexit__(self, exc_type, exc_value, traceback, /):
+        async def __aexit__(self, exc_type, exc_value, traceback, /)->None:
             await self._consumer.stop()
 
     async with AioContext(

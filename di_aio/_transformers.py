@@ -56,7 +56,7 @@ class AsyncContextWrapper(AbstractAsyncContextManager[T]):
         exc_type: type[BaseException] | None,
         exc_val: BaseException | None,
         exc_tb: types.TracebackType | None,
-    ):
+    ) -> None:
         await asyncio.to_thread(self._sync_cm.__exit__, exc_type, exc_val, exc_tb)
 
 
@@ -85,7 +85,7 @@ def convert_async_def_to_factory(
                 exc_type: type[BaseException] | None,
                 exc_val: BaseException | None,
                 exc_tb: types.TracebackType | None,
-            ):
+            ) -> None:
                 # no-op
                 pass
 
@@ -192,7 +192,7 @@ def convert_sync_context_manager_to_factory(
             exc_type: type[BaseException] | None,
             exc_val: BaseException | None,
             exc_tb: TracebackType | None,
-        ):
+        ) -> None:
             await asyncio.to_thread(self._sync_cm.__exit__, exc_type, exc_val, exc_tb)
 
     def factory(*args: P.args, **kwargs: P.kwargs) -> AbstractAsyncContextManager[T]:

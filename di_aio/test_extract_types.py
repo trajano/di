@@ -1,12 +1,11 @@
 # test_extract_types.py
-import typing
 from collections.abc import AsyncGenerator, Awaitable, Coroutine
 from contextlib import (
     AbstractAsyncContextManager,
     AbstractContextManager,
     asynccontextmanager,
 )
-from typing import Any, Protocol
+from typing import Any, Protocol, Self
 
 from ._util import (
     extract_satisfied_types_from_return_of_callable,
@@ -19,19 +18,19 @@ class Resource:
 
 
 class CustomAsyncContext(AbstractAsyncContextManager):
-    async def __aenter__(self) -> Resource:
-        return Resource()
+    async def __aenter__(self) -> Self:
+        return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, exc_type, exc_val, exc_tb)->None:
         # no-op
         pass
 
 
 class CustomSyncContext(AbstractContextManager):
-    def __enter__(self) -> Resource:
-        return Resource()
+    def __enter__(self) -> Self:
+        return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type, exc_val, exc_tb)->None:
         # no-op
         pass
 
@@ -114,6 +113,6 @@ def test_extract_satisfied_types_from_return_of_asyncontextmanager():
     return_type, satisfied = extract_satisfied_types_from_return_of_callable(
         get_resource_acm,
     )
-    assert not issubclass(return_type, typing.AsyncGenerator)
+    assert not issubclass(return_type, AsyncGenerator)
     assert Resource in satisfied
     assert Resource == return_type

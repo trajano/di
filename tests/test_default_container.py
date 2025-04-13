@@ -39,10 +39,10 @@ class Service:
     def __init__(self, *, config: Config) -> None:
         self.config = config
 
-    async def start(self):
+    async def start(self) -> None:
         _tracking["started"] = True
 
-    async def stop(self):
+    async def stop(self) -> None:
         _tracking["stopped"] = True
 
 
@@ -51,12 +51,15 @@ class Consumer:
     def __init__(self, *, service: Service) -> None:
         self.service = service
 
-    async def start(self):
+    async def start(self) -> None:
         await self.service.start()
 
-    async def stop(self):
+    async def stop(self) -> None:
         await self.service.stop()
 
+class Resource:
+    def __init__(self, value) -> None:
+        self.value = value
 
 @component
 class ResourceProducer(AbstractAsyncContextManager):
@@ -67,16 +70,11 @@ class ResourceProducer(AbstractAsyncContextManager):
         await self._consumer.start()
         return self
 
-    async def get_resource(self):
+    async def get_resource(self)->Resource:
         return Resource(self._consumer.service.config.value)
 
-    async def __aexit__(self, exc_type, exc_value, traceback, /):
+    async def __aexit__(self, exc_type, exc_value, traceback, /) -> None:
         await self._consumer.stop()
-
-
-class Resource:
-    def __init__(self, value) -> None:
-        self.value = value
 
 
 @autowired
