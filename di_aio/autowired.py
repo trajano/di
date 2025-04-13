@@ -3,7 +3,7 @@ import inspect
 from collections.abc import Awaitable, Callable
 from typing import ParamSpec, TypeVar, overload
 
-from .aio_container import AioContext
+from .context import AioContext
 from .default_aio_container_future import default_context_holder
 from .exceptions import ContainerError
 from .protocols import Context

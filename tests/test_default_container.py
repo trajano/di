@@ -2,15 +2,24 @@ import asyncio
 from contextlib import AbstractAsyncContextManager
 from typing import Self
 
+import pytest
+
 from di_aio import (
     autowired,
     component,
     default_container,
     factory,
-    reset_default_aio_context,
 )
+from di_aio.testing import reset_default_aio_context
 
-reset_default_aio_context()
+
+@pytest.fixture(autouse=True)
+def reset():
+    """
+    This is needed to allow the default to be reset across tests.
+    """
+    reset_default_aio_context()
+
 
 _tracking = {"started": False, "stopped": False}
 

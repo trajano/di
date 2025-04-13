@@ -3,11 +3,7 @@ from typing import Self
 
 import pytest
 
-from di_aio import (
-    AioContext,
-    ConfigurableAioContainer,
-    autowired_with_container,
-)
+from di_aio.alt import AioContext, ConfigurableAioContainer, autowired_with_container
 
 _tracking = {"started": False, "stopped": False}
 

@@ -1,6 +1,6 @@
 import pytest
 
-from di_aio import AioContext, ConfigurableAioContainer, autowired_with_container
+from di_aio.alt import AioContext, ConfigurableAioContainer, autowired_with_container
 
 
 class Config:
@@ -19,7 +19,8 @@ class Consumer:
 
 
 @pytest.mark.asyncio
-async def test_aio_container():
+async def test_alt_container():
+    """Use an alt container and explicit context to autowire."""
     configurable_container = ConfigurableAioContainer()
     configurable_container += Config
     configurable_container += Service

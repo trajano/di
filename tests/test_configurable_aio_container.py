@@ -5,7 +5,7 @@ from contextlib import (
 
 import pytest
 
-from di_aio import ConfigurableAioContainer
+from di_aio.alt import ConfigurableAioContainer
 from di_aio.enums import ComponentScope
 from di_aio.exceptions import DuplicateRegistrationError
 

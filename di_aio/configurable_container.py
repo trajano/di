@@ -10,7 +10,7 @@ from ._util import (
     extract_satisfied_types_from_return_of_callable,
     extract_satisfied_types_from_type,
 )
-from .aio_container import AioContext
+from .context import AioContext
 from .default_aio_container_future import default_context_holder
 from .enums import ComponentScope
 from .exceptions import ContainerError, DuplicateRegistrationError
