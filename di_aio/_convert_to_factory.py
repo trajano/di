@@ -1,7 +1,7 @@
 import asyncio
 from collections.abc import Awaitable, Callable
 from contextlib import AbstractContextManager
-from typing import Any, TypeVar, overload
+from typing import Any, ParamSpec, TypeVar, overload
 
 from ._transformers import (
     convert_async_def_to_factory,
@@ -12,26 +12,27 @@ from ._transformers import (
 from ._types import ContainerAsyncFactory
 
 T = TypeVar("T")
+P = ParamSpec("P")
 
 
 @overload
 def convert_to_factory(
     source: Callable[..., AbstractContextManager[T]],
-) -> ContainerAsyncFactory[T]: ...
+) -> ContainerAsyncFactory[T, P]: ...
 
 
 @overload
 def convert_to_factory(
     source: Callable[..., Awaitable[T]],
-) -> ContainerAsyncFactory[T]: ...
+) -> ContainerAsyncFactory[T, P]: ...
 
 
 @overload
-def convert_to_factory(source: type[T]) -> ContainerAsyncFactory[T]: ...
+def convert_to_factory(source: type[T]) -> ContainerAsyncFactory[T, P]: ...
 
 
 @overload
-def convert_to_factory(source: T) -> ContainerAsyncFactory[T]: ...
+def convert_to_factory(source: T) -> ContainerAsyncFactory[T, P]: ...
 
 
 def convert_to_factory(source: Any) -> ContainerAsyncFactory:

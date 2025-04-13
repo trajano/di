@@ -38,8 +38,9 @@ Key Components
     arguments. Supports configurable lifecycles (container or function scoped).
 
 - **@autowired**:
-    Decorator that injects dependencies into `async def` functions using a specified container.
-    Automatically resolves dependencies at call time and handles function-scoped lifetimes.
+    Decorator that injects dependencies into `async def` functions using a specified
+    container.  Automatically resolves dependencies at call time and handles
+    function-scoped lifetimes.
 
 Lifecycle Phases
 ----------------
@@ -61,7 +62,8 @@ Constraints
 -----------
 - Container-scoped components must only depend on other container-scoped components.
 - Function-scoped components may depend on either scope.
-- All multi-injection dependencies must be satisfied only by container-scoped components.
+- All multi-injection dependencies must be satisfied only by container-scoped
+  components.
 - Cyclic dependencies are detected and rejected.
 
 Usage

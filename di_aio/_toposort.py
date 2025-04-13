@@ -1,10 +1,13 @@
 import inspect
 from collections import defaultdict, deque
-from typing import Any, get_args, get_origin
+from typing import Any, ParamSpec, ParamSpecKwargs, get_args, get_origin
 
 from ._types import ComponentDefinition, ResolvedComponent
 from .enums import ComponentScope
 from .exceptions import CycleDetectedError
+
+P = ParamSpec("P")
+PK = ParamSpecKwargs(P)
 
 
 def _toposort_components(
