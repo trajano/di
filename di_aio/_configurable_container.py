@@ -47,7 +47,7 @@ class ConfigurableAioContainer(ConfigurableContainer):
         self._ensure_not_registered(component_type)
         factory = convert_to_factory(component_type)
         deps, collection_deps = extract_dependencies_from_callable(
-            component_type.__init__
+            component_type.__init__,
         )
         self._definitions.append(
             ComponentDefinition(
@@ -57,7 +57,7 @@ class ConfigurableAioContainer(ConfigurableContainer):
                 collection_dependencies=collection_deps,
                 factory=factory,
                 scope=ComponentScope.CONTAINER,
-            )
+            ),
         )
 
     def add_component_implementation(self, implementation: object) -> None:
@@ -72,7 +72,7 @@ class ConfigurableAioContainer(ConfigurableContainer):
                 collection_dependencies=set(),
                 factory=factory,
                 scope=ComponentScope.CONTAINER,
-            )
+            ),
         )
 
     def add_component_factory(
@@ -86,7 +86,7 @@ class ConfigurableAioContainer(ConfigurableContainer):
         async_factory = convert_to_factory(factory)
         deps, collection_deps = extract_dependencies_from_callable(factory)
         return_type, satisfied_types = extract_satisfied_types_from_return_of_callable(
-            factory
+            factory,
         )
         self._definitions.append(
             ComponentDefinition(
@@ -96,7 +96,7 @@ class ConfigurableAioContainer(ConfigurableContainer):
                 collection_dependencies=collection_deps,
                 factory=async_factory,
                 scope=scope,
-            )
+            ),
         )
 
     def add_context_managed_function(
@@ -117,7 +117,7 @@ class ConfigurableAioContainer(ConfigurableContainer):
         self._ensure_not_registered(fn)
         deps, collection_deps = extract_dependencies_from_callable(fn)
         return_type, satisfied_types = extract_satisfied_types_from_return_of_callable(
-            fn
+            fn,
         )
         self._definitions.append(
             ComponentDefinition(
@@ -127,7 +127,7 @@ class ConfigurableAioContainer(ConfigurableContainer):
                 collection_dependencies=collection_deps,
                 factory=fn,
                 scope=scope,
-            )
+            ),
         )
 
     def add_context_managed_type(
@@ -156,7 +156,7 @@ class ConfigurableAioContainer(ConfigurableContainer):
                 collection_dependencies=collection_deps,
                 factory=factory,
                 scope=scope,
-            )
+            ),
         )
 
     def get_definitions(self) -> tuple[ComponentDefinition[Any], ...]:

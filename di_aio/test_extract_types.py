@@ -104,7 +104,7 @@ def test_extract_multiple_protocols():
 
 def test_extract_satisfied_types_from_return_of_callable():
     return_type, satisfied = extract_satisfied_types_from_return_of_callable(
-        get_resource
+        get_resource,
     )
     assert Resource in satisfied
     assert Resource == return_type
@@ -112,7 +112,7 @@ def test_extract_satisfied_types_from_return_of_callable():
 
 def test_extract_satisfied_types_from_return_of_asyncontextmanager():
     return_type, satisfied = extract_satisfied_types_from_return_of_callable(
-        get_resource_acm
+        get_resource_acm,
     )
     assert not issubclass(return_type, typing.AsyncGenerator)
     assert Resource in satisfied

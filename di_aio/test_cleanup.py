@@ -43,7 +43,7 @@ async def test_function_scope_cleanup():
         return isinstance(x, TrackedDisposable)
 
     wrapped = await resolve_callable_dependencies(
-        run, container_scope_components=[], definitions=defs
+        run, container_scope_components=[], definitions=defs,
     )
     result = await wrapped()
     assert result is True

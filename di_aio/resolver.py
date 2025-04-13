@@ -26,7 +26,7 @@ def _maybe_dependency(param: Parameter) -> bool:
 
 
 def _maybe_collection_dependency(
-    param: Parameter, definition: ComponentDefinition
+    param: Parameter, definition: ComponentDefinition,
 ) -> bool:
     dep_type = param.annotation
     origin = get_origin(dep_type)
@@ -117,7 +117,7 @@ async def resolve_container_scoped_only(
                 satisfied_types=definition.satisfied_types,
                 context_manager=context_manager,
                 instance=instance,
-            )
+            ),
         )
 
         for typ in definition.satisfied_types:
@@ -221,7 +221,7 @@ async def resolve_satisfying_components(
                 satisfied_types=definition.satisfied_types,
                 context_manager=context_manager,
                 instance=instance,
-            )
+            ),
         )
 
         for t in definition.satisfied_types:

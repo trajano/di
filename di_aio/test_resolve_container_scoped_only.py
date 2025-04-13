@@ -111,7 +111,7 @@ async def test_resolve_container_with_multiple_sources():
     )
 
     deps, collection_deps = extract_dependencies_from_callable(
-        ServiceWithConfigAndSources.__init__
+        ServiceWithConfigAndSources.__init__,
     )
 
     service_with_sources_def = ComponentDefinition(
@@ -129,7 +129,7 @@ async def test_resolve_container_with_multiple_sources():
             name_source_def,
             service_with_sources_def,
             number_source_def,
-        ]
+        ],
     )
 
     svc = next(

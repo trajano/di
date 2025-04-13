@@ -65,7 +65,7 @@ async def test_aio_container():
     configurable_container += ResourceProducer
 
     async with AioContext(
-        definitions=configurable_container.get_definitions()
+        definitions=configurable_container.get_definitions(),
     ) as container:
         assert ResourceProducer in container.get_satisfied_types()
         prods = await container.get_instances(ResourceProducer)

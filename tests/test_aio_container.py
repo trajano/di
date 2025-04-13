@@ -28,7 +28,7 @@ async def test_alt_container():
     configurable_container += Consumer
 
     async with AioContext(
-        definitions=configurable_container.get_definitions()
+        definitions=configurable_container.get_definitions(),
     ) as container:
 
         @autowired_with_container(container=container)

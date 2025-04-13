@@ -26,7 +26,7 @@ class A:
 
 
 def make_definition(
-    cls, deps: set[type], scope: ComponentScope = ComponentScope.FUNCTION
+    cls, deps: set[type], scope: ComponentScope = ComponentScope.FUNCTION,
 ):
     return ComponentDefinition(
         type=cls,
@@ -47,7 +47,7 @@ async def test_resolve_linear_chain_with_function_scope_only():
     ]
 
     result = await resolve_satisfying_components(
-        A, resolved_components=[], definitions=defs
+        A, resolved_components=[], definitions=defs,
     )
     assert len(result) == 1
     a = result[0]
@@ -67,7 +67,7 @@ async def test_resolve_with_container_scoped_component():
     resolved = await resolve_container_scoped_only(defs)
 
     result = await resolve_satisfying_components(
-        A, resolved_components=resolved, definitions=defs
+        A, resolved_components=resolved, definitions=defs,
     )
     assert len(result) == 1
     a = result[0]
@@ -79,7 +79,7 @@ async def test_resolve_with_container_scoped_component():
 @pytest.mark.asyncio
 async def test_resolve_empty_inputs():
     result = await resolve_satisfying_components(
-        object, resolved_components=[], definitions=[]
+        object, resolved_components=[], definitions=[],
     )
     assert result == []
 
@@ -98,7 +98,7 @@ async def test_resolve_callable_basic():
         return "success"
 
     wrapped = await resolve_callable_dependencies(
-        run, container_scope_components=[], definitions=defs
+        run, container_scope_components=[], definitions=defs,
     )
     result = await wrapped()
     assert result == "success"
@@ -119,7 +119,7 @@ async def test_resolve_callable_with_user_args():
         return f"{x}-{y}-{b.c.label}"
 
     wrapped = await resolve_callable_dependencies(
-        run, container_scope_components=[], definitions=defs
+        run, container_scope_components=[], definitions=defs,
     )
     result = await wrapped(99, y="extra")
     assert result == "99-extra-injected-c"
@@ -140,7 +140,7 @@ async def test_resolve_callable_with_user_args_no_default():
         return f"{x}-{y}-{b.c.label}"
 
     wrapped = await resolve_callable_dependencies(
-        run, container_scope_components=[], definitions=defs
+        run, container_scope_components=[], definitions=defs,
     )
     result = await wrapped(99, y="extra")
     assert result == "99-extra-injected-c"

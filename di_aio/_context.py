@@ -59,7 +59,7 @@ class AioContext(AbstractAsyncContextManager, Context):
 
         self._state = ContainerState.SERVICING
         self._container_scope_components = await resolve_container_scoped_only(
-            self._definitions
+            self._definitions,
         )
         return self
 
@@ -76,7 +76,7 @@ class AioContext(AbstractAsyncContextManager, Context):
         self._container_scope_components.clear()
 
     async def resolve_callable(
-        self, fn: Callable[..., Awaitable[T]]
+        self, fn: Callable[..., Awaitable[T]],
     ) -> Callable[..., Awaitable[T]]:
         """Resolve a coroutine function's dependencies for invocation.
 

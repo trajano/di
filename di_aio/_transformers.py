@@ -95,7 +95,7 @@ def convert_async_def_to_factory(
 
 
 def convert_sync_def_to_factory(
-    fn: Callable[..., T], *, on_thread: bool = False
+    fn: Callable[..., T], *, on_thread: bool = False,
 ) -> ContainerAsyncFactory[T, P]:
     """Convert a sync def to factory.
 
@@ -122,7 +122,7 @@ def convert_sync_def_to_factory(
 
 
 def convert_component_type_to_factory(
-    component_type: type[T], *, on_thread: bool = False
+    component_type: type[T], *, on_thread: bool = False,
 ) -> ContainerAsyncFactory[T, P]:
     """Convert component type to factory.
 
@@ -142,7 +142,7 @@ def convert_component_type_to_factory(
     if issubclass(component_type, AbstractAsyncContextManager):
 
         def async_context_manager_factory(
-            *args: P.args, **kwargs: P.kwargs
+            *args: P.args, **kwargs: P.kwargs,
         ) -> AbstractAsyncContextManager[T]:
             return component_type(*args, **kwargs)
 
@@ -151,7 +151,7 @@ def convert_component_type_to_factory(
     if issubclass(component_type, AbstractContextManager):
 
         def async_context_manager_factory_with_wrapper(
-            *args: P.args, **kwargs: P.kwargs
+            *args: P.args, **kwargs: P.kwargs,
         ) -> AbstractAsyncContextManager[T]:
             return AsyncContextWrapper(component_type(*args, **kwargs))
 

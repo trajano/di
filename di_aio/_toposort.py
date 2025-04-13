@@ -39,7 +39,7 @@ def _toposort_components(
         sorted(
             (node for node in all_nodes if in_degree[node] == 0),
             key=lambda t: type_order[t],
-        )
+        ),
     )
     sorted_nodes = []
 

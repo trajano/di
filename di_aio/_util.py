@@ -39,7 +39,7 @@ def extract_satisfied_types_from_return_of_callable(
         raise TypeError(msg)
 
     return unwrap_type(return_annotation), extract_satisfied_types_from_type(
-        return_annotation
+        return_annotation,
     )
 
 
