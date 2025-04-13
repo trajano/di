@@ -63,7 +63,9 @@ class AsyncContextWrapper(AbstractAsyncContextManager[T]):
 def convert_async_def_to_factory(
     fn: Callable[..., Awaitable[T]],
 ) -> ContainerAsyncFactory[T, P]:
-    """Converts an `async def` function returning `I` into a container-compliant
+    """Convert `async def` to factory.
+
+    Converts an `async def` function returning `T` into a container-compliant
     async factory returning a context-managed instance.
 
     The returned factory wraps the result in a `NoOpAsyncContextManager` to
@@ -95,7 +97,9 @@ def convert_async_def_to_factory(
 def convert_sync_def_to_factory(
     fn: Callable[..., T], *, on_thread: bool = False
 ) -> ContainerAsyncFactory[T, P]:
-    """Converts a synchronous factory function into an async factory wrapped
+    """Convert a sync def to factory.
+
+    Converts a synchronous factory function into an async factory wrapped
     in a context manager.
 
     This wraps the sync function into an `async def` function and then delegates
@@ -120,7 +124,9 @@ def convert_sync_def_to_factory(
 def convert_component_type_to_factory(
     component_type: type[T], *, on_thread: bool = False
 ) -> ContainerAsyncFactory[T, P]:
-    """Converts a component type (typically a class) into an async factory that
+    """Convert component type to factory.
+
+    Converts a component type (typically a class) into an async factory that
     constructs the type using dependency-injected keyword arguments.
 
     The constructor is expected to define keyword-only parameters as
@@ -160,7 +166,9 @@ def convert_component_type_to_factory(
 def convert_sync_context_manager_to_factory(
     sync_cm_fn: Callable[..., AbstractContextManager[T]],
 ) -> ContainerAsyncFactory[T, P]:
-    """Converts a function that returns a synchronous context manager into an async
+    """Convert sync context manager to factory.
+
+    Converts a function that returns a synchronous context manager into an async
     factory that supports `async with` via a thread-based wrapper.
 
     This allows synchronous context-managed resources (e.g., file handles,
@@ -195,7 +203,9 @@ def convert_sync_context_manager_to_factory(
 
 
 def convert_implementation_to_factory(implementation: T) -> ContainerAsyncFactory[T, P]:
-    """Wraps a provided instance (literal implementation) in a no-op async
+    """Convert implementation to factory.
+
+    Wraps a provided instance (literal implementation) in a no-op async
     context manager, making it compatible with the container's factory model.
 
     This wrapping occurs even if the instance is an `AbstractAsyncContextManager`.

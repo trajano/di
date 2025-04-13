@@ -13,22 +13,22 @@ R = TypeVar("R")
 
 @overload
 def autowired(
-        func: Callable[P, Awaitable[R]],
+    func: Callable[P, Awaitable[R]],
 ) -> Callable[..., Awaitable[R]]: ...
 @overload
 def autowired(
-        *,
-        future_context: FutureContext | None,
+    *,
+    future_context: FutureContext | None,
 ) -> Callable[[Callable[P, Awaitable[R]]], Callable[..., Awaitable[R]]]: ...
 
 
 def autowired(
-        func: Callable[P, Awaitable[R]] | None = None,
-        *,
-        future_context: FutureContext | None = None,
+    func: Callable[P, Awaitable[R]] | None = None,
+    *,
+    future_context: FutureContext | None = None,
 ) -> (
-        Callable[..., Awaitable[R]]
-        | Callable[[Callable[P, Awaitable[R]]], Callable[..., Awaitable[R]]]
+    Callable[..., Awaitable[R]]
+    | Callable[[Callable[P, Awaitable[R]]], Callable[..., Awaitable[R]]]
 ):
     """Decorate auto-injecting dependencies from a future container.
 
@@ -61,7 +61,7 @@ def autowired(
 
 
 def autowired_with_container(
-        container: Context,
+    container: Context,
 ) -> Callable[[Callable[P, Awaitable[R]]], Callable[..., Awaitable[R]]]:
     """Decorate injecting dependencies using a specific container.
 

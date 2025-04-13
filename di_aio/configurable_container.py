@@ -21,8 +21,10 @@ T = TypeVar("T")
 
 
 class ConfigurableAioContainer(ConfigurableContainer):
-    """Configurable container that accepts component registrations and builds
-    a finalized AioContainer.
+    """Configurable container.
+
+    This accepts component registrations and provides a facility to build the
+    runtime AioContext
     """
 
     def __init__(self, *, is_default: bool = False) -> None:
@@ -39,6 +41,7 @@ class ConfigurableAioContainer(ConfigurableContainer):
         self._registered_sources.add(component_source)
 
     def add_component_type(self, component_type: type) -> None:
+        """Register a component type to the container."""
         self._ensure_not_registered(component_type)
         factory = convert_to_factory(component_type)
         deps, collection_deps = extract_dependencies_from_callable(
@@ -56,6 +59,7 @@ class ConfigurableAioContainer(ConfigurableContainer):
         )
 
     def add_component_implementation(self, implementation: object) -> None:
+        """Register a component implementation to the container."""
         self._ensure_not_registered(implementation)
         factory = convert_to_factory(implementation)
         self._definitions.append(
@@ -75,6 +79,7 @@ class ConfigurableAioContainer(ConfigurableContainer):
         *,
         scope: ComponentScope = ComponentScope.CONTAINER,
     ) -> None:
+        """Register a component factory to the container."""
         self._ensure_not_registered(factory)
         async_factory = convert_to_factory(factory)
         deps, collection_deps = extract_dependencies_from_callable(factory)
@@ -157,7 +162,7 @@ class ConfigurableAioContainer(ConfigurableContainer):
         return tuple(self._definitions)
 
     def __iadd__(self, other: object) -> Self:
-        """Routes to the proper add method."""
+        """Route to the proper add method."""
         if isinstance(other, type):
             if issubclass(other, (AbstractContextManager, AbstractAsyncContextManager)):
                 self.add_context_managed_type(other)
@@ -171,12 +176,11 @@ class ConfigurableAioContainer(ConfigurableContainer):
         return self
 
     def context(self) -> Context:
-        """Creates the runtime container.
+        """Create the runtime context.
 
         The output is suitable for use with `async with`.
 
-        Note that if the default cannot be set twice, so this will raise
-        an asyncio.exceptions.InvalidStateError if the default was done twice.
+        Note this must not be called more than once.
         """
         container = AioContext(container=self)
         if self._is_default:
@@ -187,4 +191,5 @@ class ConfigurableAioContainer(ConfigurableContainer):
         return container
 
     def future_context(self) -> FutureContext:
+        """Return the future context."""
         return self._future_context

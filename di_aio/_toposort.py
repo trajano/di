@@ -63,7 +63,9 @@ def _toposort_components(
 async def resolve_container_scoped_only(
     definitions: list[ComponentDefinition[Any]],
 ) -> list[ResolvedComponent]:
-    """Resolves all container-scoped components in topological order and enters
+    """Resolve container scoped definitions.
+
+    Resolves all container-scoped components in topological order and enters
     their async context managers. Returns the ordered list of live container
     components wrapped in ContainerScopeComponent entries.
 

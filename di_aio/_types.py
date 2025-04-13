@@ -11,7 +11,9 @@ AnyType = type[Any]
 
 
 class ContainerAsyncFactory(Protocol[I_co, P]):
-    """Represents a factory that returns an asynchronous context-managed instance
+    """Factory that provides a asynchronous context-managed instance.
+
+    Represents a factory that returns an asynchronous context-managed instance
     of type `I_co`.
 
     This factory can be called with any combination of arguments described by `P`,
