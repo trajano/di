@@ -1,11 +1,12 @@
-import asyncio
 import functools
 import inspect
 from collections.abc import Awaitable, Callable
 from typing import ParamSpec, TypeVar, overload
 
 from .aio_container import AioContext
-from .default_aio_container_future import default_aio_context_future
+from .default_aio_container_future import default_context_holder
+from .exceptions import ContainerError
+from .protocols import Context
 
 P = ParamSpec("P")
 R = TypeVar("R")
@@ -18,14 +19,14 @@ def autowired(
 @overload
 def autowired(
     *,
-    future_context: asyncio.Future[AioContext],
+    future_context: set[Context],
 ) -> Callable[[Callable[P, Awaitable[R]]], Callable[..., Awaitable[R]]]: ...
 
 
 def autowired(
     func: Callable[P, Awaitable[R]] | None = None,
     *,
-    future_context: asyncio.Future[AioContext] = default_aio_context_future,
+    future_context: set[Context] = default_context_holder,
 ) -> (
     Callable[..., Awaitable[R]]
     | Callable[[Callable[P, Awaitable[R]]], Callable[..., Awaitable[R]]]
@@ -39,8 +40,11 @@ def autowired(
 
         @functools.wraps(fn)
         async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
-            container = await future_context
-            resolved_fn = await container.resolve_callable(fn)
+            if len(future_context) == 0:
+                msg = "Invocation attempted before context was present"
+                raise ContainerError(msg)
+            context = next(iter(future_context))
+            resolved_fn = await context.resolve_callable(fn)
             return await resolved_fn(*args, **kwargs)
 
         return wrapper

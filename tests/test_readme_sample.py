@@ -6,11 +6,16 @@ from di_aio import (
     autowired,
     component,
     default_container,
-    reset_default_aio_context_future,
+    reset_default_aio_context
 )
 
-reset_default_aio_context_future()
-
+@pytest.fixture(autouse=True)
+def reset():
+    """
+    This is needed to allow the default to be reset across tests.
+    """
+    reset_default_aio_context()
+    yield
 
 @component
 class AsyncService:
@@ -33,9 +38,8 @@ async def service():
         await worker.work()
 
 
-@pytest.mark.asyncio(loop_scope="function")
+@pytest.mark.asyncio
 async def test_run(capsys):
-    reset_default_aio_context_future()
     await service()
     captured = capsys.readouterr()
     assert "Result: Fetched async result" in captured.out

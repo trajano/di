@@ -101,7 +101,7 @@ from .aio_container import AioContext
 from .autowired import autowired, autowired_with_container
 from .component import component
 from .configurable_container import ConfigurableAioContainer
-from .default_aio_container_future import reset_default_aio_context_future
+from .default_aio_container_future import reset_default_aio_context
 from .default_container import default_container
 from .factory import factory
 from .protocols import Context
@@ -115,5 +115,5 @@ __all__ = [
     "component",
     "default_container",
     "factory",
-    "reset_default_aio_context_future",
+    "reset_default_aio_context",
 ]

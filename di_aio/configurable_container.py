@@ -11,7 +11,7 @@ from ._util import (
     extract_satisfied_types_from_type,
 )
 from .aio_container import AioContext
-from .default_aio_container_future import default_aio_context_future
+from .default_aio_container_future import default_context_holder
 from .enums import ComponentScope
 from .exceptions import ContainerError, DuplicateRegistrationError
 from .protocols import ConfigurableContainer, Context
@@ -184,8 +184,8 @@ class ConfigurableAioContainer(ConfigurableContainer):
         """
         container = AioContext(container=self)
         if self._is_default:
-            if default_aio_context_future.done():
-                msg = f"future is done already, {default_aio_context_future.result()}"
+            if len(default_context_holder) != 0:
+                msg = f"default context resolved already, {default_context_holder}"
                 raise ContainerError(msg)
-            default_aio_context_future.set_result(container)
+            default_context_holder.add(container)
         return container

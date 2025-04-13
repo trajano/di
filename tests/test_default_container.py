@@ -7,10 +7,10 @@ from di_aio import (
     component,
     default_container,
     factory,
-    reset_default_aio_context_future,
+    reset_default_aio_context,
 )
 
-reset_default_aio_context_future()
+reset_default_aio_context()
 
 _tracking = {"started": False, "stopped": False}
 

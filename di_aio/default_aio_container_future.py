@@ -1,12 +1,11 @@
 """Provide the default container"""
 
-from asyncio import Future
+from .protocols import Context
 
-default_aio_context_future = Future()
+default_context_holder: set[Context] = set()
 
 
-def reset_default_aio_context_future() -> None:
+def reset_default_aio_context() -> None:
     """Reset the Default AIO Context future.
     This should only be called for testing."""
-    global default_aio_context_future
-    default_aio_context_future = Future()
+    default_context_holder.clear()
