@@ -229,3 +229,11 @@ class ConfigurableAioContainer(ConfigurableContainer):
     def future_context(self) -> FutureContext:
         """Return the future context."""
         return self._future_context
+
+    def clear(self) -> None:
+        """Clear container.
+
+        This is primarily used for resetting in test."""
+        self._definitions.clear()
+        self._registered_sources.clear()
+        self._future_context.reset()
