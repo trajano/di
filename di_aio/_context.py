@@ -44,9 +44,9 @@ class AioContext(AbstractAsyncContextManager, Context):
         :raises ValueError: If neither nor both arguments are passed.
         """
         if container and not definitions:
-            self._definitions = container.get_definitions()
+            self._definitions = container.get_definitions().copy()
         elif definitions is not None and not container:
-            self._definitions = definitions
+            self._definitions = definitions.copy()
         else:
             msg = "Must be either definitions or container"  # pragma: no cover
             raise ValueError(msg)  # pragma: no cover

@@ -143,11 +143,12 @@ async def resolve_callable_dependencies(
         try:
             return await fn(*wrapped_args, **user_kwargs, **injected_kwargs)
         except TypeError as e:
+            definition_types = [definition.type.__name__ for definition in definitions]
             msg = (
                 f"TypeError invoking {fn.__name__} with wrapped_args={wrapped_args} "
                 f"user_kwargs={user_kwargs} "
                 f"injected_kwargs={injected_kwargs} "
-                f"definitions={definitions} "
+                f"definitions={definition_types} "
                 f"dep_types={dep_types}"
             )
             raise TypeError(msg) from e

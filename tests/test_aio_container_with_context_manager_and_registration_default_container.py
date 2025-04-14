@@ -3,8 +3,8 @@ from typing import Self
 
 import pytest
 
-from di_aio import DEFAULT_CONFIGURABLE_CONTAINER
-from di_aio.alt import AioContext, component
+from di_aio import get_default_context
+from di_aio.alt import component
 from di_aio.testing import autowired_with_context
 
 _tracking = {"started": False, "stopped": False}
@@ -59,18 +59,18 @@ async def test_aio_container():
         async def __aexit__(self, exc_type, exc_value, traceback, /) -> None:
             await self._consumer.stop()
 
-    async with AioContext(definitions=DEFAULT_CONFIGURABLE_CONTAINER.get_definitions()) as container:
-        assert ResourceProducer in container.get_satisfied_types()
-        prods = await container.get_instances(ResourceProducer)
+    async with get_default_context() as context:
+        assert ResourceProducer in context.get_satisfied_types()
+        prods = await context.get_instances(ResourceProducer)
         print(prods)
         assert len(prods) == 1
-        prod = await container.get_instance(ResourceProducer)
-        optional_prod = await container.get_optional_instance(ResourceProducer)
+        prod = await context.get_instance(ResourceProducer)
+        optional_prod = await context.get_optional_instance(ResourceProducer)
         assert prod is not None
         assert prod == optional_prod
         assert prod in prods
 
-        @autowired_with_context(context=container)
+        @autowired_with_context(context=context)
         async def consume(*, producer: ResourceProducer):
             return await producer.get_resource()
 

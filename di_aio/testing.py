@@ -20,24 +20,16 @@ from .default_aio_container_future import DEFAULT_CONTEXT_HOLDER
 from .default_container import DEFAULT_CONFIGURABLE_CONTAINER
 
 
-def reset_default_container() -> None:
-    """Reset the default container.
-
-    This should only be called for testing purposes.
-    """
-    DEFAULT_CONFIGURABLE_CONTAINER.clear()
-
-
 def reset_default_aio_context() -> None:
     """Reset the default AIO context.
 
     This should only be called for testing purposes.
     """
+    DEFAULT_CONFIGURABLE_CONTAINER.clear()
     DEFAULT_CONTEXT_HOLDER.reset()
 
 
 __all__ = [
     "autowired_with_context",
     "reset_default_aio_context",
-    "reset_default_container",
 ]

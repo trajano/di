@@ -7,22 +7,11 @@ import pytest
 from di_aio import (
     autowired,
     component,
-    DEFAULT_CONFIGURABLE_CONTAINER,
+    get_default_context,
 )
 from di_aio.decorators import autowired_with_context
 from di_aio.exceptions import ComponentNotFoundError
-from di_aio.testing import reset_default_aio_context, reset_default_container
 
-
-@pytest.fixture(autouse=True)
-def reset():
-    """
-    This is needed to allow the default to be reset across tests.
-    """
-    reset_default_aio_context()
-
-
-reset_default_container()
 
 @typing.runtime_checkable
 class Worker(Protocol):
@@ -54,14 +43,14 @@ class SecondAsyncWorker(Worker):
 
 @pytest.mark.asyncio
 async def test_component_not_found():
-    async with DEFAULT_CONFIGURABLE_CONTAINER.context() as context:
+    async with get_default_context() as context:
         with pytest.raises(ComponentNotFoundError):
             await context.get_instance(str)
 
 
 @pytest.mark.asyncio
 async def test_more_than_one_optional():
-    async with DEFAULT_CONFIGURABLE_CONTAINER.context() as context:
+    async with get_default_context() as context:
         with pytest.raises(LookupError):
             await context.get_instance(Worker)
 
@@ -78,7 +67,7 @@ async def test_autowire_no_async():
 
 @pytest.mark.asyncio
 async def test_autowire_with_context_no_async():
-    async with DEFAULT_CONFIGURABLE_CONTAINER.context() as context:
+    async with get_default_context() as context:
         with pytest.raises(TypeError):
 
             @autowired_with_context(context=context)  # pyright: ignore[reportArgumentType]

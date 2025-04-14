@@ -5,7 +5,7 @@ utilizes a single default configurable container and runtime context.
 """
 
 from .decorators import autowired, component, factory
-from .default_container import DEFAULT_CONFIGURABLE_CONTAINER
+from .default_container import get_default_context
 from .enums import ComponentScope
 from .exceptions import ContainerError
 from .protocols import ConfigurableContainer, Context
@@ -17,6 +17,6 @@ __all__ = [
     "Context",
     "autowired",
     "component",
-    "DEFAULT_CONFIGURABLE_CONTAINER",
     "factory",
+    "get_default_context",
 ]
