@@ -193,9 +193,9 @@ class ConfigurableAioContainer(ConfigurableContainer):
             ),
         )
 
-    def get_definitions(self) -> tuple[ComponentDefinition[Any], ...]:
+    def get_definitions(self) -> list[ComponentDefinition[Any]]:
         """Return the collected component definitions."""
-        return tuple(self._definitions)
+        return self._definitions
 
     def __iadd__(self, other: object) -> Self:
         """Route to the proper add method."""
@@ -218,7 +218,7 @@ class ConfigurableAioContainer(ConfigurableContainer):
 
         Note this must not be called more than once.
         """
-        container = AioContext(container=self)
+        container = AioContext(definitions=self._definitions)
         if self._is_default:
             default_context_holder.set_result(container)
         else:
@@ -233,7 +233,8 @@ class ConfigurableAioContainer(ConfigurableContainer):
     def clear(self) -> None:
         """Clear container.
 
-        This is primarily used for resetting in test."""
+        This is primarily used for resetting in test.
+        """
         self._definitions.clear()
         self._registered_sources.clear()
         self._future_context.reset()

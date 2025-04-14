@@ -1,15 +1,16 @@
-from collections.abc import Awaitable, Callable, Iterable
+from collections.abc import Awaitable, Callable
 from contextlib import AbstractAsyncContextManager
 from types import TracebackType
 from typing import Any, ParamSpec, Self, TypeVar, overload
 
+from ._resolver import resolve_scope
+from ._resolver.scope_filters import is_container_scope
 from ._validator import validate_container_definitions
 from .enums import ContainerState
 from .exceptions import ComponentNotFoundError
 from .protocols import ConfigurableContainer, Context
 from .resolver import (
     resolve_callable_dependencies,
-    resolve_container_scoped_only,
     resolve_satisfying_components,
 )
 from .types import ComponentDefinition, ResolvedComponent
@@ -23,7 +24,7 @@ class AioContext(AbstractAsyncContextManager, Context):
 
     @overload
     def __init__(
-        self, *, definitions: Iterable[ComponentDefinition[Any]]
+        self, *, definitions: list[ComponentDefinition[Any]]
     ) -> None: ...  # pragma: no cover
     @overload
     def __init__(
@@ -33,7 +34,7 @@ class AioContext(AbstractAsyncContextManager, Context):
     def __init__(
         self,
         *,
-        definitions: Iterable[ComponentDefinition[Any]] | None = None,
+        definitions: list[ComponentDefinition[Any]] | None = None,
         container: ConfigurableContainer | None = None,
     ) -> None:
         """Initialize the AioContext.
@@ -43,13 +44,12 @@ class AioContext(AbstractAsyncContextManager, Context):
         :raises ValueError: If neither nor both arguments are passed.
         """
         if container and not definitions:
-            self._definitions = list(container.get_definitions())
+            self._definitions = container.get_definitions()
         elif definitions and not container:
-            self._definitions = list(definitions)
+            self._definitions = definitions
         else:
             msg = "Must be either definitions or container"  # pragma: no cover
             raise ValueError(msg)  # pragma: no cover
-
         self._state = ContainerState.INITIALIZING
         self._container_scope_components: list[ResolvedComponent[Any]] = []
 
@@ -62,8 +62,8 @@ class AioContext(AbstractAsyncContextManager, Context):
         validate_container_definitions(self._definitions)
 
         self._state = ContainerState.SERVICING
-        self._container_scope_components = await resolve_container_scoped_only(
-            self._definitions,
+        self._container_scope_components = await resolve_scope(
+            self._definitions, scope_filter=is_container_scope
         )
         return self
 

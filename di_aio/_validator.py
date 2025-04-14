@@ -1,3 +1,4 @@
+from types import NoneType, UnionType
 from typing import Any, get_args, get_origin
 
 from ._toposort import _toposort_components
@@ -50,6 +51,9 @@ def _detect_unresolved_dependencies(
             if origin in (list, set) and args:
                 continue
 
+            if origin == UnionType and NoneType in args:
+                continue
+
             if dep not in type_to_scope:
                 raise ComponentNotFoundError(component_type=dep)
 
@@ -77,10 +81,12 @@ def _detect_scope_violations(
                 continue
 
             dep_scope = type_to_scope.get(dep)
+            if not dep_scope:
+                continue
             if dep_scope != ComponentScope.CONTAINER:
                 msg = (
-                    f"Container-scoped component cannot depend on function-scoped "
-                    f"dependency: {dep}"
+                    f"Container-scoped component cannot depend on "
+                    f"dependency:{dep} scope:{dep_scope}"
                 )
                 raise ConfigurationError(msg)
 

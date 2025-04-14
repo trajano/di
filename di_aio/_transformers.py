@@ -44,7 +44,14 @@ class AsyncContext(AbstractAsyncContextManager[T]):
         self._kwargs = kwargs
 
     async def __aenter__(self) -> T:
-        return await self._fn(*self._args, **self._kwargs)
+        try:
+            return await self._fn(*self._args, **self._kwargs)
+        except TypeError as e:
+            msg = (
+                f"Type error invoking {self._fn.__name__} given "
+                f"args={self._args} kwargs={self._kwargs}"
+            )
+            raise TypeError(msg) from e
 
     async def __aexit__(
         self,

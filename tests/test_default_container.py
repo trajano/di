@@ -12,6 +12,8 @@ from di_aio import (
 )
 from di_aio.testing import reset_default_aio_context
 
+_tracking = {"started": False, "stopped": False}
+
 
 @pytest.fixture(autouse=True)
 def reset():
@@ -19,9 +21,6 @@ def reset():
     This is needed to allow the default to be reset across tests.
     """
     reset_default_aio_context()
-
-
-_tracking = {"started": False, "stopped": False}
 
 
 class Config:
@@ -72,11 +71,11 @@ class ResourceProducer(AbstractAsyncContextManager):
         await self._consumer.start()
         return self
 
-    async def get_resource(self) -> Resource:
-        return Resource(self._consumer.service.config.value)
-
     async def __aexit__(self, exc_type, exc_value, traceback, /) -> None:
         await self._consumer.stop()
+
+    async def get_resource(self) -> Resource:
+        return Resource(self._consumer.service.config.value)
 
 
 @autowired

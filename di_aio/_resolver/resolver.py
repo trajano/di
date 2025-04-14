@@ -1,5 +1,6 @@
 import inspect
 import typing
+from types import NoneType, UnionType
 from typing import Any
 
 from di_aio._toposort import _toposort_components
@@ -23,6 +24,14 @@ def _maybe_collection_dependency(
         return False
     is_arg_in_collection_dependencies = args[0] in definition.collection_dependencies
     return is_collection and is_arg_in_collection_dependencies
+
+
+def _maybe_optional_dependency(param: inspect.Parameter) -> bool:
+    dep_type = param.annotation
+    origin = typing.get_origin(dep_type)
+    args = typing.get_args(dep_type)
+
+    return origin == UnionType and NoneType in args
 
 
 async def resolve_scope(
@@ -97,9 +106,20 @@ def extract_kwargs_from_type_constructor(
                 if isinstance(instance, expected_type)
             ]
             continue
-        try:
-            kwargs[name] = constructed[dep_type]
-        except KeyError as e:
-            msg = f"{name} not available in {constructed.keys()}"
-            raise KeyError(msg) from e
+        if _maybe_optional_dependency(param):
+            expected_type = args[0]
+            candidates = [
+                instance
+                for typ, instance in constructed.items()
+                if isinstance(instance, expected_type)
+            ]
+            if len(candidates) == 0:
+                kwargs[name] = None
+            elif len(candidates) == 1:
+                kwargs[name] = candidates[0]
+            else:
+                msg = "multiple candidates found"
+                raise LookupError(msg)
+            continue
+        kwargs[name] = constructed[dep_type]
     return kwargs

@@ -118,11 +118,91 @@ async def resolve_callable_dependencies(
     async def wrapped(*wrapped_args: P.args, **user_kwargs: P.kwargs) -> T:
         sig = inspect.signature(fn)
         injected_kwargs = {}
+        dep_types = []
+        resolved = await resolve_scope(
+            definitions=definitions,
+            scope_filter=is_function_scope,
+            parent=container_scope_components,
+        )
         for name, param in sig.parameters.items():
             if not maybe_dependency(param):
                 continue
 
             dep_type = param.annotation
+            dep_types.append(dep_type)
+            origin = get_origin(dep_type)
+            args = get_args(dep_type)
+
+            # is Optional[X] or Union[X, None]
+            if _is_dep_optional(origin, args):
+                inner_type = next(a for a in args if a is not type(None))
+                matches = [
+                    t.instance for t in resolved if inner_type in t.satisfied_types
+                ]
+                injected_kwargs[name] = matches[0] if matches else None
+
+            # is list[X] or set[X]
+            elif _is_dep_collection(origin, args):
+                item_type = args[0]
+                matches = [
+                    t.instance for t in resolved if item_type in t.satisfied_types
+                ]
+                injected_kwargs[name] = matches
+
+            # Direct required dependency
+            else:
+                matches = [
+                    t.instance for t in resolved if dep_type in t.satisfied_types
+                ]
+                if len(matches) == 1:
+                    injected_kwargs[name] = matches[0]
+        try:
+            return await fn(*wrapped_args, **user_kwargs, **injected_kwargs)
+        except TypeError as e:
+            msg = (
+                f"TypeError invoking {fn.__name__} with wrapped_args={wrapped_args} "
+                f"user_kwargs={user_kwargs} "
+                f"injected_kwargs={injected_kwargs} "
+                f"definitions={definitions} "
+                f"dep_types={dep_types}"
+            )
+            raise TypeError(msg) from e
+
+    return wrapped
+
+
+async def resolve_callable_dependencies2(
+    fn: Callable[..., Awaitable[T]],
+    container_scope_components: list[ResolvedComponent[Any]],
+    definitions: list[ComponentDefinition[Any]],
+) -> Callable[..., Awaitable[T]]:
+    """Bind dependencies to a coroutine function using async context.
+
+    The returned function still accepts any positional and keyword arguments
+    provided by the caller.
+
+    This ensures all function-scoped components are managed with an async
+    context manager stack.
+
+    :param fn: A function whose dependencies are declared via keyword-only
+        parameters.
+    :param container_scope_components: Already resolved container-scoped
+        components.
+    :param definitions: All component definitions.
+    :returns: A coroutine function that may still take user-supplied arguments.
+    """
+
+    @functools.wraps(fn)
+    async def wrapped(*wrapped_args: P.args, **user_kwargs: P.kwargs) -> T:
+        sig = inspect.signature(fn)
+        injected_kwargs = {}
+        dep_types = []
+        for name, param in sig.parameters.items():
+            if not maybe_dependency(param):
+                continue
+
+            dep_type = param.annotation
+            dep_types.append(dep_type)
             origin = get_origin(dep_type)
             args = get_args(dep_type)
 
@@ -155,7 +235,17 @@ async def resolve_callable_dependencies(
                 )
                 if matches:
                     injected_kwargs[name] = matches[0]
-
-        return await fn(*wrapped_args, **user_kwargs, **injected_kwargs)
+        try:
+            return await fn(*wrapped_args, **user_kwargs, **injected_kwargs)
+        except TypeError as e:
+            msg = (
+                f"type error invoking {fn.__name__} with "
+                f"wrapped_args={wrapped_args} "
+                f"user_kwargs={user_kwargs} "
+                f"injected_kwargs={injected_kwargs} "
+                f"definitions={definitions} "
+                f"dep_types={dep_types}"
+            )
+            raise TypeError(msg) from e
 
     return wrapped

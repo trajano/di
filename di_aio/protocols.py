@@ -68,7 +68,7 @@ class ConfigurableContainer(Protocol):
         """Register an existing object as a component."""
         ...  # pragma: no cover
 
-    def get_definitions(self) -> tuple[ComponentDefinition[Any], ...]:
+    def get_definitions(self) -> list[ComponentDefinition[Any]]:
         """Return the collected component definitions."""
         ...  # pragma: no cover
 

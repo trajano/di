@@ -1,7 +1,6 @@
 """Testing support."""
 
 from .decorators import autowired_with_context
-from .default_container import default_container
 from .default_aio_container_future import default_context_holder
 
 
@@ -12,7 +11,6 @@ def reset_default_aio_context() -> None:
 
     :raises ContainerError: If reset is called improperly (internally).
     """
-    default_container.clear()
     default_context_holder.reset()
 
 
