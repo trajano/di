@@ -9,7 +9,7 @@ from ._transformers import (
     convert_implementation_to_factory,
     convert_sync_def_to_factory,
 )
-from ._types import ContainerAsyncFactory
+from .types import ContainerAsyncFactory
 
 T = TypeVar("T")
 P = ParamSpec("P")

@@ -18,6 +18,20 @@ def test_extract_satisfied_types_from_type():
     assert str in extract_satisfied_types_from_type(str)
 
 
+def test_extract_async_function():
+    class AsyncWorker:
+        pass
+
+    async def build_worker(*, name: str) -> AsyncWorker:
+        return AsyncWorker(name)
+
+    return_type, satisfied_types = extract_satisfied_types_from_return_of_callable(
+        build_worker
+    )
+    assert return_type == AsyncWorker
+    assert satisfied_types == {AsyncWorker}
+
+
 def test_extract_satisfied_types_from_return_of_callable_fail():
     async def no_type_function():
         return 1

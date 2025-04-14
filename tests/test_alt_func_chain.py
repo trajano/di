@@ -30,6 +30,7 @@ class AsyncWorker:
         result = await async_service.fetch()
         print(f"name:{self._name}", result)
 
+
 @factory(container=my_own_container, scope=ComponentScope.FUNCTION)
 async def random_uuid() -> str:
     return str(uuid.uuid4())

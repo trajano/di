@@ -4,7 +4,6 @@ import pytest
 
 from ._context import AioContext
 from ._convert_to_factory import convert_to_factory
-from ._types import ComponentDefinition
 from ._util import (
     extract_dependencies_from_signature,
     extract_satisfied_types_from_type,
@@ -12,6 +11,7 @@ from ._util import (
 from .decorators import autowired_with_context
 from .enums import ComponentScope
 from .resolver import resolve_callable_dependencies
+from .types import ComponentDefinition
 
 
 class Request:

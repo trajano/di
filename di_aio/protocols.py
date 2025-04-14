@@ -4,8 +4,8 @@ import types
 from collections.abc import Awaitable, Callable
 from typing import Any, ParamSpec, Protocol, TypeVar
 
-from ._types import ComponentDefinition
 from .enums import ComponentScope
+from .types import ComponentDefinition, ResolvedComponent
 
 P = ParamSpec("P")
 T = TypeVar("T")
@@ -74,4 +74,29 @@ class ConfigurableContainer(Protocol):
 
     def context(self) -> Context:
         """Return an async context manager for dependency resolution."""
+        ...  # pragma: no cover
+
+
+class ScopeFilter(Protocol):
+    def __call__(self, definition: ComponentDefinition[Any]) -> bool:
+        """Check if the component definition meets the scope criteria."""
+        ...  # pragma: no cover
+
+
+class Resolver(Protocol):
+    async def __call__(
+        self,
+        definitions: list[ComponentDefinition[Any]],
+        *,
+        parent: list[ResolvedComponent[Any]] | None,
+        scope_filter: ScopeFilter | None,
+    ) -> list[ResolvedComponent[Any]]:
+        """Resolve component definitions.
+        :param definitions: definitions in the current scope
+        :param parent: resolved components in parent scope, if none, then assume
+          an empty list.
+        :param scope_filter: a scope filter.  If none the definitions are not
+          filtered
+        :return: resolved components.
+        """
         ...  # pragma: no cover

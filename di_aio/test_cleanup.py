@@ -4,9 +4,9 @@ from typing import Self, TypeVar
 import pytest
 
 from ._convert_to_factory import convert_to_factory
-from ._types import ComponentDefinition
 from .enums import ComponentScope
 from .resolver import resolve_callable_dependencies
+from .types import ComponentDefinition
 
 T = TypeVar("T")
 

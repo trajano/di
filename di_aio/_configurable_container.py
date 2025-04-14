@@ -8,7 +8,6 @@ from ._context import AioContext
 from ._convert_to_factory import convert_to_factory
 from ._extractors import extract_dependencies_from_callable
 from ._transformers import convert_sync_context_manager_to_factory
-from ._types import ComponentDefinition
 from ._util import (
     extract_satisfied_types_from_return_of_callable,
     extract_satisfied_types_from_type,
@@ -18,6 +17,7 @@ from .enums import ComponentScope
 from .exceptions import DuplicateRegistrationError
 from .future_context import FutureContext
 from .protocols import ConfigurableContainer, Context
+from .types import ComponentDefinition
 
 P = ParamSpec("P")
 T = TypeVar("T")
@@ -92,6 +92,7 @@ class ConfigurableAioContainer(ConfigurableContainer):
         self._definitions.append(
             ComponentDefinition(
                 type=return_type,
+                constructor=factory,
                 satisfied_types=satisfied_types,
                 dependencies=deps,
                 collection_dependencies=collection_deps,

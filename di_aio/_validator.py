@@ -1,12 +1,12 @@
 from typing import Any, get_args, get_origin
 
 from ._toposort import _toposort_components
-from ._types import ComponentDefinition
 from .enums import ComponentScope
 from .exceptions import (
     ComponentNotFoundError,
     ConfigurationError,
 )
+from .types import ComponentDefinition
 
 
 def validate_container_definitions(definitions: list[ComponentDefinition[Any]]) -> None:

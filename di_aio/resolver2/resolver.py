@@ -1,0 +1,108 @@
+import inspect
+import typing
+from types import FunctionType
+from typing import Any, Callable
+
+from di_aio._toposort import _toposort_components
+from di_aio._util import maybe_dependency
+from di_aio.protocols import ScopeFilter
+from di_aio.types import ComponentDefinition, ResolvedComponent
+
+from .scope_filters import is_all_scope
+
+
+def _maybe_collection_dependency(
+    param: inspect.Parameter,
+    definition: ComponentDefinition,
+) -> bool:
+    dep_type = param.annotation
+    origin = typing.get_origin(dep_type)
+    args = typing.get_args(dep_type)
+
+    is_collection = origin in (list, set)
+    if len(args) == 0:
+        return False
+    is_arg_in_collection_dependencies = args[0] in definition.collection_dependencies
+    return is_collection and is_arg_in_collection_dependencies
+
+
+async def resolve_scope(
+    definitions: list[ComponentDefinition[Any]],
+    *,
+    parent: list[ResolvedComponent[Any]] | None = None,
+    scope_filter: ScopeFilter | None = None,
+):
+    instances: list[ResolvedComponent[Any]] = (
+        parent.copy() if parent is not None else []
+    )
+    constructed: dict[type, Any] = {
+        t: c.instance for c in instances for t in c.satisfied_types
+    }
+
+    if scope_filter is None:
+        filter_by = is_all_scope
+    else:
+        filter_by = scope_filter
+
+    sorted_types = _toposort_components(definitions)
+
+    # Only keep scoped types for resolution
+    parent_types = {t for d in definitions if filter_by(d) for t in d.satisfied_types}
+
+    sorted_types = [t for t in sorted_types if t in parent_types]
+
+    # Index definitions by scope
+    type_to_definition = {
+        t: d for d in definitions if filter_by(d) for t in d.satisfied_types
+    }
+
+    for t in sorted_types:
+        definition = type_to_definition[t]
+        kwargs = extract_kwargs_from_type_constructor(definition, constructed)
+
+        context_manager = definition.build_context_manager(**kwargs)
+        instance = await context_manager.__aenter__()
+
+        instances.append(
+            ResolvedComponent(
+                satisfied_types=definition.satisfied_types,
+                context_manager=context_manager,
+                instance=instance,
+            ),
+        )
+
+        for typ in definition.satisfied_types:
+            constructed[typ] = instance
+
+    return instances
+
+
+def extract_kwargs_from_type_constructor(
+    definition: ComponentDefinition[Any], constructed: dict[type, Any]
+) -> dict[str, Any]:
+    if definition.constructor:
+        sig = inspect.signature(definition.constructor)
+    else:
+        sig = inspect.signature(definition.type.__init__)
+    kwargs = {}
+    for name, param in sig.parameters.items():
+        # Only consider typed keyword-only parameters without defaults
+        if not maybe_dependency(param):
+            continue
+
+        dep_type = param.annotation
+        args = typing.get_args(dep_type)
+
+        if _maybe_collection_dependency(param, definition):
+            expected_type = args[0]
+            kwargs[name] = [
+                instance
+                for typ, instance in constructed.items()
+                if isinstance(instance, expected_type)
+            ]
+            continue
+        try:
+            kwargs[name] = constructed[dep_type]
+        except KeyError as e:
+            raise KeyError(f"{name} not available in {constructed.keys()}") from e
+    return kwargs

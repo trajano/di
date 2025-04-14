@@ -1,6 +1,9 @@
+"""Data transfer object types."""
+
 from contextlib import AbstractAsyncContextManager
 from dataclasses import dataclass
-from typing import Any, Generic, ParamSpec, Protocol, TypeVar
+from typing import Any, Generic, ParamSpec, Protocol, TypeVar, Callable, Awaitable
+from types import FunctionType
 
 from .enums import ComponentScope
 
@@ -42,7 +45,7 @@ class ComponentDefinition(Generic[T]):
       scoped).
     """
 
-    type: type[T]
+    type: type[T] | FunctionType
     satisfied_types: set[AnyType]
     """A set of types satisfied by the implementation (excluding 'object')."""
 
@@ -57,7 +60,22 @@ class ComponentDefinition(Generic[T]):
     Must accept keyword-only arguments and return an async context-managed instance.
     """
 
-    def build_context_manager(self, **kwargs: dict) -> AbstractAsyncContextManager[T]:
+    scope: ComponentScope
+    """
+    The lifetime scope of the component:
+
+    - CONTAINER: Singleton for the lifetime of the container.
+    - FUNCTION: Transient, created on each resolve call.
+    """
+
+    constructor: Callable[..., Awaitable[T]] | None = None
+    """Explicit constructor.
+    
+    This is set only for factory functions as the type may not contain the kwargs
+    needed.
+    """
+
+    def build_context_manager(self, **kwargs) -> AbstractAsyncContextManager[T]:
         """Use the factory to return the async context manager.
 
         This does extra assertions to ensure it is valid at runtime.
@@ -67,14 +85,6 @@ class ComponentDefinition(Generic[T]):
             msg = f"unexpected type for the context {type(ret)}"  # pragma: no cover
             raise TypeError(msg)  # pragma: no cover
         return ret
-
-    scope: ComponentScope
-    """
-    The lifetime scope of the component:
-
-    - CONTAINER: Singleton for the lifetime of the container.
-    - FUNCTION: Transient, created on each resolve call.
-    """
 
 
 @dataclass

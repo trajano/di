@@ -4,13 +4,13 @@ import pytest
 
 from ._convert_to_factory import convert_to_factory
 from ._extractors import extract_dependencies_from_callable
-from ._types import ComponentDefinition, ResolvedComponent
 from ._util import (
     extract_dependencies_from_signature,
     extract_satisfied_types_from_type,
 )
 from .enums import ComponentScope
 from .resolver import resolve_container_scoped_only
+from .types import ComponentDefinition, ResolvedComponent
 
 
 class Config:

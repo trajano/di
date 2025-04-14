@@ -27,10 +27,31 @@ from typing import TypeVar
 
 from typing_extensions import ParamSpec
 
-from ._types import ContainerAsyncFactory
+from .types import ContainerAsyncFactory
 
 P = ParamSpec("P")
 T = TypeVar("T")
+
+
+class AsyncContext(AbstractAsyncContextManager[T]):
+    """Wrap a factory function in a context manager."""
+
+    def __init__(self, fn: Callable[..., Awaitable[T]], *args, **kwargs):
+        self._fn = fn
+        self._args = args
+        self._kwargs = kwargs
+
+    async def __aenter__(self):
+        return await self._fn(*self._args, **self._kwargs)
+
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: types.TracebackType | None,
+    ) -> None:
+        # no-op
+        pass
 
 
 class AsyncContextWrapper(AbstractAsyncContextManager[T]):
@@ -75,24 +96,8 @@ def convert_async_def_to_factory(
     :return: A factory returning the result in an async context manager.
     """
 
-    def factory(*args: P.args, **kwargs: P.kwargs) -> AbstractAsyncContextManager:
-        class AsyncContext(AbstractAsyncContextManager):
-            async def __aenter__(self) -> T:
-                try:
-                    return await fn(*args, **kwargs)
-                except TypeError as e:
-                    raise TypeError(f"ar={args} kw={kwargs}") from e
-
-            async def __aexit__(
-                self,
-                exc_type: type[BaseException] | None,
-                exc_val: BaseException | None,
-                exc_tb: types.TracebackType | None,
-            ) -> None:
-                # no-op
-                pass
-
-        return AsyncContext()
+    def factory(*args: P.args, **kwargs: P.kwargs) -> AbstractAsyncContextManager[T]:
+        return AsyncContext(fn, *args, **kwargs)
 
     return factory
 

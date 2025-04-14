@@ -6,11 +6,10 @@ from collections.abc import Awaitable, Callable
 from inspect import Parameter
 from typing import Any, ParamSpec, TypeVar, Union, get_args, get_origin
 
-from ._toposort import _toposort_components
-from ._types import ComponentDefinition, ResolvedComponent
 from ._util import maybe_dependency
-from .enums import ComponentScope
-from .exceptions import ComponentNotFoundError
+from .resolver2 import resolve_scope
+from .resolver2.scope_filters import is_container_scope, is_function_scope
+from .types import ComponentDefinition, ResolvedComponent
 
 UNION_NONE_ARGS_LENGTH = 2
 
@@ -57,67 +56,7 @@ async def resolve_container_scoped_only(
     :param definitions: All registered component definitions.
     :returns: Ordered list of initialized ContainerScopeComponent instances.
     """
-    sorted_types = _toposort_components(definitions)
-
-    # Only keep container-scoped types for resolution
-    container_types = {
-        t
-        for d in definitions
-        if d.scope == ComponentScope.CONTAINER
-        for t in d.satisfied_types
-    }
-    sorted_types = [t for t in sorted_types if t in container_types]
-
-    # Index container-scoped definitions by satisfied type
-    type_to_definition = {
-        t: definition
-        for definition in definitions
-        if definition.scope == ComponentScope.CONTAINER
-        for t in definition.satisfied_types
-    }
-
-    # Create instances in resolved order
-    instances: list[ResolvedComponent] = []
-    constructed: dict[type, Any] = {}
-
-    for t in sorted_types:
-        definition = type_to_definition[t]
-        sig = inspect.signature(definition.type.__init__)
-        kwargs = {}
-        for name, param in sig.parameters.items():
-            # Only consider typed keyword-only parameters without defaults
-            if not maybe_dependency(param):
-                continue
-
-            dep_type = param.annotation
-            args = get_args(dep_type)
-
-            if _maybe_collection_dependency(param, definition):
-                expected_type = args[0]
-                kwargs[name] = [
-                    instance
-                    for typ, instance in constructed.items()
-                    if isinstance(instance, expected_type)
-                ]
-                continue
-
-            kwargs[name] = constructed[dep_type]
-
-        context_manager = definition.build_context_manager(**kwargs)
-        instance = await context_manager.__aenter__()
-
-        instances.append(
-            ResolvedComponent(
-                satisfied_types=definition.satisfied_types,
-                context_manager=context_manager,
-                instance=instance,
-            ),
-        )
-
-        for typ in definition.satisfied_types:
-            constructed[typ] = instance
-
-    return instances
+    return await resolve_scope(definitions, scope_filter=is_container_scope)
 
 
 async def resolve_satisfying_components(
@@ -148,85 +87,10 @@ async def resolve_satisfying_components(
     :raises ComponentNotFoundError: If a required dependency cannot be
         resolved.
     """
-    # Cache to avoid duplicate instantiation
-    constructed: dict[type, Any] = {
-        t: c.instance for c in resolved_components for t in c.satisfied_types
-    }
-
-    # Step 1: Reuse already-resolved components
-    results = [
-        component.instance
-        for component in resolved_components
-        if typ in component.satisfied_types
-    ]
-
-    # Step 2: Resolve function-scoped components if needed
-    for definition in definitions:
-        if definition.scope != ComponentScope.FUNCTION:
-            continue
-        if typ not in definition.satisfied_types:
-            continue
-
-        sig = inspect.signature(definition.type.__init__)
-        kwargs = {}
-        args = ()
-        copy_of_resolved_components = resolved_components.copy()
-
-        for name, param in sig.parameters.items():
-            if not maybe_dependency(param):
-                continue
-
-            dep = param.annotation
-            origin = get_origin(dep)
-            param_args = get_args(dep)
-
-            if _is_dep_optional(origin, param_args):
-                inner_type = next(a for a in param_args if a is not type(None))
-                matches = await resolve_satisfying_components(
-                    inner_type,
-                    resolved_components=copy_of_resolved_components,
-                    definitions=definitions,
-                )
-                kwargs[name] = matches[0] if matches else None
-
-            elif _is_dep_collection(origin, param_args):
-                item_type = param_args[0]
-                matches = await resolve_satisfying_components(
-                    item_type,
-                    resolved_components=copy_of_resolved_components,
-                    definitions=definitions,
-                )
-                kwargs[name] = origin(matches)
-
-            # Direct required dependency
-            else:
-                matches = await resolve_satisfying_components(
-                    dep,
-                    resolved_components=copy_of_resolved_components,
-                    definitions=definitions,
-                )
-                if not matches:
-                    raise ComponentNotFoundError(component_type=dep)
-                kwargs[name] = matches[0]
-
-        context_manager = definition.build_context_manager(*args, **kwargs)
-        instance = await context_manager.__aenter__()
-
-        copy_of_resolved_components.append(
-            ResolvedComponent(
-                satisfied_types=definition.satisfied_types,
-                context_manager=context_manager,
-                instance=instance,
-            ),
-        )
-
-        for t in definition.satisfied_types:
-            constructed[t] = instance
-
-        if typ in definition.satisfied_types:
-            results.append(instance)
-
-    return results
+    resolved = await resolve_scope(
+        definitions, scope_filter=is_function_scope, parent=resolved_components
+    )
+    return [t.instance for t in resolved if typ in t.satisfied_types]
 
 
 async def resolve_callable_dependencies(

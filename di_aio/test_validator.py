@@ -2,7 +2,6 @@ from typing import Any, ParamSpec, Self
 
 import pytest
 
-from ._types import ComponentDefinition, ContainerAsyncFactory
 from ._validator import validate_container_definitions
 from .enums import ComponentScope
 from .exceptions import (
@@ -10,6 +9,7 @@ from .exceptions import (
     ConfigurationError,
     CycleDetectedError,
 )
+from .types import ComponentDefinition, ContainerAsyncFactory
 
 P = ParamSpec("P")
 

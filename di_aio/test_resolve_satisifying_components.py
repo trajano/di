@@ -1,13 +1,13 @@
 import pytest
 
 from ._convert_to_factory import convert_to_factory
-from ._types import ComponentDefinition
 from .enums import ComponentScope
 from .resolver import (
     resolve_callable_dependencies,
     resolve_container_scoped_only,
     resolve_satisfying_components,
 )
+from .types import ComponentDefinition
 
 
 class C:
@@ -51,6 +51,28 @@ async def test_resolve_linear_chain_with_function_scope_only():
     result = await resolve_satisfying_components(
         A,
         resolved_components=[],
+        definitions=defs,
+    )
+    assert len(result) == 1
+    a = result[0]
+    assert isinstance(a, A)
+    assert isinstance(a.b, B)
+    assert isinstance(a.b.c, C)
+
+
+@pytest.mark.asyncio
+async def test_resolve_with_container_scoped_components_only():
+    defs = [
+        make_definition(C, deps=set(), scope=ComponentScope.CONTAINER),
+        make_definition(B, deps={C}, scope=ComponentScope.CONTAINER),
+        make_definition(A, deps={B}, scope=ComponentScope.CONTAINER),
+    ]
+
+    resolved = await resolve_container_scoped_only(defs)
+
+    result = await resolve_satisfying_components(
+        A,
+        resolved_components=resolved,
         definitions=defs,
     )
     assert len(result) == 1

@@ -1,8 +1,8 @@
 from collections import defaultdict, deque
 from typing import Any, ParamSpec
 
-from ._types import ComponentDefinition
 from .exceptions import CycleDetectedError
+from .types import ComponentDefinition
 
 P = ParamSpec("P")
 

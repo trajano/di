@@ -3,7 +3,6 @@ from contextlib import AbstractAsyncContextManager
 from types import TracebackType
 from typing import Any, ParamSpec, Self, TypeVar, overload
 
-from ._types import ComponentDefinition, ResolvedComponent
 from ._validator import validate_container_definitions
 from .enums import ContainerState
 from .exceptions import ComponentNotFoundError
@@ -13,6 +12,7 @@ from .resolver import (
     resolve_container_scoped_only,
     resolve_satisfying_components,
 )
+from .types import ComponentDefinition, ResolvedComponent
 
 P = ParamSpec("P")
 T = TypeVar("T")
