@@ -78,12 +78,16 @@ class ConfigurableContainer(Protocol):
 
 
 class ScopeFilter(Protocol):
+    """Scope filter."""
+
     def __call__(self, definition: ComponentDefinition[Any]) -> bool:
         """Check if the component definition meets the scope criteria."""
         ...  # pragma: no cover
 
 
 class Resolver(Protocol):
+    """Resolver."""
+
     async def __call__(
         self,
         definitions: list[ComponentDefinition[Any]],
@@ -92,6 +96,7 @@ class Resolver(Protocol):
         scope_filter: ScopeFilter | None,
     ) -> list[ResolvedComponent[Any]]:
         """Resolve component definitions.
+
         :param definitions: definitions in the current scope
         :param parent: resolved components in parent scope, if none, then assume
           an empty list.

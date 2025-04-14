@@ -6,9 +6,9 @@ from collections.abc import Awaitable, Callable
 from inspect import Parameter
 from typing import Any, ParamSpec, TypeVar, Union, get_args, get_origin
 
+from ._resolver import resolve_scope
+from ._resolver.scope_filters import is_container_scope, is_function_scope
 from ._util import maybe_dependency
-from .resolver2 import resolve_scope
-from .resolver2.scope_filters import is_container_scope, is_function_scope
 from .types import ComponentDefinition, ResolvedComponent
 
 UNION_NONE_ARGS_LENGTH = 2

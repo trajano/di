@@ -36,12 +36,14 @@ T = TypeVar("T")
 class AsyncContext(AbstractAsyncContextManager[T]):
     """Wrap a factory function in a context manager."""
 
-    def __init__(self, fn: Callable[..., Awaitable[T]], *args, **kwargs):
+    def __init__(
+        self, fn: Callable[..., Awaitable[T]], *args: object, **kwargs: object
+    ) -> None:
         self._fn = fn
         self._args = args
         self._kwargs = kwargs
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> T:
         return await self._fn(*self._args, **self._kwargs)
 
     async def __aexit__(

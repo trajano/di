@@ -1,9 +1,10 @@
 """Data transfer object types."""
 
+from collections.abc import Awaitable, Callable
 from contextlib import AbstractAsyncContextManager
 from dataclasses import dataclass
-from typing import Any, Generic, ParamSpec, Protocol, TypeVar, Callable, Awaitable
 from types import FunctionType
+from typing import Any, Generic, ParamSpec, Protocol, TypeVar
 
 from .enums import ComponentScope
 
@@ -14,7 +15,7 @@ AnyType = type[Any]
 
 
 class ContainerAsyncFactory(Protocol[I_co, P]):
-    """Factory that provides a asynchronous context-managed instance.
+    """Factory that provides an asynchronous context-managed instance.
 
     Represents a factory that returns an asynchronous context-managed instance
     of type `I_co`.
@@ -29,7 +30,9 @@ class ContainerAsyncFactory(Protocol[I_co, P]):
         self,
         *args: P.args,
         **kwargs: P.kwargs,
-    ) -> AbstractAsyncContextManager[I_co]: ...  # pragma: no cover
+    ) -> AbstractAsyncContextManager[I_co]:
+        """Construct the asynchronous context manager."""
+        ...  # pragma: no cover
 
 
 @dataclass
@@ -68,14 +71,14 @@ class ComponentDefinition(Generic[T]):
     - FUNCTION: Transient, created on each resolve call.
     """
 
-    constructor: Callable[..., Awaitable[T]] | None = None
+    constructor: Callable[..., Awaitable[T]] | Callable[..., T] | None = None
     """Explicit constructor.
-    
+
     This is set only for factory functions as the type may not contain the kwargs
     needed.
     """
 
-    def build_context_manager(self, **kwargs) -> AbstractAsyncContextManager[T]:
+    def build_context_manager(self, **kwargs: object) -> AbstractAsyncContextManager[T]:
         """Use the factory to return the async context manager.
 
         This does extra assertions to ensure it is valid at runtime.

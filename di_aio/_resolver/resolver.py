@@ -1,7 +1,6 @@
 import inspect
 import typing
-from types import FunctionType
-from typing import Any, Callable
+from typing import Any
 
 from di_aio._toposort import _toposort_components
 from di_aio._util import maybe_dependency
@@ -31,7 +30,7 @@ async def resolve_scope(
     *,
     parent: list[ResolvedComponent[Any]] | None = None,
     scope_filter: ScopeFilter | None = None,
-):
+) -> list[ResolvedComponent[Any]]:
     instances: list[ResolvedComponent[Any]] = (
         parent.copy() if parent is not None else []
     )
@@ -39,10 +38,7 @@ async def resolve_scope(
         t: c.instance for c in instances for t in c.satisfied_types
     }
 
-    if scope_filter is None:
-        filter_by = is_all_scope
-    else:
-        filter_by = scope_filter
+    filter_by = is_all_scope if scope_filter is None else scope_filter
 
     sorted_types = _toposort_components(definitions)
 
@@ -104,5 +100,6 @@ def extract_kwargs_from_type_constructor(
         try:
             kwargs[name] = constructed[dep_type]
         except KeyError as e:
-            raise KeyError(f"{name} not available in {constructed.keys()}") from e
+            msg = f"{name} not available in {constructed.keys()}"
+            raise KeyError(msg) from e
     return kwargs

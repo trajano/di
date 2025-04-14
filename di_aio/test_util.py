@@ -20,7 +20,9 @@ def test_extract_satisfied_types_from_type():
 
 def test_extract_async_function():
     class AsyncWorker:
-        pass
+        def __init__(self, name: str) -> None:
+            # no-op
+            pass
 
     async def build_worker(*, name: str) -> AsyncWorker:
         return AsyncWorker(name)

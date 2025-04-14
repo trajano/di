@@ -1,4 +1,6 @@
-"""What if I allowed containers to contain other containers?
+"""Resolver internals.
+
+What if I allowed containers to contain other containers?
 That would simulate scopes I guess.
 
 
