@@ -54,5 +54,3 @@ async def resolve_scope(
             constructed[typ] = instance
 
     return instances
-
-
