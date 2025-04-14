@@ -1,4 +1,5 @@
 import asyncio
+import typing
 from typing import Protocol
 
 import pytest
@@ -10,7 +11,7 @@ from di_aio import (
 )
 from di_aio.decorators import autowired_with_context
 from di_aio.exceptions import ComponentNotFoundError
-from di_aio.testing import reset_default_aio_context
+from di_aio.testing import reset_default_aio_context, reset_default_container
 
 
 @pytest.fixture(autouse=True)
@@ -21,6 +22,9 @@ def reset():
     reset_default_aio_context()
 
 
+reset_default_container()
+
+@typing.runtime_checkable
 class Worker(Protocol):
     pass
 

@@ -45,7 +45,7 @@ class AioContext(AbstractAsyncContextManager, Context):
         """
         if container and not definitions:
             self._definitions = container.get_definitions()
-        elif definitions and not container:
+        elif definitions is not None and not container:
             self._definitions = definitions
         else:
             msg = "Must be either definitions or container"  # pragma: no cover

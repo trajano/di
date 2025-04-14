@@ -5,7 +5,7 @@ import inspect
 from collections.abc import Awaitable, Callable
 from typing import ParamSpec, TypeVar, overload
 
-from di_aio.default_aio_container_future import default_context_holder
+from di_aio.default_aio_container_future import DEFAULT_CONTEXT_HOLDER
 from di_aio.future_context import FutureContext
 from di_aio.protocols import Context
 
@@ -52,7 +52,7 @@ def autowired(
 
         @functools.wraps(fn)
         async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
-            the_context = future_context or default_context_holder
+            the_context = future_context or DEFAULT_CONTEXT_HOLDER
             context = the_context.result()
             resolved_fn = await context.resolve_callable(fn)
             return await resolved_fn(*args, **kwargs)

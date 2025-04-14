@@ -3,7 +3,6 @@
 import functools
 import inspect
 from collections.abc import Awaitable, Callable
-from inspect import Parameter
 from typing import Any, ParamSpec, TypeVar, Union, get_args, get_origin
 
 from ._resolver import resolve_scope
@@ -15,21 +14,6 @@ UNION_NONE_ARGS_LENGTH = 2
 
 P = ParamSpec("P")
 T = TypeVar("T")
-
-
-def _maybe_collection_dependency(
-    param: Parameter,
-    definition: ComponentDefinition,
-) -> bool:
-    dep_type = param.annotation
-    origin = get_origin(dep_type)
-    args = get_args(dep_type)
-
-    is_collection = origin in (list, set)
-    if len(args) == 0:
-        return False
-    is_arg_in_collection_dependencies = args[0] in definition.collection_dependencies
-    return is_collection and is_arg_in_collection_dependencies
 
 
 def _is_dep_optional(origin: type, args: tuple[Any]) -> bool:

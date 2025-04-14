@@ -12,7 +12,7 @@ from ._util import (
     extract_satisfied_types_from_return_of_callable,
     extract_satisfied_types_from_type,
 )
-from .default_aio_container_future import default_context_holder
+from .default_aio_container_future import DEFAULT_CONTEXT_HOLDER
 from .enums import ComponentScope
 from .exceptions import DuplicateRegistrationError
 from .future_context import FutureContext
@@ -220,7 +220,7 @@ class ConfigurableAioContainer(ConfigurableContainer):
         """
         container = AioContext(definitions=self._definitions)
         if self._is_default:
-            default_context_holder.set_result(container)
+            DEFAULT_CONTEXT_HOLDER.set_result(container)
         else:
             self._future_context.set_result(container)
 
@@ -237,4 +237,3 @@ class ConfigurableAioContainer(ConfigurableContainer):
         """
         self._definitions.clear()
         self._registered_sources.clear()
-        self._future_context.reset()

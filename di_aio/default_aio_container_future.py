@@ -2,4 +2,4 @@
 
 from .future_context import FutureContext
 
-default_context_holder = FutureContext()
+DEFAULT_CONTEXT_HOLDER = FutureContext()

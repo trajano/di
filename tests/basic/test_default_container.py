@@ -10,17 +10,17 @@ from di_aio import (
     default_container,
     factory,
 )
-from di_aio.testing import reset_default_aio_context
+from di_aio.testing import reset_default_aio_context, reset_default_container
 
 _tracking = {"started": False, "stopped": False}
 
 
 @pytest.fixture(autouse=True)
-def reset():
-    """
-    This is needed to allow the default to be reset across tests.
-    """
+def _reset():
     reset_default_aio_context()
+
+
+reset_default_container()
 
 
 class Config:
