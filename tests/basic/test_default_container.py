@@ -7,7 +7,7 @@ import pytest
 from di_aio import (
     autowired,
     component,
-    default_container,
+    DEFAULT_CONFIGURABLE_CONTAINER,
     factory,
 )
 from di_aio.testing import reset_default_aio_context, reset_default_container
@@ -84,11 +84,14 @@ async def consume(*, producer: ResourceProducer):
 
 
 async def server():
-    async with default_container.context():
+    async with DEFAULT_CONFIGURABLE_CONTAINER.context():
         resource = await consume()
         result = resource.value
         assert result == "abc"
 
+
+def test_container_contains():
+    assert len(DEFAULT_CONFIGURABLE_CONTAINER.get_definitions()) == 4
 
 def test_typical_usage_scenario():
     asyncio.run(server())

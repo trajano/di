@@ -15,7 +15,7 @@ Usage:
 from collections.abc import Callable
 from typing import TypeVar, overload
 
-from di_aio.default_container import default_container
+from di_aio.default_container import DEFAULT_CONFIGURABLE_CONTAINER
 from di_aio.protocols import ConfigurableContainer
 
 T = TypeVar("T")
@@ -32,7 +32,7 @@ def component(
 def component(
     cls: type[T] | None = None,
     *,
-    container: ConfigurableContainer = default_container,
+    container: ConfigurableContainer = DEFAULT_CONFIGURABLE_CONTAINER,
 ) -> type[T] | Callable[[type[T]], type[T]]:
     """Class decorator to register a component type with a container.
 

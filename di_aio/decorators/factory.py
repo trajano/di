@@ -16,7 +16,7 @@ Usage::
 from collections.abc import Callable
 from typing import Any, ParamSpec, TypeVar, overload
 
-from di_aio.default_container import default_container
+from di_aio.default_container import DEFAULT_CONFIGURABLE_CONTAINER
 from di_aio.enums import ComponentScope
 from di_aio.protocols import ConfigurableContainer
 
@@ -37,7 +37,7 @@ def factory(
 def factory(
     fn: Callable[P, T] | None = None,
     *,
-    container: ConfigurableContainer = default_container,
+    container: ConfigurableContainer = DEFAULT_CONFIGURABLE_CONTAINER,
     scope: ComponentScope = ComponentScope.CONTAINER,
 ) -> Callable[..., T] | Callable[[Callable[P, T]], Callable[..., T]]:
     """Class decorator to register a factory with a DI container.

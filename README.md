@@ -35,7 +35,7 @@ This is an example of how to register components using decorators and autowiring
 
 ```python
 import asyncio
-from di_aio import autowired, component, default_container
+from di_aio import autowired, component, DEFAULT_CONFIGURABLE_CONTAINER
 
 
 @component
@@ -44,6 +44,7 @@ class AsyncService:
         await asyncio.sleep(0.1)
         return "Fetched async result"
 
+
 @component
 class AsyncWorker:
     @autowired
@@ -51,10 +52,12 @@ class AsyncWorker:
         result = await async_service.fetch()
         print("Result:", result)
 
+
 async def service():
-    async with default_container.context() as context:
+    async with DEFAULT_CONFIGURABLE_CONTAINER.context() as context:
         worker = await context.get_instance(AsyncWorker)
         await worker.work()
+
 
 asyncio.run(service())
 ```

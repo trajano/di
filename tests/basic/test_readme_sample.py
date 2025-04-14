@@ -5,7 +5,7 @@ import pytest
 from di_aio import (
     autowired,
     component,
-    default_container,
+    DEFAULT_CONFIGURABLE_CONTAINER,
 )
 from di_aio.testing import reset_default_aio_context, reset_default_container
 
@@ -34,7 +34,7 @@ class AsyncWorker:
 
 
 async def service():
-    async with default_container.context() as context:
+    async with DEFAULT_CONFIGURABLE_CONTAINER.context() as context:
         worker = await context.get_instance(AsyncWorker)
         await worker.work()
 

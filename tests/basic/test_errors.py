@@ -7,7 +7,7 @@ import pytest
 from di_aio import (
     autowired,
     component,
-    default_container,
+    DEFAULT_CONFIGURABLE_CONTAINER,
 )
 from di_aio.decorators import autowired_with_context
 from di_aio.exceptions import ComponentNotFoundError
@@ -54,14 +54,14 @@ class SecondAsyncWorker(Worker):
 
 @pytest.mark.asyncio
 async def test_component_not_found():
-    async with default_container.context() as context:
+    async with DEFAULT_CONFIGURABLE_CONTAINER.context() as context:
         with pytest.raises(ComponentNotFoundError):
             await context.get_instance(str)
 
 
 @pytest.mark.asyncio
 async def test_more_than_one_optional():
-    async with default_container.context() as context:
+    async with DEFAULT_CONFIGURABLE_CONTAINER.context() as context:
         with pytest.raises(LookupError):
             await context.get_instance(Worker)
 
@@ -78,7 +78,7 @@ async def test_autowire_no_async():
 
 @pytest.mark.asyncio
 async def test_autowire_with_context_no_async():
-    async with default_container.context() as context:
+    async with DEFAULT_CONFIGURABLE_CONTAINER.context() as context:
         with pytest.raises(TypeError):
 
             @autowired_with_context(context=context)  # pyright: ignore[reportArgumentType]

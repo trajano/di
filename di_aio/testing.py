@@ -17,7 +17,7 @@ container is in a clean slate before testing:
 
 from .decorators import autowired_with_context
 from .default_aio_container_future import DEFAULT_CONTEXT_HOLDER
-from .default_container import default_container
+from .default_container import DEFAULT_CONFIGURABLE_CONTAINER
 
 
 def reset_default_container() -> None:
@@ -25,7 +25,7 @@ def reset_default_container() -> None:
 
     This should only be called for testing purposes.
     """
-    default_container.clear()
+    DEFAULT_CONFIGURABLE_CONTAINER.clear()
 
 
 def reset_default_aio_context() -> None:
