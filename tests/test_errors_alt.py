@@ -5,7 +5,7 @@ from typing import Protocol
 
 import pytest
 
-from di_aio._resolver.resolver import _maybe_optional_dependency
+from di_aio._resolver._util import maybe_optional_dependency
 from di_aio.alt import (
     ConfigurableAioContainer,
 )
@@ -67,7 +67,7 @@ async def test_more_than_one_optional():
 def test_maybe_optional_dependency():
     p = inspect.signature(bad_func).parameters.get("_foo")
     assert isinstance(p, inspect.Parameter)
-    assert _maybe_optional_dependency(p)
+    assert maybe_optional_dependency(p)
 
 
 @pytest.mark.asyncio

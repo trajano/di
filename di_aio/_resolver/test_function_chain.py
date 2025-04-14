@@ -8,13 +8,14 @@ from di_aio._convert_to_factory import (
     convert_async_def_to_factory,
     convert_component_type_to_factory,
 )
-from di_aio._resolver.resolver import (
-    extract_kwargs_from_type_constructor,
-    resolve_scope,
-)
-from di_aio._resolver.scope_filters import is_container_scope, is_function_scope
 from di_aio.enums import ComponentScope
 from di_aio.types import ComponentDefinition
+
+from ._util import extract_kwargs_from_type_constructor
+from .resolver import (
+    resolve_scope,
+)
+from .scope_filters import is_container_scope, is_function_scope
 
 
 class AsyncService:
