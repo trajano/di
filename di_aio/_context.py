@@ -1,14 +1,14 @@
 from collections.abc import Awaitable, Callable
 from contextlib import AbstractAsyncContextManager
 from types import TracebackType
-from typing import Any, ParamSpec, Self, TypeVar, overload
+from typing import Any, ParamSpec, Self, TypeVar
 
 from ._resolver import resolve_scope
 from ._resolver.scope_filters import is_container_scope
 from ._validator import validate_container_definitions
 from .enums import ContainerState
 from .exceptions import ComponentNotFoundError
-from .protocols import ConfigurableContainer, Context
+from .protocols import Context
 from .resolver import (
     resolve_callable_dependencies,
     resolve_satisfying_components,
@@ -22,34 +22,16 @@ T = TypeVar("T")
 class AioContext(AbstractAsyncContextManager, Context):
     """Async DI container that manages container-scoped components."""
 
-    @overload
-    def __init__(
-        self, *, definitions: list[ComponentDefinition[Any]]
-    ) -> None: ...  # pragma: no cover
-    @overload
-    def __init__(
-        self, *, container: ConfigurableContainer
-    ) -> None: ...  # pragma: no cover
-
     def __init__(
         self,
-        *,
-        definitions: list[ComponentDefinition[Any]] | None = None,
-        container: ConfigurableContainer | None = None,
+        definitions: list[ComponentDefinition[Any]],
     ) -> None:
         """Initialize the AioContext.
 
         :param definitions: Component definitions to register.
-        :param container: Container whose definitions will be used.
         :raises ValueError: If neither nor both arguments are passed.
         """
-        if container and not definitions:
-            self._definitions = container.get_definitions().copy()
-        elif definitions is not None and not container:
-            self._definitions = definitions.copy()
-        else:
-            msg = "Must be either definitions or container"  # pragma: no cover
-            raise ValueError(msg)  # pragma: no cover
+        self._definitions = definitions.copy()
         self._state = ContainerState.INITIALIZING
         self._container_scope_components: list[ResolvedComponent[Any]] = []
 
